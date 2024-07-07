@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <resources>
+  <style
+    name="AppTheme.EditorTabLayout"
+    parent="@style/AppTheme.BaseTabLayout">
+    <item name="tabMode">scrollable</item>
+    <item name="tabGravity">start</item>
+  </style>
+
+  <style
+    name="AppTheme.TabLayout"
+    parent="@style/AppTheme.BaseTabLayout">
+    <item name="tabMode">scrollable</item>
+    <item name="tabTextAppearance">@style/AppTheme.TabLayout.Title</item>
+    <item name="tabGravity">fill</item>
+  </style>
+
+  <style
+    name="AppTheme.BaseTabLayout"
+    parent="Widget.Material3.TabLayout">
+    <item name="tabIndicatorAnimationMode">linear</item>
+    <item name="tabIndicator">@drawable/tabs_line_indicator</item>
+    <item name="tabIndicatorFullWidth">true</item>
+    <item name="tabIndicatorGravity">bottom</item>
+    <item name="tabInlineLabel">true</item>
+    <item name="tabIndicatorHeight">2dp</item>
+  </style>
+
+  <style
+    name="AppTheme.TabLayout.Titlex"
+    parent="TextAppearance.Design.Tab">
+    <item name="textAllCaps">false</item>
+    <item name="android:textAllCaps">false</item>
+    <item name="android:fontFamily">@font/westudio_font</item>
+  </style>
+
+  <style
+    name="AppTheme.TabLayout.Title"
+    parent="@android:style/TextAppearance.Widget.TabWidget">
+    <item name="textAllCaps">false</item>
+    <item name="android:textAllCaps">false</item>
+    <item name="android:fontFamily">@font/westudio_font</item>
+  </style>
+
+  <style
+    name="AppTheme.SwitchPreference"
+    parent="Preference.SwitchPreference.Material">
+    <item name="android:widgetLayout">@layout/otg_mtrl_switch_layout</item>
+  </style>
+  <style
+    name="AppTheme.ShapeableImageView.ShapeAppearance"
+    parent="">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSize">@dimen/dimen25dp</item>
+  </style>
+  <style
+    name="AppTheme.MaterialAlertDialog"
+    parent="@style/ThemeOverlay.Material3.MaterialAlertDialog">
+    <item name="shapeAppearanceOverlay">@style/MaterialDialog.ShapeAppearance</item>
+  </style>
+  <style
+    name="MaterialDialog.ShapeAppearance"
+    parent="">
+    <item name="cornerSize">28dp</item>
+  </style>
+  <style name="ListScrollStyle">
+    <item name="android:scrollbarStyle">insideOverlay</item>
+    <item name="android:scrollbars">vertical</item>
+    <item name="android:clipToPadding">false</item>
+    <item name="android:divider">@null</item>
+  </style>
+
+  <style
+    name="LogListStyle"
+    parent="@style/ListScrollStyle">
+    <item name="android:paddingLeft">@dimen/log_recyclerview_left_padding</item>
+    <item name="android:paddingTop">@dimen/log_recyclerview_top_padding</item>
+    <item name="android:paddingRight">@dimen/log_recyclerview_right_padding</item>
+    <item name="android:paddingBottom">@dimen/log_recyclerview_bottom_padding</item>
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">match_parent</item>
+  </style>
+
+  <!-- Primary SideBar Navigation Rail-->
+  <style
+    name="AppTheme.PrimarySideBar.ActiveIndicator.Shape"
+    parent="AppTheme.PrimarySideBar.Item.ShapeAppearance" />
+
+  <style
+    name="AppTheme.PrimarySideBar.Item.ActiveIndicator"
+    parent="Widget.Material3.NavigationRailView.ActiveIndicator">
+    <item name="android:width">@dimen/primary_side_bar_item_active_indicator_width</item>
+    <item name="android:height">@dimen/primary_side_bar_item_active_indicator_height</item>
+    <item name="marginHorizontal">@dimen/primary_side_bar_item_active_indicator_margin_horizontal</item>
+    <item name="shapeAppearance">@style/AppTheme.PrimarySideBar.Item.ShapeAppearance</item>
+  </style>
+
+  <style
+    name="AppTheme.PrimarySideBar.Item.ShapeAppearance"
+    parent="">
+    <item name="cornerFamily">?attr/shapeCornerFamily</item>
+    <item name="cornerSize">8dp</item>
+  </style>
+
+  <style
+    name="AppTheme.PrimarySideBar"
+    parent="Widget.Material3.NavigationRailView">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">match_parent</item>
+    <item name="android:fitsSystemWindows">false</item>
+    <item name="labelVisibilityMode">unlabeled</item>
+    <item name="menuGravity">bottom</item>
+    <item name="itemMinHeight">@dimen/primary_sidebar_item_min_height</item>
+    <item name="itemIconSize">@dimen/primary_sidebar_icon_size</item>
+    <item name="android:minWidth">@dimen/primary_sidebar_navigation_rail_width</item>
+    <item name="itemActiveIndicatorStyle">@style/AppTheme.PrimarySideBar.Item.ActiveIndicator</item>
+    <item name="headerLayout">@layout/layout_primary_sidebar_header</item>
+  </style>
+  
+  <style name="AppTheme.AdAttribution">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_gravity">center</item>
+    <item name="android:gravity">center</item>
+    <item name="android:textColor">?colorOnPrimaryContainer</item>
+    <item name="android:textSize">10sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:text">@string/ad_attribution</item>
+    <item name="android:background">@drawable/ad_attribution</item>
+    <item name="android:width">20dp</item>
+    <item name="android:height">20dp</item>
+  </style>
+
+  <style
+    name="AppTheme.ShapeAppearance.AdIcon"
+    parent="">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSize">8dp</item>
+  </style>
+</resources>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/base_ripple"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/file_icon"
+        android:layout_width="@dimen/dimen24dp"
+        android:layout_height="@dimen/dimen24dp"
+        android:layout_centerVertical="true" />
+
+    <TextView
+        android:id="@+id/file_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/dimen5dp"
+        android:layout_marginRight="@dimen/dimen5dp"
+        android:layout_toEndOf="@id/file_icon"
+        android:layout_toRightOf="@id/file_icon"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        tools:text="WeStudio" />
+
+    <TextView
+        android:id="@+id/file_path"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/file_name"
+        android:layout_toRightOf="@id/file_icon"
+        android:textSize="11sp"
+        android:textStyle="italic"
+        tools:text=".../0/WeStudio" />
+
+</RelativeLayout>

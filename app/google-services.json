@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "348306233910",
+    "project_id": "codeops-studio",
+    "storage_bucket": "codeops-studio.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348306233910:android:77f935a5ee863349771697",
+        "android_client_info": {
+          "package_name": "com.eup.codeopsstudio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADz_UKfwu-zyrGE68kwGSkLwqaaxQYLv4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

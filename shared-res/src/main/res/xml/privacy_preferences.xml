@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:defaultValue="true"
+        app:iconSpaceReserved="false"
+        app:key="pref_share_stats"
+        app:title="@string/pref_share_stats_title"
+        app:summary="@string/pref_share_stats_summ" />
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_privacy_info_collection_title">
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_pkg_name"
+            app:title="@string/pkg_name" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_app_version_code"
+            app:title="@string/app_version_code" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_app_version_name"
+            app:title="@string/app_version_name" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/system">
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_device_model"
+            app:title="@string/device_model" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_sdk_version"
+            app:title="@string/sdk_version" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_build_id"
+            app:title="@string/build_id" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_release"
+            app:title="@string/release" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_board"
+            app:title="@string/board" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_brand"
+            app:title="@string/brand" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_cpu_arch"
+            app:title="@string/cpu_arch" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_country"
+            app:title="@string/country" />
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="pref_locale"
+            app:title="@string/locale" />
+    </PreferenceCategory>
+</androidx.preference.PreferenceScreen>

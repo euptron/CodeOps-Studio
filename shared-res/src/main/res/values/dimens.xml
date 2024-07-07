@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <resources>
+    <!-- Text -->
+    <dimen name="alertIconDimen">8dp</dimen>
+    <dimen name="dimen14sp">14sp</dimen>
+    <dimen name="dimen24dp">24dp</dimen>
+    <dimen name="dimen22dp">22dp</dimen>
+    <dimen name="dimen25dp">25dp</dimen>
+    <dimen name="dimen5dp">5dp</dimen>
+    <dimen name="dimen50dp">50dp</dimen>
+    <!-- Alpha dimensions for ripple overlays. -->
+    <dimen name="ripple_pressed_alpha">0.12</dimen>
+    <dimen name="ripple_focused_alpha">0.12</dimen>
+    <dimen name="ripple_hovered_alpha">0.08</dimen>
+    <dimen name="ripple_default_alpha">0.16</dimen>
+    <dimen name="ripple_selectable_pressed_alpha">0.12</dimen>
+    <!-- Change Log -->
+    <dimen name="alert_log_label_height">56dp</dimen>
+    <dimen name="alert_log_label_padding">8dp</dimen>
+    <!-- Log RecyclerView -->
+    <dimen name="log_recyclerview_left_padding">4dp</dimen>
+    <dimen name="log_recyclerview_right_padding">4dp</dimen>
+    <dimen name="log_recyclerview_top_padding">6dp</dimen>
+    <dimen name="log_recyclerview_bottom_padding">72dp</dimen>
+    <!-- Primary SideBar Navigation Rail -->
+    <dimen name="primary_sidebar_item_min_height">60dp</dimen>
+    <dimen name="primary_sidebar_icon_size">22dp</dimen>
+    <dimen name="primary_sidebar_navigation_rail_width">60dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_width">48dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_height">24dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_margin_horizontal">4dp</dimen>
+</resources>

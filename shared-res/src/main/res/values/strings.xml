@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string
+        name="app_name"
+        translatable="false">CodeOps Studio</string>
+    <string name="app_slogan">Code anywhere anytime</string>
+    <!-- Theme -->
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <!-- Crash Activity -->
+    <string name="close_app">Close app</string>
+    <string name="app_crashed">CodeOps Studio crashed.</string>
+    <!-- Dialogs -->
+    <string name="dialog_config_theme_title">Choose theme</string>
+    <string name="dialog_code_editor_tab_size">Tab size</string>
+    <!-- ShareLayout -->
+    <string name="sharelayout_actiontext">@string/share</string>
+    <string name="sharelayout_prompttext">Generating link please wait</string>
+    <string name="sharelayout_summarytext">Share this link with anyone passionate about mobile coding, and let them experience seamless coding on the go.</string>
+    <string name="sharelayout_titletext">Share CodeOps Studio</string>
+    <!-- Functions -->
+    <string name="retry">Retry</string>
+    <string name="released_on">Released on</string>
+    <string name="version">Version</string>
+    <string name="visit_website">Visit Website</string>
+    <string name="social_media_handles">Socials</string>
+    <string name="open_source_licences">Open Source Licences</string>
+    <string name="check_update">Check update</string>
+    <string name="documentation">Documentation</string>
+    <string name="successfully_imported">Successfully imported</string>
+    <string name="pkg_name">Package Name</string>
+    <string name="task">Task</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="app_version">App version</string>
+    <string name="app_version_code">Version code</string>
+    <string name="app_version_name">Version name</string>
+    <string name="installed_by">Installed by</string>
+    <string name="system">System</string>
+    <string name="execute">Execute</string>
+    <string name="undo">Undo</string>
+    <string name="relative_close_first">First</string>
+    <string name="relative_close_all">All</string>
+    <string name="untitled">Untitled</string>
+    <string name="share">Share</string>
+    <string name="sdk_version">SDK version</string>
+    <string name="about">About</string>
+    <string name="about_template">About template</string>
+    <string name="settings">Settings</string>
+    <string name="redo">Redo</string>
+    <string name="failed">Failed</string>
+    <string name="next">Next</string>
+    <string name="welcome">Welcome</string>
+    <string name="empty_editor">Empty Editor</string>
+    <string name="explorer">explorer</string>
+    <string name="build_output">Build Output</string>
+    <string name="ide_logs">IDE Logs</string>
+    <string name="terminal">Terminal</string>
+    <string name="offline">Offline</string>
+    <string name="locale">Locale</string>
+    <string name="format">Format</string>
+    <string name="search">Search</string>
+    <string name="exit">Exit</string>
+    <string name="device_model">Device Model</string>
+    <string name="android_version">Android Version</string>
+    <string name="build_id">Build ID</string>
+    <string name="release">Release</string>
+    <string name="board">Board</string>
+    <string name="stacktrace">Stacktrace</string>
+    <string name="brand">Brand</string>
+    <string name="country">Country</string>
+    <string name="cpu_arch">CPU Arch</string>
+    <string name="run">Run</string>
+    <string name="find">Find</string>
+    <string name="save">Save</string>
+    <string name="rename">Rename</string>
+    <string name="cancel">Cancel</string>
+    <string name="open_anyway">Open Anyway</string>
+    <string name="create">Create</string>
+    <string name="decline">Decline</string>
+    <string name="allow">Allow</string>
+    <string name="close">Close</string>
+    <string name="refresh">Refresh</string>
+    <string name="folder">Folder</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="ok">Ok</string>
+    <string name="reset">Reset</string>
+    <string name="file">File</string>
+    <string name="files">Files</string>
+    <string name="into">Into</string>
+    <string name="clone">Clone</string>
+    <string name="cloning_repo">Cloning repository</string>
+    <string name="cloning_into">Cloning into</string>
+    <string name="open_folder">Open folder</string>
+    <string name="copy_path">Copy path</string>
+    <string name="copy_url">Copy url</string>
+    <string name="delete">Delete</string>
+    <string name="previous">Previous</string>
+    <string name="create_project">Create Project</string>
+    <string name="create_folder">Create Folder</string>
+    <string name="create_file">Create File</string>
+    <string name="project_name">Project Name</string>
+    <string name="processing">Processing</string>
+    <string name="open_terminal">Open in integrated terminal</string>
+    <string name="new_folder">New folder</string>
+    <string name="templates">Templates</string>
+    <string name="source_control">Source control</string>
+    <string name="plugin">Plugin</string>
+    <string name="loading_template">Loading Template</string>
+    <string name="invalid_dir">Invalid directory</string>
+    <string name="confirm_delete">Confirm delete</string>
+    <string name="new_file">New file</string>
+    <string name="destination_path">Destination: %s</string>
+    <string name="diagnostics">Diagnostics</string>
+    <string name="repository_url">Repository URL</string>
+    <string name="build_actions">build actions</string>
+    <string name="open_file_tree">Swipe right for %s.</string>
+    <string name="open_build_actions">Swipe up for %s.</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="choose_template">Choose template</string>
+    <string name="no_folder_opened">No folder opened</string>
+    <string name="copy_relative_file_path">Copy relative file path</string>
+    <string name="copy_file_path">Copy file path</string>
+    <string name="no_folder_opened_prompt"> You have not yet opened a folder.</string>
+    <string name="no_folder_opened_aux_prompt">You can also create a new project from the in-built templates.</string>
+    <string name="build_actions_prompt">Swipe up for buid output, terminal and more.</string>
+    <string name="navigation_drawer_open">Open Navigation Drawer</string>
+    <string name="navigation_drawer_close">Close Navigation Drawer</string>
+    <!-- Menus -->
+    <string name="menu_copy_line">Copy line</string>
+    <string name="menu_cut_line">Cut line</string>
+    <string name="menu_delete_line">Delete line</string>
+    <string name="menu_replace_line">Replace line</string>
+    <string name="menu_duplicate_line">Duplicate line</string>
+    <string name="menu_convert_to_lowercase">Convert to lowercase</string>
+    <string name="menu_convert_to_uppercase">Convert to uppercase</string>
+    <string name="menu_find_in_file">Find in file editor</string>
+    <string name="menu_read_only_mode">Read-only mode</string>
+    <string name="menu_jump_to_line">Jump to line</string>
+    <string name="menu_zoom">Zoom</string>
+    <string name="menu_refresh_preview">Refresh preview</string>
+    <string name="menu_open_in_browser">Open in browser</string>
+    <string name="menu_console">Console</string>
+    <string name="menu_desktop_mode">Desktop mode</string>
+    <string name="menu_preferences">@string/settings</string>
+    <string name="menu_reset_color_schemes">Reset color schemes</string>
+    <!-- Storage Permission -->
+    <string name="storage_permission_continue">Continue</string>
+    <string name="storage_permission_cancel">@string/cancel</string>
+    <string name="storage_permission_denied">Storage permission denied!</string>
+    <string name="storage_permission_request_again">@string/request_again</string>
+    <string name="storage_permission_denial_prompt">This application needs storage premission to save files and projects that wouldn\'t be deleted when you uninstall the app.</string>
+    <string name="delete_file_title">@string/delete</string>
+    <string name="delete_file_message">Do you want to delete\n `%s?`</string>
+    <string name="delete_folder_message">Do you want to delete\n `%s` and it\'s contents?</string>
+    <!-- Projects -->
+    <string name="close_project">Close Project</string>
+    <string name="close_project_title">@string/close_project</string>
+    <string name="close_project_message">Do you want this project? All opened editors will be closed while closing this project.</string>
+    <!-- Alerts, prompts & messages -->
+    <string name="alrt_unsupported_txt_encoding">The file is not displayed in the text editor because it is either binary, or uses an unsupported text encoding</string>
+    <string name="alrt_text_parsing_error">An error occurred when reading file</string>
+    <string name="alrt_check_is_binary_file">An error occurred while checking if file contains binary data</string>
+    <string name="alrt_cannot_go_back">Can\'t go back</string>
+    <string name="alrt_cannot_go_forward">Can\'t go forward</string>
+    <string name="alrt_rom_cannot_edit_editor">The current editor cannot be edited...Turn of Read-only mode if it\'s enabled</string>
+    <string name="prompt_new_name">New name</string>
+    <string name="prompt_file_name">File name</string>
+    <string name="prompt_folder_name">Folder name</string>
+    <string name="request_again">Request again</string>
+    <string name="unarchiving_file">Unarchiving file</string>
+    <string name="prompt_contains_slashes">"If the path contains File separator ('/'), then the required (parent) directories will be created if they don't exist."</string>
+    <!-- Pane Tabs -->
+    <string name="pane_close">Close this</string>
+    <string name="pane_close_others">Close others</string>
+    <string name="pane_close_all">Close all</string>
+    <string name="pane_close_right">Close to the right</string>
+    <string name="pane_close_left">Close to the left</string>
+    <string name="pane_pin">Pin</string>
+    <string name="pane_unpin">Unpin</string>
+    <!-- Project selection -->
+    <string name="choose_project">Choose a project</string>
+    <string name="web_development">Web development</string>
+    <string name="new_project_placeholder">My New Project</string>
+    <string name="save_location">Save Location</string>
+    <string name="project_loading_template">@string/loading_template</string>
+    <string name="sample_writeable_directory">/storage/emulated/0/CodeOps Studio</string>
+    <string name="create_project_template_title">@string/templates</string>
+    <string name="cp_error_project_name_empty">Project name cannot be empty.</string>
+    <string name="cp_path_exceeds">Storage path exceeds 240 charaters</string>
+    <string name="cp_file_not_writable">Directory is not writable, select another location</string>
+    <string name="cp_error_project_name_illegal">Project Name cannot contain illegal characters.</string>
+    <!-- Plurals -->
+    <plurals name="search_matches">
+        <item quantity="one">Match</item>
+        <item quantity="other">Matches</item>
+    </plurals>
+    <!-- Pane -->
+    <string name="new_project">New project</string>
+    <string name="recent_project">Recent project</string>
+    <string name="recent_projects_empty">No Project Found</string>
+    <string name="recent_projects_empty_suggestions">To get started:\n\n  - Create New Project\n  - Open a folder\n - Open a file</string>
+    <string name="remove">Remove</string>
+    <string name="check_history">Check History</string>
+    <string name="start">Start</string>
+    <string name="live_server">Live server</string>
+    <string name="webview_pane_title">Live-Preview</string>
+    <string name="open_file">Open file</string>
+    <string name="clone_git_repo">Clone git repository</string>
+    <string name="show_welcome_pane">Display welcome pane on startup</string>
+    <string name="share_app_info">Discover CodeOps Studio – the fast, secure, and multifunctional code editor/IDE for Android that I use to develop software packages. Experience seamless coding on the go. Download it here: %1$s</string>
+    <!-- Logs -->
+    <string name="warn">[WARNING]</string>
+    <string name="unzipping">Unzipping</string>
+    <string name="initialilizing">Initialilizing</string>
+    <string name="cause">cause</string>
+    <string name="info">[INFO]</string>
+    <string name="debug">[DEBUG]</string>
+    <string name="error">[ERROR]</string>
+    <string name="clear_log">Clear logs</string>
+    <string name="failed_to_delete_file">Unable to delete file</string>
+    <string name="delete_folder_success">Folder[%s] Deleted successfully</string>
+    <string name="create_file_success">File[%s] created successfully</string>
+    <string name="create_folder_success">Folder[%s] created successfully</string>
+    <string name="rename_folder_success">Folder[%s] renamed successfully</string>
+    <string name="failed_to_delete_folder">Unable to delete folder</string>
+    <string name="failed_to_rename_file">Unable to rename file</string>
+    <string name="failed_to_rename_folder">Unable to rename folder</string>
+    <string name="failed_to_create_file">Unable to create file</string>
+    <string name="failed_to_create_folder">Unable to create folder</string>
+    <string name="failed_to_populate_file_tree">Failed to populate file tree</string>
+    <string name="populating_filetree_path">Populating filetree with storagePath</string>
+    <string name="failed_populating_filetree_path">Failed to populate filetree with storagePath</string>
+    <string name="refreshed_filetree">Refreshed file tree</string>
+    <string name="initializing">Initializing</string>
+    <string name="project_creation_fail">Failed to create project</string>
+    <string name="folder_selection_success">Folder selected successful</string>
+    <string name="folder_selection_error">Failed to select folder</string>
+    <string name="checking_templates">Validating templates</string>
+    <string name="templates_are_valid">Validation complete: Templates are up to date</string>
+    <string name="failed_retrieving_templates">Failed retrieving templates</string>
+    <string name="action_clear_logs">Action: Cleared logs</string>
+    <string name="action_clear_build_outputs">Action: Cleared build outputs</string>
+    <string name="act_code_editor_pane_open_file">Opening file in pane: %1$s file: %2$s</string>
+    <string name="import_zip">Import ZIP</string>
+    <string name="zip">ZIP</string>
+    <string name="Importing_zip">Importing zip file</string>
+    <string name="prompt_remove_from_recent">Do you want to remove %s from recent?</string>
+    <string name="history">History</string>
+    <string name="drag_up_for_logs">Drag up for logs</string>
+    <!-- Message and prompt -->
+    <string name="msg_folder_exists">Folder already exists</string>
+    <string name="msg_unsupported_sdk_dynamic_colors">Material you is usually only available for android devices 12 and above</string>
+    <string name="msg_recent_project_history">Date of creation: %1$s\n Action: %2$s</string>
+    <string name="msg_dir_not_exist">Save location does not exist</string>
+    <string name="msg_dir_does_exist">Save location already exist</string>
+    <string name="msg_invalid_templates">Invalid templates detected; Fixing templates</string>
+    <string name="msg_selected_file_not_valid_type">Selected file is not a %s file</string>
+    <string name="msg_deleting_action">Deleting %s</string>
+    <string name="msg_failed_creating_destination_dir">Failed to create destination directory</string>
+    <string name="msg_creating_destination_dir">Creating destination directory</string>
+    <string name="msg_repo_dir_already_exists">Save location for repository already exists</string>
+    <string name="msg_confirm_delete">Are you sure you want to delete: %s?</string>
+    <string name="msg_rename">Enter new name for %s.</string>
+    <string name="msg_clone_failed">Clone failed</string>
+    <string name="msg_out_of_memory">Out of memory</string>
+    <string name="msg_unzip_project_into_dir_based_on_project_name">If the project name is empty the file would be unzipped into the selected directory otherwise a directory based on the project name would be created for which the file would ne unzipped into.</string>
+    <string name="msg_invalid_remote">Invalid remote</string>
+    <string name="msg_repo_cloned_successfully">Repository cloned successfully to</string>
+    <string name="msg_failed_to_clone_git_repo">Failed to clone git repository</string>
+    <string name="msg_get_latest_update">Get the latest news and updates</string>
+    <string name="msg_subscribe_socials">Subscribe to our social media handles</string>
+    <string name="msg_view_open_source_libs">View the open sourced libraries we used</string>
+    <string name="msg_get_latest_release">Check for the latest release of CodeOps Studio</string>
+    <string name="msg_see_doc">See the documentation on how to use CodeOps Studio</string>
+    <string name="msg_wait_till_complete">please wait until %s is completed</string>
+    <string name="msg_build_output">Build Outputs would appear here</string>
+    <string name="msg_console_welcome">Welcome to CodeOps Studio Console</string>
+    <string name="msg_ide_logs">IDE Logs would appear here</string>
+    <string name="msg_checking_plugins">Checking plugins</string>
+    <string name="msg_js_plugin_absent">Js console plugin for web is not installed</string>
+    <string name="msg_installing_js_console_plugins">Installing js console plugin</string>
+    <string name="msg_invalid_jump_line">Line to jump to is out of range</string>
+    <string name="msg_crash_report">Crash Report</string>
+    <string name="msg_restart_app">Restart CodeOps Studio</string>
+    <string name="msg_app_crashed">Apologies for the inconvenience.\n\n The app has encountered an unexpected error and needs to close.\n Please restart the app to continue your session.\n A detailed crash report will be automatically sent for review.\n Thank you for your patience and understanding.</string>
+    <!-- @Tabs -->
+    <string name="pref_editor_tab_category_title">Tabs</string>
+    <string name="pref_editor_code_editor_title_auto_save">Auto save</string>
+    <string name="pref_editor_code_editor_summ_auto_save">Automatically save editors with unsaved changes</string>
+    <!-- Connectivity -->
+    <string name="offline_title">Your device is offline</string>
+    <string name="offline_summary">To see the release notes, connect to the internet the logs would be synced to your device afterwards.</string>
+    <string name="sync_change_log_title">Synchronising data</string>
+    <string name="sync_change_log_summ">This should not take up to 3 seconds</string>
+    <string name="failed_sync_change_log_title">An error occured</string>
+    <string name="failed_sync_change_log_summ">An error occured while synchronising release notes</string>
+    <!-- Non-Printable painting flags (nppf) -->
+    <string name="flag_leading">Leading</string>
+    <string name="flag_trailing">Trailing</string>
+    <string name="flag_inner">Inner</string>
+    <string name="flag_empty_line">Empty lines</string>
+    <string name="flag_line_breaks">Line breaks</string>
+    <!-- Font types -->
+    <string name="font_notosans">Noto Sans</string>
+    <string name="font_source_code_pro">Source Code Pro</string>
+    <string name="font_inconsolata_regular">Inconsolata</string>
+    <string name="font_firacode">Fira Code Regular</string>
+    <string name="font_jetbrains_mono_regular">JetBrains Mono Regular</string>
+    <!-- Search panel -->
+    <string name="replace">Replace</string>
+    <string name="replaceAll">Replace All</string>
+    <string name="replacement">Replacement</string>
+    <string name="search_menu_title">Search</string>
+    <string name="search_option_match_case">Match Case</string>
+    <string name="search_option_regex">Regex</string>
+    <string name="search_option_whole_word">Whole Word</string>
+    <string name="search_text">Search Text</string>
+    <string name="text_to_search">Text to search</string>
+    <string name="edit">Edit</string>
+    <string name="more">More</string>
+    <string name="last">Last</string>
+    <string name="switch_color_scheme">Switch color scheme</string>
+    <string name="switch_language_mode">Switch language</string>
+    <string name="of">of</string>
+    <string name="selected">Selected</string>
+    <string name="replace_in_file">Replace in file</string>
+    <string name="no_search_match">No results</string>
+    <!-- Preferences -->
+    <string name="activity_pref_title">@string/settings</string>
+    <!-- @categories -->
+    <string name="pref_category_config_title">Configure</string>
+    <string name="pref_category_editor_title">Editor</string>
+    <string name="pref_category_privacy_title">Privacy</string>
+    <string name="pref_category_about_title">About</string>
+    <!-- .general -->
+    <string name="pref_general_config_title">General</string>
+    <string name="pref_general_config_summ">General IDE configuration</string>
+    <!-- .editor -->
+    <string name="pref_editor_config_title">Editor</string>
+    <string name="pref_editor_config_summ">Configure the editor</string>
+    <!-- .privacy -->
+    <string name="pref_privacy_title">CodeOps Studio Statistics</string>
+    <string name="pref_privacy_summ">Statistics and metrics consent</string>
+    <!-- .change-log -->
+    <string name="pref_changelog_title">Release Notes</string>
+    <string name="pref_changelog_summ">View all updates made to CodeOps Studio</string>
+    <!-- .about -->
+    <string name="pref_about_title">@string/about</string>
+    <string name="pref_about_summ">More about CodeOps Studio.</string>
+    <!-- @privacy -->
+    <string name="pref_share_stats_title">Share usage Statistics and Metrics</string>
+    <string name="pref_share_stats_summ">Automatically send anonymous metrics and CodeOps Studio usage statistics.</string>
+    <string name="pref_privacy_info_collection_title">Application</string>
+    <string name="pref_privacy_title_package_name">Package Name</string>
+    <string name="pref_privacy_title_app_version">App Version</string>
+    <string name="pref_privacy_title_installer">Installed by</string>
+    <string name="pref_privacy_title_locale">@string/locale</string>
+    <string name="pref_privacy_title_device_model">Device Model</string>
+    <string name="pref_privacy_title_android_version">Android Version</string>
+    <string name="pref_privacy_title_build_id">Build ID</string>
+    <string name="pref_privacy_title_release">Release</string>
+    <string name="pref_privacy_title_board">Board</string>
+    <string name="pref_privacy_title_brand">Brand</string>
+    <string name="pref_privacy_title_cpu_arch">CPU Arch</string>
+    <string name="pref_privacy_title_country">Country</string>
+    <!-- @file -->
+    <string name="pref_editor_file_category_title">File</string>
+    <string name="pref_editor_file_title_default_file_encoding">Default file encoding</string>
+    <string name="pref_editor_file_summ_default_file_encoding">Sets a default file encoding to be used when saving files.</string>
+    <string name="pref_editor_file_title_default_file_encoding_dialog_title">Set default file encoding</string>
+    <!-- @editor -->
+    <string name="pref_editor_code_editor_category_title">Code editor</string>
+    <string name="pref_editor_code_editor_title_font_size">Font size</string>
+    <string name="pref_editor_code_editor_summ_font_size">Controls the font size of the editor</string>
+    <string name="pref_editor_code_editor_title_font">Editor font</string>
+    <string name="pref_editor_code_editor_summ_font">Choose a font for the editor.</string>
+    <string name="pref_editor_code_editor_title_npc">Non-Printable painting flags</string>
+    <string name="pref_editor_code_editor_summ_npc">Controls what non-printable painting flags should be drawn by the editor.</string>
+    <string name="pref_editor_code_editor_title_tab_size">Tab size</string>
+    <string name="pref_editor_code_editor_summ_tab_size">The number of spaces a tab is equal to.</string>
+    <string name="pref_editor_code_editor_title_font_ligatures">Font ligatures</string>
+    <string name="pref_editor_code_editor_summ_font_ligatures">Enable or disable font ligatures.</string>
+    <string name="pref_editor_code_editor_title_word_wrap">Word wrap</string>
+    <string name="pref_editor_code_editor_summ_word_wrap">Enable or disable word wrap.</string>
+    <string name="pref_editor_code_editor_title_tab_indent">Use soft tabs</string>
+    <string name="pref_editor_code_editor_summ_tab_indent">Controls whether TAB(\\t) should be used instead of spaces for indentation.</string>
+    <string name="pref_editor_code_editor_title_icu_lib">ICU library</string>
+    <string name="pref_editor_code_editor_summ_icu_lib">Use ICU library to retrieve word edges for double-tap and long-press word selection.</string>
+    <string name="pref_editor_code_editor_title_pin_line_number">Pin line number</string>
+    <string name="pref_editor_code_editor_summ_pin_line_number">Controls whether the line number should be visible on scroll events.</string>
+    <string name="pref_editor_code_editor_title_line_height">Line Height</string>
+    <string name="pref_editor_code_editor_summ_line_height">Controls the height size of the editor line.</string>
+    <string name="pref_editor_code_editor_panels_category_title">Panels</string>
+    <string name="pref_editor_code_editor_panels_navigation_title">Breadcrumbs Panel</string>
+    <string name="pref_editor_code_editor_tabs_close_unpinned_project_panes_title">Close unpinned project panes</string>
+    <string name="pref_editor_code_editor_tabs_close_unpinned_project_panes_summ">Remove all unpinned panes when closing a project.</string>
+    <string name="pref_editor_code_editor_panels_navigation_summ">Hide or display the breadcrumbs panel.</string>
+    <string name="pref_editor_code_editor_panels_si_panel_title">Symbol input panel</string>
+    <string name="pref_editor_code_editor_panels_si_panel_summ">Hide or display the symbol input panel.</string>
+    <string name="pref_editor_code_editor_panels_function_title">Function panel</string>
+    <string name="pref_editor_code_editor_panels_function_summ">Hide or display the function panel.</string>
+    <string name="pref_editor_code_editor_title_use_magnifier">Magnifier</string>
+    <string name="pref_editor_code_editor_summ_use_magnifier">Magnify text while selecting text in the editor.</string>
+    <string name="pref_editor_code_editor_title_sticky_scroll">Sticky scroll</string>
+    <string name="pref_editor_code_editor_summ_sticky_scroll">Show the nested current scopes during the scroll at the top of the editor.</string>
+    <string name="pref_editor_code_editor_title_auto_close_bracket">Auto closing brackets</string>
+    <string name="pref_editor_code_editor_title_relative_close_depth">Relative Close depth</string>
+    <string name="pref_editor_code_editor_summ_relative_close_depth">Choose the number of editors to close when closing to a relative position</string>
+    <string name="pref_editor_code_editor_summ_auto_close_bracket">Controls whether the editor should automatically close brackets after the user adds an opening bracket.</string>
+    <string name="pref_editor_code_editor_title_scrollbar">Scroll bar</string>
+    <string name="pref_editor_code_editor_summ_scrollbar">Controls the visibility of the horizontal and vertical scroll bars.</string>
+    <string name="pref_editor_code_editor_title_hardware_acc">HardWare acceleration</string>
+    <string name="pref_editor_code_editor_summ_hardware_acc">Speed up editor rendering \n Enabling would this may result in an increase in memory usage.</string>
+    <string name="pref_editor_code_editor_title_line_num">Line numbers</string>
+    <string name="pref_editor_code_editor_summ_line_num">Controls the display of line number in the editor.</string>
+    <string name="pref_editor_code_editor_title_del_empty_ln_bakspce">Delete empty lines on backspace</string>
+    <string name="pref_editor_code_editor_summ_del_empty_ln_bakspce">Controls whether empty lines should be deleted when backspace key is pressed.</string>
+    <string name="pref_editor_code_editor_title_del_tab_bakspce">Delete tab on backspace</string>
+    <string name="pref_editor_code_editor_summ_del_tab_bakspce">Controls whether the editor should delete  spaces equal to tab width when backspace key is pressed.</string>
+    <string name="pref_editor_code_editor_title_cursor_blnk_period">Cursor blink duration</string>
+    <string name="pref_editor_code_editor_summ_cursor_blnk_period">Controls the duration at which the cursor would blink.</string>
+    <string name="pref_editor_code_editor_summ_cursor_blnk_dialog_title">Enter duration</string>
+    <string name="pref_editor_code_editor_summ_cursor_blnk_dialog_msg">Enter editor cursor blink duration in milliseconds.\n If blink period is equal to or less than zero the cusror would always be shown.</string>
+    <string name="pref_editor_code_editor_title_animate_auto_complt_window">Animate completion window</string>
+    <string name="pref_editor_code_editor_summ_animate_auto_complt_window">Controls whether the completion should be animated or not.</string>
+    <string name="pref_editor_code_editor_title_highlight_brckt">Highlight brackets</string>
+    <string name="pref_editor_code_editor_summ_highlight_brckt">Controls whether the brackets at cursor position should be highlighted or not.</string>
+    <string name="pref_editor_code_editor_title_auto_complete">Auto-Complete</string>
+    <string name="pref_editor_code_editor_summ_auto_complete">Controls whether the editor should create a panel to show suggestions at cursor position or not.</string>
+    <!-- @general -->
+    <string name="pref_general_config_interface_title">Interface</string>
+    <string name="pref_general_config_list_preference_title">Theme</string>
+    <string name="pref_general_config_sync_theme_with_title">Material you</string>
+    <string name="pref_general_config_sync_theme_with_summ">If enabled app theme would sync with that of your device operating system</string>
+    <string name="pref_general_conifg_project_title">Project configuration</string>
+    <string name="pref_general_config_lastproject_switch_pref_title">Open last project</string>
+    <string name="pref_general_config_lastproject_switch_pref_summ">Reopens last project on next startup</string>
+    <string name="pref_general_config_workbench">Workbench</string>
+    <string name="pref_general_config_startup_editor">Startup pane</string>
+    <string name="pref_general_config_display_welcome_pane">@string/show_welcome_pane</string>
+    <!-- Content descriptions. -->
+    <string name="act_sheet_extended_fab_content_desc" translatable="false">Extended FAB</string>
+    <!-- Code Editor -->
+    <string name="editor_clip_text_length_too_large">Text is too large to copy</string>
+    <string name="editor_select_convert_text_first">Please select the text to be converted first</string>
+    <!-- Debugging -->
+    <string name="app_memory_usage" translatable="false">used: <xliff:g example="1MB" id="numerator">%1$s</xliff:g> / <xliff:g example="10MB" id="denominator">%2$s</xliff:g> (<xliff:g example="10" id="percentage">%3$d</xliff:g>%%)</string>
+    <!-- Ad -->
+    <string name="ad_privacy_settings">Ad privacy settings</string>
+    <string name="ad_attribution" translatable="false">Ad</string>
+</resources>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <resources>
+    <!-- Array for theme selection -->
+    <string-array name="theme">
+        <item>@string/theme_auto</item>
+        <item>@string/theme_light</item>
+        <item>@string/theme_dark</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>3</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <!-- Array for non-printable painting flags -->
+    <string-array name="code_editor_tab_npc_flag">
+        <item>@string/flag_inner</item>
+        <item>@string/flag_leading</item>
+        <item>@string/flag_trailing</item>
+        <item>@string/flag_empty_line</item>
+        <item>@string/flag_line_breaks</item>
+    </string-array>
+    <string-array name="code_editor_tab_npc_flag_value">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+    <string-array name="code_editor_line_height_value">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <!-- Array for code editor font size -->
+    <string-array name="code_editor_default_fonts">
+        <item>@string/font_notosans</item>
+        <item>@string/font_inconsolata_regular</item>
+        <item>@string/font_source_code_pro</item>
+        <item>@string/font_firacode</item>
+        <item>@string/font_jetbrains_mono_regular</item>
+    </string-array>
+    <string-array name="code_editor_default_fonts_values">
+        <item>notosans_regular</item>
+        <item>inconsolata_regular</item>
+        <item>sourcecodepro_regular</item>
+        <item>firacode_regular</item>
+        <item>jetbrains_mono_regular</item>
+    </string-array>
+    <!-- Social Handles -->
+    <string-array name="social_handles">
+        <item>Telegram</item>
+        <item>X</item>
+    </string-array>
+    <string-array name="social_handles_index">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <!-- Relative close -->
+    <string-array name="relative_close">
+        <item>@string/relative_close_first</item>
+        <item>@string/relative_close_all</item>
+    </string-array>
+</resources>

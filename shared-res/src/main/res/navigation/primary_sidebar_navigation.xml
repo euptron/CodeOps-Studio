@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/primary_sidebar_navigation"
+    app:startDestination="@+id/nav_treeviewFragment">
+
+    <fragment
+        android:id="@+id/nav_treeviewFragment"
+        android:name="com.eup.codeopsstudio.ui.explore.TreeViewFragment"
+        android:label="TreeViewFragment"
+        tools:layout="@layout/fragment_treeview" />
+    <!-- Implement Plugins & Version source control -->
+    <fragment
+        android:id="@+id/nav_vscFragment"
+        android:name="com.eup.codeopsstudio.ui.explore.Vscfragment"
+        android:label="Vscfragment"
+        tools:layout="@layout/fragment_vsc" />
+    <fragment
+        android:id="@+id/nav_pluginFragment"
+        android:name="com.eup.codeopsstudio.ui.explore.PluginFragment"
+        android:label="PluginFragment"
+        tools:layout="@layout/fragment_plugin" />
+</navigation>

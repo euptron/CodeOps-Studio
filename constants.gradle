@@ -1,0 +1,79 @@
+/*************************************************************************
+ * This file is part of CodeOps Studio.
+ * CodeOps Studio - code anywhere anytime
+ * https://github.com/etidoUP/CodeOps-Studio
+ * Copyright (C) 2024 EUP
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see https://www.gnu.org/licenses/
+ *
+ * If you have more questions, feel free to message EUP if you have any
+ * questions or need additional information. Email: etido.up@gmail.com
+ *************************************************************************/
+ 
+project.ext {
+    // Android versions
+    compileSdkVersion = 34
+    buildToolsVersion = '34.0.0'
+    targetSdkVersion = 34
+    minSdkVersion = 26
+    
+    // App Constants
+    appNameSpace = "com.eup.codeopsstudio"
+    applicationId = "com.eup.codeopsstudio"
+    appVersionCode = 1
+    appVersionName = "1.0.0" // X.Y.Z; X = Major, Y = minor, Z = Patch level
+    
+    javaSourceVersion = JavaVersion.VERSION_17
+    javaTargetVersion = JavaVersion.VERSION_17
+    
+    androidx  = [
+      appcompat: 'androidx.appcompat:appcompat:1.7.0',
+      constraintlayout: 'androidx.constraintlayout:constraintlayout:2.1.4',
+      navigation_fragment: 'androidx.navigation:navigation-fragment:2.7.7',
+      navigation_ui: 'androidx.navigation:navigation-ui:2.7.7',
+      preference: 'androidx.preference:preference:1.2.1',
+      swiperefreshlayout: 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01',
+      splashscreen: 'androidx.core:core-splashscreen:1.0.0'
+    ]
+    
+    google  = [
+      material: 'com.google.android.material:material:1.12.0',
+      guava: 'com.google.guava:guava:33.2.0-android',
+      gson:  'com.google.code.gson:gson:2.10',
+      licenses: 'com.google.android.gms:play-services-oss-licenses:17.0.1',
+      user_messaging_platform: 'com.google.android.ump:user-messaging-platform:2.1.0',
+      firebase_bom: 'com.google.firebase:firebase-bom:33.1.0',
+      firebase_analytics: 'com.google.firebase:firebase-analytics',
+      firebase_crashlytics: 'com.google.firebase:firebase-crashlytics'
+    ]
+    
+    other = [
+      commons: 'commons-io:commons-io:2.11.0',
+      zip4j: 'net.lingala.zip4j:zip4j:2.11.1',
+      utilcodex: 'com.blankj:utilcodex:1.31.1',
+      glide: 'com.github.bumptech.glide:glide:4.12.0',
+      volley: 'com.android.volley:volley:1.2.1',
+      jsoup: 'org.jsoup:jsoup:1.15.3',
+      juniversalchardet: 'com.github.albfernandez:juniversalchardet:2.4.0',
+      jgit: 'org.eclipse.jgit:org.eclipse.jgit:3.7.1.201504261725-r',
+      eventbus: 'org.greenrobot:eventbus:3.3.1',
+      commonmark: 'org.commonmark:commonmark:0.20.0',
+      // customise and use for JavaScript plugin interface
+      // currently removed from v0.0.1
+      rhino_android: 'io.apisense:rhino-android:1.0',
+      nanohttpd: 'org.nanohttpd:nanohttpd:2.3.1',
+      desugar: 'com.android.tools:desugar_jdk_libs:2.0.4',
+      leakcanary_android: 'com.squareup.leakcanary:leakcanary-android:2.14'
+    ]
+}

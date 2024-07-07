@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_editor_file_category_title">
+        <com.eup.codeopsstudio.ui.custom.preference.DefaultFileEncodingDialogPreference
+            android:key="pref_editor_default_file_encoding"
+            android:defaultValue="UTF-8"
+            android:title="@string/pref_editor_file_title_default_file_encoding"
+            android:summary="@string/pref_editor_file_summ_default_file_encoding"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_editor_code_editor_category_title">
+        <com.eup.codeopsstudio.ui.custom.preference.FontSeekBarDialogPreference
+            app:iconSpaceReserved="false"
+            android:defaultValue="14.0f"
+            app:key="pref_code_editor_font_size"
+            app:title="@string/pref_editor_code_editor_title_font_size"
+            app:summary="@string/pref_editor_code_editor_summ_font_size" />
+        <ListPreference
+            android:defaultValue="jetbrains_mono_regular"
+            android:dialogTitle="@string/pref_editor_code_editor_title_font"
+            android:entries="@array/code_editor_default_fonts"
+            android:entryValues="@array/code_editor_default_fonts_values"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_font"
+            app:title="@string/pref_editor_code_editor_title_font"
+            app:summary="@string/pref_editor_code_editor_summ_font" />
+        <ListPreference
+            android:defaultValue="2"
+            android:dialogTitle="@string/pref_editor_code_editor_title_line_height"
+            android:entries="@array/code_editor_line_height_value"
+            android:entryValues="@array/code_editor_line_height_value"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_line_height"
+            app:title="@string/pref_editor_code_editor_title_line_height"
+            app:summary="@string/pref_editor_code_editor_summ_line_height" />
+        <MultiSelectListPreference
+            app:key="pref_code_editor_npc"
+            android:dialogTitle="@string/pref_editor_code_editor_title_npc"
+            android:entries="@array/code_editor_tab_npc_flag"
+            android:entryValues="@array/code_editor_tab_npc_flag_value"
+            app:iconSpaceReserved="false"
+            app:title="@string/pref_editor_code_editor_title_npc"
+            app:summary="@string/pref_editor_code_editor_summ_npc" />
+        <com.eup.codeopsstudio.ui.custom.preference.TabSizeSeekBarDialogPreference
+            app:iconSpaceReserved="false"
+            android:defaultValue="4"
+            app:key="pref_code_editor_tab_size"
+            app:title="@string/pref_editor_code_editor_title_tab_size"
+            app:summary="@string/pref_editor_code_editor_summ_tab_size" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_font_liagtures"
+            app:title="@string/pref_editor_code_editor_title_font_ligatures"
+            app:summary="@string/pref_editor_code_editor_summ_font_ligatures" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_word_wrap"
+            app:title="@string/pref_editor_code_editor_title_word_wrap"
+            app:summary="@string/pref_editor_code_editor_summ_word_wrap" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_tab_indent"
+            app:title="@string/pref_editor_code_editor_title_tab_indent"
+            app:summary="@string/pref_editor_code_editor_summ_tab_indent" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_icu"
+            app:title="@string/pref_editor_code_editor_title_icu_lib"
+            app:summary="@string/pref_editor_code_editor_summ_icu_lib" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_pin_line_numbers"
+            app:title="@string/pref_editor_code_editor_title_pin_line_number"
+            app:summary="@string/pref_editor_code_editor_summ_pin_line_number" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_use_magnifier"
+            app:title="@string/pref_editor_code_editor_title_use_magnifier"
+            app:summary="@string/pref_editor_code_editor_summ_use_magnifier" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_sticky_scroll"
+            app:title="@string/pref_editor_code_editor_title_sticky_scroll"
+            app:summary="@string/pref_editor_code_editor_summ_sticky_scroll" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_auto_close_bracket"
+            app:title="@string/pref_editor_code_editor_title_auto_close_bracket"
+            app:summary="@string/pref_editor_code_editor_summ_auto_close_bracket" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_scroll_bar"
+            app:title="@string/pref_editor_code_editor_title_scrollbar"
+            app:summary="@string/pref_editor_code_editor_summ_scrollbar" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_hardware_accleration"
+            app:title="@string/pref_editor_code_editor_title_hardware_acc"
+            app:summary="@string/pref_editor_code_editor_summ_hardware_acc" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_line_numbers"
+            app:title="@string/pref_editor_code_editor_title_line_num"
+            app:summary="@string/pref_editor_code_editor_summ_line_num" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_delete_empty_line_bck_key_event"
+            app:title="@string/pref_editor_code_editor_title_del_empty_ln_bakspce"
+            app:summary="@string/pref_editor_code_editor_summ_del_empty_ln_bakspce" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_delete_tab_bck_key_event"
+            app:title="@string/pref_editor_code_editor_title_del_tab_bakspce"
+            app:summary="@string/pref_editor_code_editor_summ_del_tab_bakspce" />
+        <com.eup.codeopsstudio.ui.custom.preference.DialogEditTextPreference
+            app:iconSpaceReserved="false"
+            android:defaultValue="500"
+            android:title="@string/pref_editor_code_editor_title_cursor_blnk_period"
+            android:summary="@string/pref_editor_code_editor_summ_cursor_blnk_period"
+            android:key="pref_code_editor_cursor_blnk_period" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_animate_auto_complt_window"
+            app:title="@string/pref_editor_code_editor_title_animate_auto_complt_window"
+            app:summary="@string/pref_editor_code_editor_summ_animate_auto_complt_window" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_highlight_brckt"
+            app:title="@string/pref_editor_code_editor_title_highlight_brckt"
+            app:summary="@string/pref_editor_code_editor_summ_highlight_brckt" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_auto_complete"
+            app:title="@string/pref_editor_code_editor_title_auto_complete"
+            app:summary="@string/pref_editor_code_editor_summ_auto_complete" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_editor_tab_category_title">
+        <!-- <SwitchPreferenceCompat -->
+        <!--  app:defaultValue="false" -->
+        <!--  app:iconSpaceReserved="false" -->
+        <!--  app:key="pref_code_editor_auto_save" -->
+        <!-- app:title="@string/pref_editor_code_editor_title_auto_save" -->
+        <!--  app:summary="@string/pref_editor_code_editor_summ_auto_save" /> -->
+        <ListPreference
+            android:defaultValue="First"
+            android:dialogTitle="@string/pref_editor_code_editor_title_relative_close_depth"
+            android:entries="@array/relative_close"
+            android:entryValues="@array/relative_close"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_relative_close_depth"
+            app:title="@string/pref_editor_code_editor_title_relative_close_depth"
+            app:summary="@string/pref_editor_code_editor_summ_relative_close_depth" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_close_unpinned_project_panes"
+            app:title="@string/pref_editor_code_editor_tabs_close_unpinned_project_panes_title"
+            app:summary="@string/pref_editor_code_editor_tabs_close_unpinned_project_panes_summ" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_editor_code_editor_panels_category_title">
+
+        <!-- <SwitchPreferenceCompat -->
+        <!-- app:defaultValue="false" -->
+        <!-- app:iconSpaceReserved="false" -->
+        <!-- app:key="pref_code_editor_symbol_panel" -->
+        <!-- app:title="@string/pref_editor_code_editor_panels_si_panel_title" -->
+        <!-- app:summary="@string/pref_editor_code_editor_panels_si_panel_summ" /> -->
+        <!-- <SwitchPreferenceCompat -->
+        <!-- app:defaultValue="false" -->
+        <!-- app:iconSpaceReserved="false" -->
+        <!-- app:key="pref_code_editor_fun_panel" -->
+        <!-- app:title="@string/pref_editor_code_editor_panels_function_title" -->
+        <!-- app:summary="@string/pref_editor_code_editor_panels_function_summ" /> -->
+
+        <!-- Breadcrumbs navigation panel -->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_nav_panel"
+            app:title="@string/pref_editor_code_editor_panels_navigation_title"
+            app:summary="@string/pref_editor_code_editor_panels_navigation_summ" />
+
+    </PreferenceCategory>
+</androidx.preference.PreferenceScreen>

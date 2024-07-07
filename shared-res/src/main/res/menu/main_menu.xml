@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group
+        android:id="@+id/group_unredo"
+        android:visible="false"
+        android:enabled="false">
+        <item
+            android:id="@+id/menu_undo"
+            android:icon="@drawable/ic_undo_variant"
+            android:title="@string/undo"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/menu_redo"
+            android:icon="@drawable/ic_redo_variant"
+            android:title="@string/redo"
+            app:showAsAction="ifRoom" />
+    </group>
+
+    <item
+        android:id="@+id/menu_run"
+        android:icon="@drawable/ic_play_outline"
+        android:title="@string/run"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <group
+        android:id="@+id/group_content_edit"
+        android:visible="false">
+        <item
+            android:id="@+id/menu_save_file"
+            android:icon="@drawable/ic_content_save"
+            android:title="@string/save"
+            android:enabled="false"
+            app:showAsAction="ifRoom" />
+
+        <item
+            android:id="@+id/menu_edit"
+            android:icon="@drawable/ic_pencil"
+            android:title="@string/edit"
+            app:showAsAction="always">
+            <!-- "menu_edit" sub menu -->
+            <menu>
+                <item
+                    android:id="@+id/menu_copy_line"
+                    android:icon="@drawable/ic_content_copy"
+                    android:title="@string/menu_copy_line"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_cut_line"
+                    android:icon="@drawable/ic_content_cut"
+                    android:title="@string/menu_cut_line"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_delete_line"
+                    android:icon="@drawable/ic_delete_outline"
+                    android:title="@string/menu_delete_line"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_replace_line"
+                    android:icon="@drawable/ic_swap_horizontal"
+                    android:title="@string/menu_replace_line"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_duplicate_line"
+                    android:icon="@drawable/ic_swap_vertical"
+                    android:title="@string/menu_duplicate_line"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_convert_to_lowercase"
+                    android:icon="@drawable/ic_format_letter_case_lower"
+                    android:title="@string/menu_convert_to_lowercase"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_convert_to_uppercase"
+                    android:icon="@drawable/ic_format_letter_case_upper"
+                    android:title="@string/menu_convert_to_uppercase"
+                    app:showAsAction="never" />
+            </menu>
+        </item>
+    </group>
+
+    <group
+        android:id="@+id/group_editor_actions"
+        android:visible="false">
+        <item
+            android:id="@+id/menu_find"
+            android:icon="@drawable/ic_text_search"
+            android:title="@string/find"
+            app:showAsAction="ifRoom">
+            <menu>
+                <item
+                    android:id="@+id/menu_findFile"
+                    android:icon="@drawable/ic_file_search_outline"
+                    android:title="@string/menu_find_in_file"
+                    app:showAsAction="never" />
+            </menu>
+        </item>
+        <item
+            android:id="@+id/menu_jump_to_line"
+            android:icon="@drawable/ic_priority_low"
+            android:title="@string/menu_jump_to_line"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/menu_read_only_mode"
+            android:icon="@drawable/ic_eye"
+            android:title="@string/menu_read_only_mode"
+            android:checkable="true"
+            android:checked="false"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/menu_reset_color_schemes"
+            android:icon="@drawable/ic_refresh"
+            android:title="@string/menu_reset_color_schemes"
+            app:showAsAction="never" />
+    </group>
+
+    <item
+        android:id="@+id/menu_liveserver"
+        android:icon="@drawable/ic_web"
+        android:title="@string/webview_pane_title"
+        android:visible="false"
+        app:showAsAction="ifRoom">
+        <menu>
+            <item
+                android:id="@+id/menu_copy_url"
+                android:title="@string/copy_url" />
+            <item
+                android:id="@+id/menu_open_in_browser"
+                android:title="@string/menu_open_in_browser" />
+            <item
+                android:id="@+id/menu_refresh"
+                android:title="@string/menu_refresh_preview" />
+            <item
+                android:id="@+id/menu_zoom"
+                android:title="@string/menu_zoom"
+                android:checkable="true"
+                android:checked="true" />
+            <item
+                android:id="@+id/menu_web_console"
+                android:title="@string/menu_console"
+                android:checkable="true"
+                android:visible="false"
+                android:checked="false" />
+            <item
+                android:id="@+id/menu_desktop_mode"
+                android:title="@string/menu_desktop_mode"
+                android:checkable="true"
+                android:checked="false" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/menu_ad_privacy_settings"
+        android:title="@string/ad_privacy_settings"
+        android:visible="false" />
+</menu>

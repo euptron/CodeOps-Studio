@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:scrollIndicators="none">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="4dp">
+        <TextView
+            android:id="@+id/welcome_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginLeft="2dp"
+            android:paddingBottom="1dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="8dp"
+            android:text="@string/app_name"
+            android:textColor="?colorPrimary"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/slogan_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_below="@id/welcome_tv"
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="2dp"
+            android:text="@string/app_slogan"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@+id/main_action_host"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/slogan_tv"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/import_zip_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="2dp"
+                android:padding="8dp"
+                android:text="@string/import_zip"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/recent_project_btn"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="2dp"
+                android:visibility="visible"
+                android:text="@string/recent_project"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/option_rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/main_action_host"
+            android:layout_margin="2dp"
+            android:gravity="left"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/options_header_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="false"
+                android:layout_marginTop="8dp"
+                android:padding="8dp"
+                android:text="@string/start"
+                android:textSize="18sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/new_file"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/options_header_tv"
+                android:layout_centerHorizontal="false"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:elevation="0dp"
+                android:ellipsize="end"
+                android:padding="8dp"
+                android:singleLine="true"
+                android:text="@string/new_file"
+                android:textAlignment="textStart"
+                android:textColor="?colorOnBackground"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_file_plus_outline"
+                app:iconPadding="8dp"
+                app:iconTint="?colorOnBackground" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/open_file"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/new_file"
+                android:layout_centerHorizontal="false"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:elevation="0dp"
+                android:ellipsize="end"
+                android:padding="8dp"
+                android:singleLine="true"
+                android:text="@string/open_file"
+                android:textAlignment="textStart"
+                android:textColor="?colorOnBackground"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_file_outline"
+                app:iconPadding="8dp"
+                app:iconTint="?colorOnBackground" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/open_folder"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/open_file"
+                android:layout_centerHorizontal="false"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:elevation="0dp"
+                android:ellipsize="end"
+                android:padding="8dp"
+                android:singleLine="true"
+                android:text="@string/open_folder"
+                android:textAlignment="textStart"
+                android:textColor="?colorOnBackground"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_folder_open_outline"
+                app:iconPadding="8dp"
+                app:iconTint="?colorOnBackground" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/git_vcs"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/open_folder"
+                android:layout_centerHorizontal="false"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:elevation="0dp"
+                android:ellipsize="end"
+                android:padding="8dp"
+                android:singleLine="true"
+                android:text="@string/clone_git_repo"
+                android:textAlignment="textStart"
+                android:textColor="?colorOnBackground"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_source_branch"
+                app:iconPadding="8dp"
+                app:iconTint="?colorOnBackground" />
+        </RelativeLayout>
+
+        <CheckBox
+            android:id="@+id/welcome_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/option_rv"
+            android:layout_centerInParent="true"
+            android:checked="true"
+            android:text="@string/show_welcome_pane" />
+
+    </RelativeLayout>
+</androidx.core.widget.NestedScrollView>

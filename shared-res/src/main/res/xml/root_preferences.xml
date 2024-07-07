@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_category_config_title">
+        <Preference
+            app:fragment="com.eup.codeopsstudio.ui.settings.GeneralConfigurationFragment"
+            app:iconSpaceReserved="false"
+            app:title="@string/pref_general_config_title"
+            app:summary="@string/pref_general_config_summ" />
+        <Preference
+            app:fragment="com.eup.codeopsstudio.ui.settings.CodeEditorConfigurationFragment"
+            app:iconSpaceReserved="false"
+            app:title="@string/pref_editor_config_title"
+            app:summary="@string/pref_editor_config_summ" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_category_privacy_title">
+        <Preference
+            app:fragment="com.eup.codeopsstudio.ui.settings.PrivacyFragment"
+            app:iconSpaceReserved="false"
+            app:title="@string/pref_privacy_title"
+            app:summary="@string/pref_privacy_summ" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:title="@string/pref_category_about_title">
+        <Preference
+            app:fragment="com.eup.codeopsstudio.ui.settings.ChangeLogFragment"
+            app:iconSpaceReserved="false"
+            app:title="@string/pref_changelog_title"
+            app:summary="@string/pref_changelog_summ" />
+        <Preference
+            app:fragment="com.eup.codeopsstudio.ui.settings.AboutFragment"
+            app:iconSpaceReserved="false"
+            app:title="@string/pref_about_title"
+            app:summary="@string/pref_about_summ" />
+    </PreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

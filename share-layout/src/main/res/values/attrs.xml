@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ~ This file is part of CodeOps Studio.
+ ~ CodeOps Studio - code anywhere anytime
+ ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ Copyright (C) 2024 EUP
+ ~ 
+ ~ This program is free software: you can redistribute it and/or modify
+ ~ it under the terms of the GNU General Public License as published by
+ ~ the Free Software Foundation, either version 3 of the License, or
+ ~ (at your option) any later version.
+ ~ 
+ ~ This program is distributed in the hope that it will be useful,
+ ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ ~ GNU General Public License for more details.
+ ~ 
+ ~ You should have received a copy of the GNU General Public License
+ ~ along with this program. If not, see https://www.gnu.org/licenses/
+ ~ 
+ ~ If you have more questions, feel free to message EUP if you have any
+ ~ questions or need additional information. Email: etido.up@gmail.com
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+   <resources>
+    <!-- ~ Base application attributes. ~ Custom widgets inclusive -->
+    <!-- ~ Style to use for MaterialDivider in the theme. -->
+
+    <attr
+        name="ShareLayoutStyle"
+        format="reference" />
+
+    <dimen name="action_default_elevation">2dp</dimen>
+    <dimen name="action_default_radius">28dp</dimen>
+    <!-- ShareLayout -->
+    <declare-styleable name="ShareLayout">
+
+        <!-- Set Layout background color for root layout -->
+        <attr
+            name="shareLayoutColor"
+            format="color|reference" />
+        <!-- Flag boolean for progressbar visibility. -->
+        <attr
+            name="showProgressBar"
+            format="boolean" />
+        <!-- ShareButton. -->
+        <attr
+            name="shareButtonTextSize"
+            format="dimension" />
+        <attr
+            name="shareActionsCornerRadius"
+            format="dimension" />
+
+        <!-- Unused Container color -->
+        <attr
+            name="containerColor"
+            format="color" />
+        <!-- ShareLayout title. -->
+        <attr
+            name="titleText"
+            format="string" />
+        <!-- ShareLayout summary. -->
+        <attr
+            name="summaryText"
+            format="string" />
+        <!-- ShareLayout share prompt or info text. -->
+        <attr
+            name="promptText"
+            format="string" />
+        <!-- ShareButton text. -->
+        <attr
+            name="shareButtonText"
+            format="string" />
+        <!-- TextAppearance -->
+        <attr
+            name="titleTextAppearance"
+            format="reference" />
+        <attr
+            name="summaryTextAppearance"
+            format="reference" />
+        <attr
+            name="promptTextAppearance"
+            format="reference" />
+        <attr
+            name="shareButtonTextAppearance"
+            format="reference" />
+        <!-- Dimensioning -->
+        <attr
+            name="elevation"
+            format="dimension" />
+    </declare-styleable>
+
+    <!-- Styling for ShareLayout better customization. -->
+
+    <style
+        name="Widget.TeckrodMiUi.ShareLayout"
+        parent="android:Widget">
+        <item name="shareActionsCornerRadius">@dimen/action_default_radius</item>
+        <item name="elevation">@dimen/action_default_elevation</item>
+        <item name="shareLayoutColor">@color/miui_sharelayout_color</item>
+    </style>
+</resources>

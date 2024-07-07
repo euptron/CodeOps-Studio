@@ -1,0 +1,93 @@
+{
+	"comments": {
+		"lineComment": "//",
+		"blockComment": [
+			"/*",
+			"*/"
+		]
+	},
+	"brackets": [
+		[
+			"{",
+			"}"
+		],
+		[
+			"[",
+			"]"
+		],
+		[
+			"(",
+			")"
+		]
+	],
+	"autoClosingPairs": [
+		{
+			"open": "[",
+			"close": "]"
+		},
+		{
+			"open": "{",
+			"close": "}"
+		},
+		{
+			"open": "(",
+			"close": ")"
+		},
+		{
+			"open": "\u0027",
+			"close": "\u0027",
+			"notIn": [
+				"string",
+				"comment"
+			]
+		},
+		{
+			"open": "\"",
+			"close": "\"",
+			"notIn": [
+				"string"
+			]
+		},
+		{
+			"open": "/*",
+			"close": "*/",
+			"notIn": [
+				"string",
+				"comment"
+			]
+		}
+	],
+	"surroundingPairs": [
+		[
+			"{",
+			"}"
+		],
+		[
+			"[",
+			"]"
+		],
+		[
+			"(",
+			")"
+		],
+		[
+			"\"",
+			"\""
+		],
+		[
+			"\u0027",
+			"\u0027"
+		],
+		[
+			"\u003c",
+			"\u003e"
+		]
+	],
+	"wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\\u0026\\*\\(\\)\\-\\\u003d\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\\u0027\\\"\\,\\.\\\u003c\\\u003e\\/\\?\\s]+)",
+	"folding": {
+		"markers": {
+			"start": "^\\s*#pragma\\s+region\\b",
+			"end": "^\\s*#pragma\\s+endregion\\b"
+		}
+	}
+}
