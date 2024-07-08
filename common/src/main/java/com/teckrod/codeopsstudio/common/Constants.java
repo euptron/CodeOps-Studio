@@ -171,7 +171,7 @@ public final class Constants {
       "https://play.google.com/store/apps/details?id=" + ContextManager.getPackageName();
   public static final String GITHUB_URL = "https://github.com/etidoUP/CodeOps-Studio";
   public static final String CHECK_UPDATE_URL = GITHUB_URL;
-  public static final String CHECK_UPDATE_GPS_URL = GOOGLE_PLAY_APP_URL;
+  public static final String CHECK_UPDATE_GPS_URL = "https://github.com/etidoUP/CodeOps-Studio/releases";
   public static final String PRIVACY_POLICY_URL = "https://codeopsstudio.blogspot.com/p/privacy-policy.html";
   public static final String TERMS_OF_SERVICE_URL = "https://codeopsstudio.blogspot.com/p/terms-of-service.html";
 
