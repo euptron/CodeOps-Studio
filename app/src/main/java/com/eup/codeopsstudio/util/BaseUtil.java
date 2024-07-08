@@ -250,7 +250,7 @@ public class BaseUtil {
     ShareCompat.IntentBuilder shareIntent = new ShareCompat.IntentBuilder(ctx);
     shareIntent.setType("text/plain");
     shareIntent.setChooserTitle(ctx.getString(R.string.app_name));
-    shareIntent.setText(ctx.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GPS_URL);
+    shareIntent.setText(ctx.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GPS_URL));
     shareIntent.getIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     shareIntent.startChooser();
   }
