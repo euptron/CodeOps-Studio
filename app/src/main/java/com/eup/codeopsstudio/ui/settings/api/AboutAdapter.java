@@ -104,7 +104,7 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
       ShareViewHolder shareHolder = (ShareViewHolder) holder;
       // set on click listener for share layout dynamic button
       shareHolder.shareLayout.setOnItemClickListener(v -> BaseUtil.shareAppPlayStoreLink(context));
-      shareHolder.shareLayout.setSharePromptText(Constants./*GOOGLE_PLAY_APP_URL*/GITHUB_URL);
+      shareHolder.shareLayout.setSharePromptText(Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GITHUB_URL);
       shareHolder.shareLayout.getSharePrompt().setSingleLine(true);
       shareHolder.shareLayout.getSharePrompt().setEllipsize(TextUtils.TruncateAt.END);
     } else if (viewType == VIEW_TYPE_NESTED_LIST) {
