@@ -501,8 +501,8 @@ public class MainFragment extends Fragment
         menu.setGroupEnabled(R.id.group_unredo, false);
         menu.setGroupEnabled(R.id.group_content_edit, false);
       } else {
-        menu.setGroupEnabled(R.id.group_unredo, true);
-        menu.setGroupEnabled(R.id.group_content_edit, true);
+        menu.findItem(R.id.menu_undo).setEnabled(editorPane.canUndo());
+        menu.findItem(R.id.menu_redo).setEnabled(editorPane.canRedo());
       }
       menu.findItem(R.id.menu_run).setVisible(Constants.isMarkUp(editorPane.getFile()));
       menu.findItem(R.id.menu_save_file).setEnabled(editorPane.isModified());
