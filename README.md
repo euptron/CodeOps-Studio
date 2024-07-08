@@ -51,9 +51,23 @@ of this software.
   - Jump to specific lines and use the search panel for efficient coding.
   - Highly customizable code editor settings to suit your needs.
 
+
+## Installation
+
+[<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg"
+    alt="Get it on Github"
+    height="80">](https://github.com/AndroidIDEOfficial/AndroidIDE/releases)
+
+> _Please always install CodeOps Studio from trusted sources only i.e._
+> - [_GitHub Releases_](https://github.com/etidoUP/CodeOps-Studio/releases)
+> - [_GitHub Actions_](https://github.com/etidoUP/CodeOps-Studio/actions?query=branch%3Adev+event%3Apush)
+
+- Download the CodeOps Studio APK from the mentioned trusted sources.
+
 ## CodeOps Studio Community
 
 [X](https://x.com/codeopsstudio)
+
 [Telegram](https://t.me/codeopsstudio)
 
 ## License
