@@ -236,7 +236,7 @@ public class BaseUtil {
     ShareCompat.IntentBuilder shareIntent = new ShareCompat.IntentBuilder(context);
     shareIntent.setType("text/plain");
     shareIntent.setChooserTitle(context.getString(R.string.app_name));
-    shareIntent.setText(context.getString(R.string.share_app_info, Constants.GOOGLE_PLAY_APP_URL));
+    shareIntent.setText(context.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GITHUB_URL));
     shareIntent.getIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     shareIntent.startChooser();
   }
@@ -250,7 +250,7 @@ public class BaseUtil {
     ShareCompat.IntentBuilder shareIntent = new ShareCompat.IntentBuilder(ctx);
     shareIntent.setType("text/plain");
     shareIntent.setChooserTitle(ctx.getString(R.string.app_name));
-    shareIntent.setText(ctx.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/GITHUB_URL);
+    shareIntent.setText(ctx.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GPS_URL);
     shareIntent.getIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     shareIntent.startChooser();
   }
