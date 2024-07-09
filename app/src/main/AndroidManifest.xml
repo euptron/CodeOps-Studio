@@ -78,14 +78,13 @@
             android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
             android:theme="@style/AppTheme" />
         <!-- By default auto crashlytics is disabled, see IdeApplication.java -->
-        <!-- <meta-data -->
-        <!--    android:name="firebase_crashlytics_collection_enabled" -->
-        <!--    android:value="false" /> -->
-        <!-- By default auto analytics is disabled for consent request -->
-        <!--<meta-data -->
-        <!--    android:name="firebase_analytics_collection_enabled" -->
-        <!--    android:value="false" /> -->
-
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+        <!-- TODO: prompt user to enable this on landing page-->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="true" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
