@@ -323,34 +323,52 @@ public class FileUtil {
   
   public static String getPathFromUri(final Context context, final Uri uri) throws Exception {
     String path = null;
+    
     if (DocumentsContract.isDocumentUri(context, uri)) {
       if (isExternalStorageDocument(uri)) {
         final String docId = DocumentsContract.getDocumentId(uri);
         final String[] split = docId.split(":");
         final String type = split[0];
-
-        if ("primary".equalsIgnoreCase(type)) {
-          path = Environment.getExternalStorageDirectory() + "/" + split[1];
-        }
+        path = getPathFromExtSD(split);
       } else if (isDownloadsDocument(uri)) {
-        final String id = DocumentsContract.getDocumentId(uri);
-
-        if (!TextUtils.isEmpty(id)) {
-          if (id.startsWith("raw:")) {
-            return id.replaceFirst("raw:", "");
+        final String id;
+        Cursor cursor = null;
+        try {
+            cursor = context.getContentResolver().query(
+                    uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+              String fileName = cursor.getString(0);
+              String path = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
+              if (!TextUtils.isEmpty(path)) {
+                return path;
+              }
+            }
+          } finally {
+            if (cursor != null) cursor.close();
           }
-        }
-
-        final Uri contentUri =
-            ContentUris.withAppendedId(
-                Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-
-        path = getDataColumn(context, contentUri, null, null);
+          id = DocumentsContract.getDocumentId(uri);
+          if (!TextUtils.isEmpty(id)) {
+            if (id.startsWith("raw:")) {
+              return id.replaceFirst("raw:", "");
+            }
+            String[] contentUriPrefixesToTry = new String[]{
+                    "content://downloads/public_downloads", "content://downloads/my_downloads"
+                };
+            for (String contentUriPrefix : contentUriPrefixesToTry) {
+              try {
+                final Uri contentUri =
+                    ContentUris.withAppendedId(Uri.parse(contentUriPrefix), Long.valueOf(id));
+                path = getDataColumn(context, contentUri, null, null);
+              } catch (NumberFormatException e) {
+                // In Android 8 and Android P the id is not a number
+                path uri.getPath().replaceFirst("^/document/raw:", "").replaceFirst("^raw:", "");
+              }
+            }
+          }
       } else if (isMediaDocument(uri)) {
         final String docId = DocumentsContract.getDocumentId(uri);
         final String[] split = docId.split(":");
         final String type = split[0];
-
         Uri contentUri = null;
         if ("image".equals(type)) {
           contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
@@ -359,30 +377,85 @@ public class FileUtil {
         } else if ("audio".equals(type)) {
           contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         }
-
         final String selection = MediaStore.Audio.Media._ID + "=?";
         final String[] selectionArgs = new String[] {split[1]};
-
         path = getDataColumn(context, contentUri, selection, selectionArgs);
       }
     } else if (ContentResolver.SCHEME_CONTENT.equalsIgnoreCase(uri.getScheme())) {
-      path = getDataColumn(context, uri, null, null);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          path = copyFileToInternalStorage(uri, "userfiles");
+      } else {
+          path = getDataColumn(context, uri, null, null);
+      }
     } else if (ContentResolver.SCHEME_FILE.equalsIgnoreCase(uri.getScheme())) {
       path = uri.getPath();
     }
 
     if (path != null) {
-      try {
-        return URLDecoder.decode(path, "UTF-8");
-      } catch (Exception e) {
-        return null;
-      }
+       return URLDecoder.decode(path, "UTF-8");
     }
     return null;
   }
   
+   /***
+   * Used for Android Q+
+   * @param uri
+   * @param newDirName if you want to create a directory, you can set this variable
+   * @return
+   */
+  private static String copyFileToInternalStorage(Context context, Uri uri, String newDirName) throws Exception {
+    Uri returnUri = uri;
+
+    Cursor returnCursor =
+        context
+            .getContentResolver()
+            .query(
+                returnUri,
+                new String[] {OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE},
+                null,
+                null,
+                null);
+
+    /*
+     * Get the column indexes of the data in the Cursor,
+     *     * move to the first row in the Cursor, get the data,
+     *     * and display it.
+     * */
+    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+    int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
+    returnCursor.moveToFirst();
+    String name = (returnCursor.getString(nameIndex));
+    String size = (Long.toString(returnCursor.getLong(sizeIndex)));
+
+    File output;
+    if (!newDirName.equals("")) {
+      File dir = new File(context.getFilesDir() + "/" + newDirName);
+      if (!dir.exists()) {
+        dir.mkdir();
+      }
+      output =
+          new File(
+              context.getFilesDir() + "/" + newDirName + "/" + name);
+    } else {
+      output = new File(context.getFilesDir() + "/" + name);
+    }
+    InputStream inputStream =
+        context.getContentResolver().openInputStream(uri);
+    FileOutputStream outputStream = new FileOutputStream(output);
+    int read = 0;
+    int bufferSize = 1024;
+    final byte[] buffers = new byte[bufferSize];
+    while ((read = inputStream.read(buffers)) != -1) {
+      outputStream.write(buffers, 0, read);
+    }
+
+    inputStream.close();
+    outputStream.close();
+    return output.getPath();
+  }
+  
   private static String getDataColumn(
-      Context context, Uri uri, String selection, String[] selectionArgs) {
+      Context context, Uri uri, String selection, String[] selectionArgs) throws Exception {
     Cursor cursor = null;
 
     final String column = MediaStore.Images.Media.DATA;
@@ -394,8 +467,6 @@ public class FileUtil {
         final int column_index = cursor.getColumnIndexOrThrow(column);
         return cursor.getString(column_index);
       }
-    } catch (Exception e) {
-
     } finally {
       if (cursor != null) cursor.close();
     }
@@ -412,6 +483,45 @@ public class FileUtil {
 
   private static boolean isMediaDocument(Uri uri) {
     return "com.android.providers.media.documents".equals(uri.getAuthority());
+  }
+  
+  private static String getPathFromExtSD(String[] pathData) {
+    final String type = pathData[0];
+    final String relativePath = "/" + pathData[1];
+    String fullPath = "";
+
+    // on my Sony devices (4.4.4 & 5.1.1), `type` is a dynamic string
+    // something like "71F8-2C0A", some kind of unique id per storage
+    // don't know any API that can get the root path of that storage based on its id.
+    //
+    // so no "primary" type, but let the check here for other devices
+    if ("primary".equalsIgnoreCase(type)) {
+      fullPath = Environment.getExternalStorageDirectory() + relativePath;
+      if (fileExists(fullPath)) {
+        return fullPath;
+      }
+    }
+
+    // Environment.isExternalStorageRemovable() is `true` for external and internal storage
+    // so we cannot relay on it.
+    //
+    // instead, for each possible path, check if file exists
+    // we'll start with secondary storage as this could be our (physically) removable sd card
+    fullPath = System.getenv("SECONDARY_STORAGE") + relativePath;
+    if (fileExists(fullPath)) {
+      return fullPath;
+    }
+
+    fullPath = System.getenv("EXTERNAL_STORAGE") + relativePath;
+    if (fileExists(fullPath)) {
+      return fullPath;
+    }
+
+    return fullPath;
+  }
+  
+  private static boolean fileExists(String filePath) {
+    return new File(filePath).exists();
   }
   
   public static class Path {
