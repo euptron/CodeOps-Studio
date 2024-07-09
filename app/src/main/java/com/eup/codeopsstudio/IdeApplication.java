@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio;
+package com.eup.codeopsstudio;
 
 import android.app.Application;
 import android.content.Context;
@@ -66,10 +66,13 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     applicationContext = this;
     sInstance = this;
     ContextManager.initialize(applicationContext);
+    // Initialize Firebase Crashlytics for crash reporting, it's disable in AndroidManifest
+    crashlytics = FirebaseCrashlytics.getInstance();
+    crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToCrashReporting());
     Thread.setDefaultUncaughtExceptionHandler(this);
-
-    // AsyncTask.run(this::initializeComponents);
-    initializeComponents();
+    crashlytics.sendUnsentReports();
+    // uncomment for QA version
+    // validateExpirationDate();
     changeTheme(PreferencesUtils.getCurrentTheme());
     applyDynamicColor();
     try {
@@ -174,18 +177,9 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     final var log = ThrowableUtils.getFullStackTrace(th);
     // TODO: Write log to file to path
   }
-
-  private void initializeComponents() {
-    // Initialize Firebase Crashlytics for crash reporting, it's disable in AndroidManifest
-    crashlytics = FirebaseCrashlytics.getInstance();
-    crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToCrashReporting());
-    crashlytics.sendUnsentReports();
-    // uncomment for QA version
-    // validateExpirationDate();
-  }
-
+ 
   private boolean userHasConsentedToCrashReporting() {
-    // TODO: Implement logic to check if the user has given consent
+    // TODO: logic to check if the user has given consent
     return true;
   }
 
