@@ -114,3 +114,14 @@
 
 # Pane
 -keep class * extends com.eup.codeopsstudio.pane.Pane { public *; }
+
+# Firebase crashlytics
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable
+
+-keepclassmembers class * {
+    @com.google.firebase.crashlytics.* <fields>;
+}
+
+-keepnames class com.google.firebase.crashlytics.** { *; }
+-dontwarn com.google.firebase.crashlytics.**
