@@ -361,7 +361,7 @@ public class FileUtil {
                 path = getDataColumn(context, contentUri, null, null);
               } catch (NumberFormatException e) {
                 // In Android 8 and Android P the id is not a number
-                path uri.getPath().replaceFirst("^/document/raw:", "").replaceFirst("^raw:", "");
+                path = uri.getPath().replaceFirst("^/document/raw:", "").replaceFirst("^raw:", "");
               }
             }
           }
