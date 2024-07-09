@@ -338,9 +338,9 @@ public class FileUtil {
                     uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
               String fileName = cursor.getString(0);
-              String path = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
+              String realPath = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
               if (!TextUtils.isEmpty(path)) {
-                return path;
+                 path = realPath;
               }
             }
           } finally {
@@ -383,7 +383,7 @@ public class FileUtil {
       }
     } else if (ContentResolver.SCHEME_CONTENT.equalsIgnoreCase(uri.getScheme())) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          path = copyFileToInternalStorage(uri, "userfiles");
+          path = copyFileToInternalStorage(context, uri, "userfiles");
       } else {
           path = getDataColumn(context, uri, null, null);
       }
