@@ -456,7 +456,7 @@ public class MainFragment extends Fragment
   }
 
   @Override
-  public void onActionFailed(@Nullable String message) {
+  public void onActionFailed(@NonNull String message) {
     logger.e(LOG_TAG, message);
   }
 
