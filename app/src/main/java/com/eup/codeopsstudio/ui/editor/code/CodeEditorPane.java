@@ -592,7 +592,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   }
 
   public void makeReadOnly(boolean readOnly) {
-    if (binding != null) return;
+    if (binding == null) return;
 
     if (readOnly) {
       binding.editor.setEditable(false);
