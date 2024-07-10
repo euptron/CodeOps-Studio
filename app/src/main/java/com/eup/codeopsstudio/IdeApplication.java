@@ -112,9 +112,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
 
     crashlytics.log("Uncaught exception in thread: " + thread.getName());
     crashlytics.recordException(throwable);
-    // wait for crashlytics to log any pending reports
-    AsyncTask.runLaterOnUiThread(()-> {
-     try {
+    try {
         var restartIntent = new Intent(this, CrashActivity.class);
         restartIntent.putExtra("Error", errorMessage.toString());
         restartIntent.putExtra("Date", dateInfo.toString());
@@ -125,8 +123,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
      } catch (Throwable e) {
         crashlytics.recordException(e);
         e.printStackTrace();
-     }
-    }, 2000);
+    }
   }
 
   public static IdeApplication getInstance() {
