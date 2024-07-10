@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.ui.editor.code;
+package com.eup.codeopsstudio.ui.editor.code;
 
 import static android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
@@ -101,7 +101,6 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   private int selectedItem = -1;
   private boolean isModified = false;
   private boolean isStoppingSearch = false;
-  private ContextualCodeEditor codeEditor;
 
   public CodeEditorPane(Context context, String title) {
     this(context, title, /* generate new uuid= */ true);
@@ -120,22 +119,20 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   @Override
   public void onViewCreated(@NonNull View view) {
     super.onViewCreated(view);
-    codeEditor = binding.editor;
-
     logger.attach(requireActivity() /*shared activity scope*/);
     PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
 
     try {
-      ThemeRegistry.getInstance().setTheme(codeEditor.isUIDarkMode() ? "darcula" : "quietlight");
-      codeEditor.ensureTextmateTheme();
+      ThemeRegistry.getInstance().setTheme(binding.editor.isUIDarkMode() ? "darcula" : "quietlight");
+      binding.editor.ensureTextmateTheme();
     } catch (Exception e) {
       logger.w(LOG_TAG, e.getMessage());
     }
 
     updateAlertVisibility(false);
 
-    binding.searchPanel.prev.setOnClickListener(v -> codeEditor.navigatePreviousSearch());
-    binding.searchPanel.next.setOnClickListener(v -> codeEditor.navigateNextSearch());
+    binding.searchPanel.prev.setOnClickListener(v -> binding.editor.navigatePreviousSearch());
+    binding.searchPanel.next.setOnClickListener(v -> binding.editor.navigateNextSearch());
     binding.searchPanel.replace.setOnClickListener(v -> displayTextReplacementDialog());
     binding.searchPanel.moreOptions.setOnClickListener(v -> initSearchPanelMenu());
 
@@ -155,7 +152,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   @Override
   public void onSelected() {
     super.onSelected();
-    if (binding != null) codeEditor.requestFocus();
+    if (binding != null) binding.editor.requestFocus();
   }
 
   @Override
@@ -167,8 +164,8 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   public void onDestroy() {
     super.onDestroy();
     PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
-    if (codeEditor != null && !codeEditor.isReleased()) {
-      codeEditor.release();
+    if (binding.editor != null && !binding.editor.isReleased()) {
+      binding.editor.release();
     }
     if (binding != null) {
       binding = null;
@@ -191,11 +188,11 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   @Override
   public void persist() {
     super.persist();
-    var cursor = codeEditor.getCursor();
+    var cursor = binding.editor.getCursor();
     addArguments("left_column", cursor.getLeftColumn());
     addArguments("left_line", cursor.getLeftLine());
     addArguments("file_path", getFilePath());
-    addArguments("editor_content", codeEditor.getText().toString());
+    addArguments("editor_content", binding.editor.getText().toString());
   }
 
   private void readFile(@NonNull File file) {
@@ -227,7 +224,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
           setLoading(false);
 
           if (result != null) {
-            codeEditor.setText(result, null);
+            binding.editor.setText(result, null);
             loadEditorLanguage(file);
             logger.i(
                 LOG_TAG,
@@ -252,7 +249,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
 
   private void loadEditorLanguage(File file) {
     try {
-      codeEditor.setEditorLanguage(
+      binding.editor.setEditorLanguage(
           getEditorLanguagScope(file),
           PreferencesUtils.enableAutoComplete(),
           PreferencesUtils.enableBracketAutoClosing());
@@ -268,7 +265,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
 
   public void refreshEditorLanguageSyntax(boolean enableAutoComplete) {
     try {
-      codeEditor.refreshEditorLanguageSyntax(getEditorLanguagScope(getFile()), enableAutoComplete);
+      binding.editor.refreshEditorLanguageSyntax(getEditorLanguagScope(getFile()), enableAutoComplete);
     } catch (Exception e) {
       logger.e(LOG_TAG, "Failed to refresh editor language configurations");
       // logger.d(e.getLocalizedMessage());
@@ -294,7 +291,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   private void updateAlertVisibility(boolean isAlert) {
     if (isAlert) {
       openSearchPanel(false);
-      codeEditor.setVisibility(View.GONE);
+      binding.editor.setVisibility(View.GONE);
       binding.editorAlertLayout.root.setVisibility(View.VISIBLE);
       binding.breadCrumbBar.setVisibility(View.GONE);
       binding.editorAlertLayout.actionButton.setText(getContext().getString(R.string.open_anyway));
@@ -302,7 +299,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
           getContext().getString(R.string.alrt_unsupported_txt_encoding));
       binding.editorAlertLayout.actionButton.setOnClickListener(v -> updateAlertVisibility(false));
     } else {
-      codeEditor.setVisibility(View.VISIBLE);
+      binding.editor.setVisibility(View.VISIBLE);
       binding.editorAlertLayout.root.setVisibility(View.GONE);
       binding.breadCrumbBar.setVisibility(View.VISIBLE);
     }
@@ -365,19 +362,19 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
     var qurey = binding.searchPanel.searchInput.getEditableText();
     if (!qurey.toString().isEmpty()) {
       try {
-        codeEditor.getSearcher().search(qurey.toString(), searchOptions);
+        binding.editor.getSearcher().search(qurey.toString(), searchOptions);
       } catch (PatternSyntaxException e) {
         logger.e(LOG_TAG, "Failed to commit search " + e.getMessage());
       }
     } else {
-      codeEditor.getSearcher().stopSearch();
+      binding.editor.getSearcher().stopSearch();
     }
   }
 
   private void updatePositionText() {
     if (!binding.searchPanel.searchInput.getEditableText().toString().isEmpty()) {
-      binding.searchPanel.searchResult.setText(codeEditor.getMatchingSearchResult(false));
-    } else binding.searchPanel.searchResult.setText(codeEditor.getSelectedText(false));
+      binding.searchPanel.searchResult.setText(binding.editor.getMatchingSearchResult(false));
+    } else binding.searchPanel.searchResult.setText(binding.editor.getSelectedText(false));
   }
 
   private void displayTextReplacementDialog() {
@@ -389,34 +386,34 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
     builder.setPositiveButton(
         R.string.replace,
         (dialog, which) -> {
-          codeEditor.replaceSearch(inflate.tilName.getEditText().getText().toString());
+          binding.editor.replaceSearch(inflate.tilName.getEditText().getText().toString());
         });
     builder.setNeutralButton(
         R.string.replaceAll,
         (dialog, which) -> {
-          codeEditor.replaceAllSearch(inflate.tilName.getEditText().getText().toString());
+          binding.editor.replaceAllSearch(inflate.tilName.getEditText().getText().toString());
         });
     builder.show();
   }
 
   public void undo() {
-    if (codeEditor.canUndo()) {
-      codeEditor.undo();
+    if (binding.editor.canUndo()) {
+      binding.editor.undo();
     }
   }
 
   public void redo() {
-    if (codeEditor.canRedo()) {
-      codeEditor.redo();
+    if (binding.editor.canRedo()) {
+      binding.editor.redo();
     }
   }
 
   public boolean canUndo() {
-    return codeEditor.canUndo();
+    return binding.editor.canUndo();
   }
 
   public boolean canRedo() {
-    return codeEditor.canRedo();
+    return binding.editor.canRedo();
   }
 
   private void configureEditor() {
@@ -430,20 +427,20 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
           }
         });
 
-    codeEditor.subscribeEvent(
+    binding.editor.subscribeEvent(
         SelectionChangeEvent.class,
         (event, data) -> {
           updatePositionText();
         });
-    codeEditor.subscribeEvent(
+    binding.editor.subscribeEvent(
         ContentChangeEvent.class,
         (event, data) -> {
-          codeEditor.postDelayedInLifecycle(
+          binding.editor.postDelayedInLifecycle(
               () -> {
                 if (mEditorFile != null && mEditorFile.exists()) {
                   AsyncTask.runNonCancelable(
                       () -> {
-                        var editorContent = codeEditor.getText().toString();
+                        var editorContent = binding.editor.getText().toString();
                         var charset = EncodingDetector.detectFileEncoding(mEditorFile);
                         var originalFileContent = FileUtils.readFileToString(mEditorFile, charset);
                         return !originalFileContent.contentEquals(editorContent);
@@ -467,13 +464,13 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
               },
               50);
         });
-    codeEditor.subscribeEvent(
+    binding.editor.subscribeEvent(
         PublishSearchResultEvent.class,
         (event, data) -> {
           updatePositionText();
         });
 
-    codeEditor.subscribeEvent(
+    binding.editor.subscribeEvent(
         IndexingEvent.class,
         (event, data) -> {
           var e = event.getEditor();
@@ -496,7 +493,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   }
 
   public ContextualCodeEditor getEditor() {
-    return codeEditor;
+    return binding.editor;
   }
 
   public String getFilePath() {
@@ -524,12 +521,12 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
 
     if (opened) {
       isStoppingSearch = false;
-      codeEditor.getSearcher().stopSearch();
+      binding.editor.getSearcher().stopSearch();
       binding.searchPanel.getRoot().setVisibility(View.VISIBLE);
       KeyboardUtils.showSoftInput(binding.searchPanel.searchInput);
     } else {
       isStoppingSearch = true;
-      codeEditor.getSearcher().stopSearch();
+      binding.editor.getSearcher().stopSearch();
       binding.searchPanel.getRoot().setVisibility(View.GONE);
     }
   }
@@ -549,7 +546,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   public void doJumpToLine() {
     if (binding == null) return;
 
-    int totalLineCount = codeEditor.getLineCount();
+    int totalLineCount = binding.editor.getLineCount();
     if (totalLineCount == -1) return;
 
     var hint = String.format("%s...%s", 1, totalLineCount);
@@ -579,7 +576,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
             inflate.tilName.setError(getString(R.string.msg_invalid_jump_line));
           } else {
             inflate.tilName.setErrorEnabled(false);
-            codeEditor.jumpToLine((lineToJump == 0) ? lineToJump : lineToJump - 1);
+            binding.editor.jumpToLine((lineToJump == 0) ? lineToJump : lineToJump - 1);
           }
         });
     dialog.show();
@@ -598,17 +595,17 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
     if (binding != null) return;
 
     if (readOnly) {
-      codeEditor.setEditable(false);
+      binding.editor.setEditable(false);
       openSearchPanel(false, true);
     } else {
-      codeEditor.setEditable(true);
+      binding.editor.setEditable(true);
       openSearchPanel(false, false);
     }
   }
 
   public boolean isReadOnlyMode() {
     if (binding != null) {
-      return !codeEditor.isEditable();
+      return !binding.editor.isEditable();
     }
     return false;
   }
@@ -629,7 +626,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
           // Write content to the file
           FileUtils.writeStringToFile(
               mEditorFile,
-              codeEditor.getText().toString(),
+              binding.editor.getText().toString(),
               EncodingDetector.getEncoding(PreferencesUtils.getDefaultFileEncoding()));
 
           setModified(false);
