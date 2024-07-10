@@ -118,8 +118,8 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         restartIntent.putExtra("Date", dateInfo.toString());
         restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(restartIntent);
-        Process.killProcess(Process.myPid());
-        System.exit(1);
+        //Process.killProcess(Process.myPid());
+        //System.exit(1);
      } catch (Throwable e) {
         crashlytics.recordException(e);
         e.printStackTrace();
