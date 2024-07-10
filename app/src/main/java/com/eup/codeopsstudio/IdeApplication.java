@@ -118,8 +118,11 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         restartIntent.putExtra("Date", dateInfo.toString());
         restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(restartIntent);
-        //Process.killProcess(Process.myPid());
-        //System.exit(1);
+        // Kill the process after a delay to allow Crashlytics to log reports completely 
+        AsyncTask.runLaterOnUiThread(()-> {
+          Process.killProcess(Process.myPid());
+          System.exit(1);
+        },2000); // 2 second delay
      } catch (Throwable e) {
         crashlytics.recordException(e);
         e.printStackTrace();
