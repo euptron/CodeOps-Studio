@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio;
+package com.eup.codeopsstudio;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 
@@ -692,7 +692,7 @@ public class MainFragment extends Fragment
         mMainViewModel.setCanRequestStoragePermissionState(false);
         mPermissionLauncher.launch(
             new String[] {
-              Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.MANAGE_EXTERNAL_STORAGE
+              Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
             });
       }
     }
