@@ -492,7 +492,6 @@ public class MainFragment extends Fragment
     WebViewPane webViewPane = getSelectedWebViewPane();
 
     if (editorPane != null) {
-      menu.setGroupVisible(R.id.group_content_edit, true);
       // code editor search panel
       menu.setGroupVisible(R.id.group_editor_actions, true);
       menu.setGroupVisible(R.id.group_unredo, true);
@@ -501,6 +500,8 @@ public class MainFragment extends Fragment
         menu.setGroupEnabled(R.id.group_unredo, false);
         menu.setGroupEnabled(R.id.group_content_edit, false);
       } else {
+        menu.setGroupEnabled(R.id.group_unredo, true);
+        menu.setGroupVisible(R.id.group_content_edit, true);
         menu.findItem(R.id.menu_undo).setEnabled(editorPane.canUndo());
         menu.findItem(R.id.menu_redo).setEnabled(editorPane.canRedo());
       }
