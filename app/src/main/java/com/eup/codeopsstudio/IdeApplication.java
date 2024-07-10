@@ -119,10 +119,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(restartIntent);
         // Kill the process after a delay to allow Crashlytics to log reports completely 
-        AsyncTask.runLaterOnUiThread(()-> {
-          Process.killProcess(Process.myPid());
-          System.exit(1);
-        },2000); // 2 second delay
+        scheduleProcessTermination();
      } catch (Throwable e) {
         crashlytics.recordException(e);
         e.printStackTrace();
@@ -204,5 +201,18 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
       return "armeabi-v7a";
     }
     throw new UnsupportedOperationException("Device not supported");
+  }
+
+ private void scheduleProcessTermination() {
+    new Thread(() -> {
+        try {
+            Thread.sleep(2000); // 2-second delay
+        } catch (InterruptedException e) {
+            // Handle the interruption
+        }
+        // Terminate the process
+        Process.killProcess(Process.myPid());
+        System.exit(1);
+    }).start();
   }
 }
