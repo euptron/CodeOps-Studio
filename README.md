@@ -51,6 +51,10 @@ of this software.
   - Jump to specific lines and use the search panel for efficient coding.
   - Highly customizable code editor settings to suit your needs.
 
+## Screenshots 
+
+<img src="screenshots/02.jpeg" alt="02" width="100" /> <img src="screenshots/03.jpeg" alt="03" width="100" /> <img src="screenshots/04.jpeg" alt="04" width="100" /> <img src="screenshots/05.jpeg" alt="05" width="100" /> <img src="screenshots/06.jpeg" alt="06" width="100" /> <img src="screenshots/07.jpeg" alt="07" width="100" />
+
 ## Installation
 
 [<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg"
