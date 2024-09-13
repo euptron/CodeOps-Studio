@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.file;
+
+package com.eup.codeopsstudio.file;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -77,32 +77,12 @@ public class FileManager {
     void onTaskComplete(Object object);
   }
 
-  public static final Comparator<File> FILE_FIRST_ORDER =
-      (file1, file2) -> {
-        if (file1.isFile() && file2.isDirectory()) {
-          return 1;
-        } else if (file2.isFile() && file1.isDirectory()) {
-          return -1;
-        } else {
-          return String.CASE_INSENSITIVE_ORDER.compare(file1.getName(), file2.getName());
-        }
+  public static final Comparator<File> DIR_FIRST_SORT =
+      (a, b) -> {
+        if (a.isDirectory() && b.isFile()) return -1;
+        if (a.isFile() && b.isDirectory()) return 1;
+        return String.CASE_INSENSITIVE_ORDER.compare(a.getName(), b.getName());
       };
-
-  public static class SortFileName implements Comparator<File> {
-    @Override
-    public int compare(File f1, File f2) {
-      return f1.getName().compareTo(f2.getName());
-    }
-  }
-
-  public static class SortFolder implements Comparator<File> {
-    @Override
-    public int compare(File f1, File f2) {
-      if (f1.isDirectory() == f2.isDirectory()) return 0;
-      else if (f1.isDirectory() && !f2.isDirectory()) return -1;
-      else return 1;
-    }
-  }
 
   public void startFileTask(
       final FileAction fileAction, final File file, final TaskListener listener) {
@@ -238,7 +218,7 @@ public class FileManager {
   private void showProgressDialog(FileAction fileAction, File file) {
     LayoutDialogProgressBinding binding =
         LayoutDialogProgressBinding.inflate(LayoutInflater.from(context));
-    
+
     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
     builder.setTitle(getProgressDialogTitle(fileAction, file));
     builder.setView(binding.getRoot());

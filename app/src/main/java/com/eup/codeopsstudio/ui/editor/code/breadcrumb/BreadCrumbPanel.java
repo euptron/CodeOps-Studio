@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.ui.editor.code.breadcrumb;
+package com.eup.codeopsstudio.ui.editor.code.breadcrumb;
 
 import android.content.Context;
 import android.util.AttributeSet;

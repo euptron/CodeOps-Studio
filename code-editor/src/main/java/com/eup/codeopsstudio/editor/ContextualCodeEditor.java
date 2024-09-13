@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.editor;
+package com.eup.codeopsstudio.editor;
 
 import static android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
@@ -41,7 +41,6 @@ import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorAutoC
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorCompletionAdapter;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorTextActionWindow;
 import com.eup.codeopsstudio.res.R;
-import io.github.rosemoe.sora.I18nConfig;
 import io.github.rosemoe.sora.lang.EmptyLanguage;
 import io.github.rosemoe.sora.langs.textmate.TextMateColorScheme;
 import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
@@ -131,7 +130,8 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
    */
   @Override
   public void setSelectionAround(int line, int column) {
-    if (line < getLineCount()) {
+    int numberOfLines = getLineCount();
+    if (line < numberOfLines) {
       int columnCount = getText().getColumnCount(line);
       if (column > columnCount) {
         column = columnCount;
@@ -140,10 +140,10 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
     } else {
       int truncLine = 0;
 
-      if (getLineCount() == 0) {
-        truncLine = getLineCount();
+      if (numberOfLines == 0) {
+        truncLine = numberOfLines;
       } else {
-        truncLine = getLineCount() - 1;
+        truncLine = numberOfLines - 1;
       }
       setSelection(truncLine, getText().getColumnCount(truncLine));
     }
@@ -578,7 +578,14 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
       tml.getSymbolPairs().putPair("(", new SymbolPairMatch.SymbolPair("(", ")"));
       tml.getSymbolPairs().putPair("[", new SymbolPairMatch.SymbolPair("[", "]"));
       tml.getSymbolPairs().putPair("\"", new SymbolPairMatch.SymbolPair("\"", "\""));
+      tml.getSymbolPairs().putPair("„", new SymbolPairMatch.SymbolPair("„", "„"));
+      tml.getSymbolPairs().putPair("“", new SymbolPairMatch.SymbolPair("“", "”"));
+      tml.getSymbolPairs().putPair("«", new SymbolPairMatch.SymbolPair("“", "»"));
       tml.getSymbolPairs().putPair("\'", new SymbolPairMatch.SymbolPair("\'", "\'"));
+      tml.getSymbolPairs().putPair("‚", new SymbolPairMatch.SymbolPair("‚", "‚"));
+      tml.getSymbolPairs().putPair("‘", new SymbolPairMatch.SymbolPair("‘", "’"));
+      tml.getSymbolPairs().putPair("‹", new SymbolPairMatch.SymbolPair("‹", "›"));
+      tml.getSymbolPairs().putPair("`", new SymbolPairMatch.SymbolPair("`", "`"));
     }
     return tml;
   }
@@ -596,27 +603,19 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
     final var props = getProps();
         
     if (cursor.isSelected()) {
-      int length = cursor.getRight() - cursor.getLeft();
-      if (length > props.clipboardTextLengthLimit) {
-        Toast.makeText(
-                getContext(),
-                I18nConfig.getResourceId(R.string.editor_clip_text_length_too_large),
-                Toast.LENGTH_SHORT)
-            .show();
-      } else {
-        String clip = getText().substring(cursor.getLeft(), cursor.getRight());
-
-        if (clip == null) return;
-
+      int left = cursor.getLeft();
+      int right = cursor.getRight();
+      int length = right - left;
+      
+      if (length > 0) {
         final var line = cursor.left().line;
-
+        setIndexing(true);
         AsyncTask.runNonCancelable(
-            () -> {
-              return toLowerCase(clip);
-            },
+            () -> toLowerCase(getText().substring(left, right)),
             (result) -> {
+              setIndexing(false);
               if (result != null) {
-                commitText(clip);
+                commitText(result);
                 setSelectionRegion(line, 0, line, getText().getColumnCount(line)); // reselect line
               }
             });
@@ -635,27 +634,19 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
     final var props = getProps();
     
     if (cursor.isSelected()) {
-      int length = cursor.getRight() - cursor.getLeft();
-      if (length > props.clipboardTextLengthLimit) {
-        Toast.makeText(
-                getContext(),
-                I18nConfig.getResourceId(R.string.editor_clip_text_length_too_large),
-                Toast.LENGTH_SHORT)
-            .show();
-      } else {
-        String clip = getText().substring(cursor.getLeft(), cursor.getRight());
-
-        if (clip == null) return;
-
+      int left = cursor.getLeft();
+      int right = cursor.getRight();
+      int length = right - left;
+      
+      if (length > 0) {
         final var line = cursor.left().line;
-
+        setIndexing(true);
         AsyncTask.runNonCancelable(
-            () -> {
-              return toUpperCase(clip);
-            },
+            () ->  toUpperCase(getText().substring(left, right)),
             (result) -> {
+              setIndexing(false);
               if (result != null) {
-                commitText(clip);
+                commitText(result);
                 setSelectionRegion(line, 0, line, getText().getColumnCount(line)); // reselect line
               }
             });
@@ -707,25 +698,51 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
       deleteLine();
     }
   }
-
-  private String toUpperCase(String inputString) {
-    var result = "";
-    for (int i = 0; i < inputString.length(); i++) {
-      var currentChar = inputString.charAt(i);
-      var currentCharToUpperCase = Character.toUpperCase(currentChar);
-      result = result + currentCharToUpperCase;
-    }
-    return result;
+  
+  public interface ProgressListener {
+     void onProgress(int progress);
   }
-
-  private String toLowerCase(String inputString) {
-    var result = "";
-    for (int i = 0; i < inputString.length(); i++) {
-      var currentChar = inputString.charAt(i);
-      var currentCharToLowerCase = Character.toLowerCase(currentChar);
-      result = result + currentCharToLowerCase;
+  
+  private String toUpperCase(String input) {
+    return toUpperCase(input, null);
+  }
+  
+  private String toUpperCase(String input, ProgressListener listener) {
+    var result = new StringBuilder();
+    
+    for (int i = 0; i < input.length(); i++) {
+      var current = input.charAt(i);
+      result.append(Character.toUpperCase(current));
+      
+      if (listener != null) {
+         // Update progress
+         int progress = (i + 1) * 100 / input.length();
+         listener.onProgress(progress);
+      }
     }
-    return result;
+    
+    return result.toString();
+  }
+  
+  private String toLowerCase(String input) {
+    return toLowerCase(input, null);
+  }
+  
+  private String toLowerCase(String input, ProgressListener listener) {
+    var result = new StringBuilder();
+    
+    for (int i = 0; i < input.length(); i++) {
+      var current = input.charAt(i);
+      result.append(Character.toLowerCase(current));
+      
+      if (listener != null) {
+         // Update progress
+         int progress = (i + 1) * 100 / input.length();
+         listener.onProgress(progress);
+      }
+    }
+    
+    return result.toString();
   }
 
   /**

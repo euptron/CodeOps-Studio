@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.explore;
+
+package com.eup.codeopsstudio.ui.explore;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -37,13 +37,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.transition.ChangeBounds;
 import androidx.transition.TransitionManager;
 import com.blankj.utilcode.util.FileUtils;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.eup.codeopsstudio.MainFragment;
 import com.eup.codeopsstudio.adapters.ActionAdapter;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.models.ProjectEvent;
+import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentTreeviewBinding;
 import com.eup.codeopsstudio.file.FileAction;
@@ -57,13 +56,14 @@ import com.eup.codeopsstudio.tv.view.AndroidTreeView;
 import com.eup.codeopsstudio.ui.explore.holder.FileTreeViewHolder;
 import com.eup.codeopsstudio.ui.explore.template.TemplateFragment;
 import com.eup.codeopsstudio.util.BaseUtil;
+import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,6 +83,7 @@ public class TreeViewFragment extends Fragment
   private TreeNode rootNode;
   private AndroidTreeView treeView;
   private String fileTreeSavedState;
+  private String lastOpenedFilePath;
 
   public static TreeViewFragment newInstance() {
     return new TreeViewFragment();
@@ -114,7 +115,7 @@ public class TreeViewFragment extends Fragment
     if (savedInstanceState != null) {
       fileTreeSavedState = savedInstanceState.getString(KEY_STORED_TREE_STATE, null);
     }
-    // ...
+
     binding.folderOptions.setOnClickListener(
         v -> {
           if (rootNode != null) {
@@ -158,7 +159,6 @@ public class TreeViewFragment extends Fragment
   @Override
   public void onDestroyView() {
     super.onDestroyView();
-    // nullify references to prevent memory leaks
     binding = null;
     treeView = null;
   }
@@ -168,8 +168,7 @@ public class TreeViewFragment extends Fragment
     var mFile = (File) value;
 
     if (mFile.isFile()) {
-      // BaseFragment performs sanity check for invalid files
-      // mMainViewModel.openEditorFile(mFile);
+      if (isArchive(mFile)) return;
 
       MainFragment mainFragment =
           (MainFragment)
@@ -177,7 +176,7 @@ public class TreeViewFragment extends Fragment
       if (mainFragment != null) {
         mainFragment.openFileInPane(mFile);
       }
-    } else if (mFile.isDirectory() && mFile.exists()) {
+    } else if (mFile.isDirectory()) {
       if (node.isExpanded()) {
         collapseNode(node);
         return;
@@ -204,7 +203,13 @@ public class TreeViewFragment extends Fragment
    * @param dir The directory
    */
   private void populateFileTree(File dir) {
-    if (dir == null) return;
+    if (getContext() == null || dir == null) return;
+
+    if (!Wizard.isEmpty(lastOpenedFilePath) && !lastOpenedFilePath.equals(dir.getAbsolutePath())) {
+      fileTreeSavedState = null; // clear state if dir is different
+    } else if (Wizard.isEmpty(lastOpenedFilePath)) {
+      lastOpenedFilePath = dir.getAbsolutePath();
+    }
 
     mMainViewModel.setToolbarSubTitle(FileUtils.getFileNameNoExtension(dir));
     doCloseFolder(false);
@@ -227,7 +232,6 @@ public class TreeViewFragment extends Fragment
             view.setNestedScrollingEnabled(false);
             binding.filetreeProgressIndicator.setVisibility(View.GONE);
 
-            // possible to use event bus to open panes instantly rather than listeners
             EventBus.getDefault().post(new ProjectEvent(dir));
             tryRestoreSavedState();
           }
@@ -241,21 +245,20 @@ public class TreeViewFragment extends Fragment
     parent.addChild(newNode);
   }
 
-  public void listNode(TreeNode node, Runnable post) {
-    node.getChildren().clear();
-    node.setExpanded(false);
+  public void listNode(TreeNode parent, Runnable post) {
+    parent.getChildren().clear();
+    parent.setExpanded(false);
+
     AsyncTask.runNonCancelable(
         () -> {
-          listFilesForNodeOrginal(node);
-          TreeNode temp = node;
-
-          while (temp.size() == 1) {
-            temp = temp.childAt(0);
-            if (!temp.getValue().isDirectory()) {
-              break;
-            }
-            listFilesForNodeOrginal(temp);
-            temp.setExpanded(true);
+          addChildrenToNode(parent);
+          TreeNode currentNode = parent;
+          // expand dir with only 1 folder
+          while (currentNode.size() == 1) {
+            currentNode = currentNode.childAt(0);
+            if (!currentNode.getValue().isDirectory()) break;
+            addChildrenToNode(currentNode);
+            currentNode.setExpanded(true);
           }
           return null;
         },
@@ -264,52 +267,29 @@ public class TreeViewFragment extends Fragment
         });
   }
 
-  public void listFilesForNode(TreeNode parent) {
-    Path parentPath = parent.getValue().toPath();
-    try {
-      Files.list(parentPath)
-          .sorted(Comparator.comparing(Path::toString))
-          .map(Path::toFile)
-          .forEach(
-              file -> {
-                TreeNode child = new TreeNode(file);
-                child.setViewHolder(new FileTreeViewHolder(getContext()));
-                parent.addChild(child);
-              });
-    } catch (IOException e) {
-      logger.e(LOG_TAG, getString(R.string.failed_to_populate_file_tree));
-    }
-  }
-
-  public void listFilesForNodeOrginal(TreeNode parent) {
-    File[] fileArray = parent.getValue().listFiles();
-    if (fileArray != null) {
-      Arrays.sort(fileArray, FileManager.FILE_FIRST_ORDER);
-      for (File file : fileArray) {
-        var child = new TreeNode(file);
-        child.setViewHolder(new FileTreeViewHolder(getContext()));
-        parent.addChild(child);
-      }
+  public void addChildrenToNode(TreeNode parent) {
+    File[] fileArray = FileUtil.listFiles(parent.getValue());
+    Arrays.sort(fileArray, FileManager.DIR_FIRST_SORT);
+    for (File file : fileArray) {
+      var child = new TreeNode(file);
+      child.setViewHolder(new FileTreeViewHolder(getContext()));
+      parent.addChild(child);
     }
   }
 
   public void expandNode(TreeNode node) {
-    if (treeView == null) {
-      return;
-    }
+    if (treeView == null) return;
     ChangeBounds cb = new ChangeBounds();
-    cb.setDuration(500);
+    cb.setDuration(Constants.TOGGLE_TREENODE_ANIM_TIME);
     TransitionManager.beginDelayedTransition(binding.fileTreeArea, cb);
     treeView.expandNode(node);
     updateToggle(node);
   }
 
   public void collapseNode(TreeNode node) {
-    if (treeView == null) {
-      return;
-    }
+    if (treeView == null) return;
     ChangeBounds cb = new ChangeBounds();
-    cb.setDuration(500);
+    cb.setDuration(Constants.TOGGLE_TREENODE_ANIM_TIME);
     TransitionManager.beginDelayedTransition(binding.fileTreeArea, cb);
     treeView.collapseNode(node);
     updateToggle(node);
@@ -369,17 +349,15 @@ public class TreeViewFragment extends Fragment
       rootNode.getChildren().clear();
       rootNode = null;
       treeView = null;
-      // remove toolbar subtitle ...#is project name
+
       mMainViewModel.setToolbarSubTitle(null);
       if (removePrefsAndTreeState) {
+        PreferencesUtils.clearPerference(
+            PreferencesUtils.getLastOpenedProjectPreferences(),
+            Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
         fileTreeSavedState = null;
       }
-      // remove last opened project
-      PreferencesUtils.clearPerference(
-          PreferencesUtils.getLastOpenedProjectPreferences(),
-          Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
-      // possible to use event bus to close all panes instantly
-      // when event is null rather than interface listeners
+
       EventBus.getDefault().post(new ProjectEvent(null));
       updateViewsVisibility();
     }
@@ -403,21 +381,6 @@ public class TreeViewFragment extends Fragment
     TemplateFragment.newInstance().show(getChildFragmentManager(), null);
   }
 
-  private List<ActionModel> getFolderOptionsList() {
-    List<ActionModel> listItems = new ArrayList<>();
-    listItems.add(0, new ActionModel(R.drawable.ic_content_copy, getString(R.string.copy_path)));
-    listItems.add(1, new ActionModel(R.drawable.ic_delete_outline, getString(R.string.delete)));
-    listItems.add(
-        2, new ActionModel(R.drawable.ic_file_plus_outline, getString(R.string.new_file)));
-    listItems.add(
-        3, new ActionModel(R.drawable.ic_folder_plus_outline, getString(R.string.new_folder)));
-    listItems.add(4, new ActionModel(R.drawable.ic_pencil_outline, getString(R.string.rename)));
-    listItems.add(5, new ActionModel(R.drawable.ic_close, getString(R.string.close)));
-    // listItems.add(2, new ActionModel(R.drawable.ic_powershell,
-    // getString(R.string.open_terminal)));
-    return listItems;
-  }
-
   private List<ActionModel> getFolderOptionsList(File file) {
     List<ActionModel> listItems = new ArrayList<>();
     listItems.add(new ActionModel(R.drawable.ic_content_copy, getString(R.string.copy_path)));
@@ -431,6 +394,21 @@ public class TreeViewFragment extends Fragment
     return listItems;
   }
 
+  private List<ActionModel> getFolderOptionsList() {
+    List<ActionModel> listItems = new ArrayList<>();
+    listItems.add(new ActionModel(R.drawable.ic_refresh, getString(R.string.refresh)));
+    listItems.add(new ActionModel(R.drawable.ic_content_copy, getString(R.string.copy_path)));
+    listItems.add(new ActionModel(R.drawable.ic_delete_outline, getString(R.string.delete)));
+    listItems.add(new ActionModel(R.drawable.ic_file_plus_outline, getString(R.string.new_file)));
+    listItems.add(
+        new ActionModel(R.drawable.ic_folder_plus_outline, getString(R.string.new_folder)));
+    listItems.add(new ActionModel(R.drawable.ic_pencil_outline, getString(R.string.rename)));
+    listItems.add(new ActionModel(R.drawable.ic_close, getString(R.string.close)));
+    // listItems.add(2, new ActionModel(R.drawable.ic_powershell,
+    // getString(R.string.open_terminal)));
+    return listItems;
+  }
+
   private void displayBottomSheetOnClickFolderOptions() {
     var rootDir = rootNode.getValue();
     var bottomSheetDialog = new BottomSheetDialog(getActivity());
@@ -441,10 +419,11 @@ public class TreeViewFragment extends Fragment
     adapter.setOnItemClickListener(
         model -> {
           String label = model.getTitle();
-          if (label == getString(R.string.copy_path)) {
+          if (label == getString(R.string.refresh)) {
+            refreshFileTree(rootNode.getValue());
+          } else if (label == getString(R.string.copy_path)) {
             BaseUtil.copyToClipBoard(rootDir.getAbsolutePath(), true);
           } else if (label == getString(R.string.delete)) {
-            // TODO: Delete folder here
             fileManager.startFileTask(
                 FileAction.DELETE_FOLDER,
                 new File(rootDir.getAbsolutePath()),
@@ -453,7 +432,6 @@ public class TreeViewFragment extends Fragment
                     if ((Boolean) object) doCloseFolder(true);
                 });
           } else if (label == getString(R.string.new_file)) {
-            // TODO: Create new file here
             fileManager.startFileTask(
                 FileAction.CREATE_FILE,
                 new File(rootDir.getAbsolutePath()),
@@ -465,7 +443,6 @@ public class TreeViewFragment extends Fragment
                   }
                 });
           } else if (label == getString(R.string.new_folder)) {
-            // TODO: Create new folder here
             fileManager.startFileTask(
                 FileAction.CREATE_FOLDER,
                 new File(rootDir.getAbsolutePath()),
@@ -477,14 +454,13 @@ public class TreeViewFragment extends Fragment
                   }
                 });
           } else if (label == getString(R.string.rename)) {
-            // TODO: Rename folder here
             fileManager.startFileTask(
                 FileAction.RENAME_FOLDER,
                 new File(rootDir.getAbsolutePath()),
                 object -> {
                   if (object != null && object instanceof File) {
                     File renamedFolder = (File) object;
-                    refreshFileTree(renamedFolder);
+                    refreshFileTree();
                   }
                 });
           } else if (label == getString(R.string.close)) {
@@ -523,7 +499,6 @@ public class TreeViewFragment extends Fragment
           if (label == getString(R.string.copy_path)) {
             BaseUtil.copyToClipBoard(treeFile.getAbsolutePath(), true);
           } else if (label == getString(R.string.delete)) {
-            // TODO: Delete folder here
             if (treeFile.isFile() && treeFile.exists()) {
               fileManager.startFileTask(
                   FileAction.DELETE_FILE,
@@ -597,5 +572,13 @@ public class TreeViewFragment extends Fragment
     bind.sheetList.setLayoutManager(new LinearLayoutManager(requireContext()));
     bind.sheetList.setAdapter(adapter);
     bottomSheetDialog.show();
+  }
+
+  private boolean isArchive(File file) {
+    if (file.getName().endsWith(".apk")) {
+      Wizard.installApplication(requireContext(), file);
+      return true;
+    }
+    return false;
   }
 }

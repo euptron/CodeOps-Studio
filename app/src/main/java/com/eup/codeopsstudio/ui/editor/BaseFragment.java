@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,11 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-    
-  
-  
- package com.eup.codeopsstudio.ui.editor;
+
+package com.eup.codeopsstudio.ui.editor;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 
@@ -734,7 +731,6 @@ public class BaseFragment extends Fragment
       mPopupMenu.getMenu().add(R.string.pane_close_right);
       mPopupMenu.getMenu().add(R.string.pane_close_left);
       mPopupMenu.getMenu().add(pane.isPinned() ? R.string.pane_unpin : R.string.pane_pin);
-      // ...
       mPopupMenu.setOnMenuItemClickListener(listener);
       mPopupMenu.setOnDismissListener(menu -> mPopupMenu = null);
       mPopupMenu.show();
@@ -1014,28 +1010,29 @@ public class BaseFragment extends Fragment
             webViewPane.setZoomable(isZoomable);
             webViewPane.enableDeskTopMode(isDeskTopMode);
           } else if (codeEditorPane != null) {
-            AsyncTask.run(
+            AsyncTask.runNonCancelable(
                 () -> {
-                  var result = codeEditorPane.getArguments().get("editor_content").toString();
-                  AsyncTask.runOnUiThread(
-                      () -> {
-                        // persisted content may be null or empty otherwise default to the read
-                        // editor file content
-                        if (!Wizard.isEmpty(result)) {
-                          codeEditorPane.getEditor().setText(result);
-                          // mark persisted content as modified
-                          codeEditorPane.setModified(true);
-                        }
-                      });
-                });
-            int left_column = (int) (double) codeEditorPane.getArguments().get("left_column");
-            int left_line = (int) (double) codeEditorPane.getArguments().get("left_line");
+                  return codeEditorPane.getArguments().get("editor_content").toString();
+                },
+                (result) -> {
+                  // null or empty persisted content default to the read editoe file
+                  if (!Wizard.isEmpty(result)) {
+                    codeEditorPane.getEditor().setText(result);
+                    // mark persisted content as modified
+                    codeEditorPane.setModified(true);
 
-            Content text = codeEditorPane.getEditor().getText();
-            if (left_line < text.getLineCount() && left_column < text.getColumnCount(left_line)) {
-              // set cursor position
-              codeEditorPane.getEditor().getCursor().set(left_line, left_column);
-            }
+                    int left_column =
+                        (int) (double) codeEditorPane.getArguments().get("left_column");
+                    int left_line = (int) (double) codeEditorPane.getArguments().get("left_line");
+
+                    Content text = codeEditorPane.getEditor().getText();
+                    if (left_line < text.getLineCount()
+                        && left_column < text.getColumnCount(left_line)) {
+                      // set cursor position
+                      codeEditorPane.getEditor().getCursor().set(left_line, left_column);
+                    }
+                  }
+                });
           }
           updateTabs();
         }
@@ -1215,12 +1212,8 @@ public class BaseFragment extends Fragment
     selectPaneInTabLayout(webViewPane);
     return webViewPane;
   }
-
+  
   public CodeEditorPane addCodeEditorPane(@NonNull File file) {
-    return addCodeEditorPane(file, true);
-  }
-
-  public CodeEditorPane addCodeEditorPane(@NonNull File file, boolean select) {
     var tabName = file.getName();
     CodeEditorPane codeEditor = null;
     // Check if the code editor pane has already been added

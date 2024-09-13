@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.util;
+
+package com.eup.codeopsstudio.util;
 
 import android.util.Log;
 import java.io.File;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 public class EncodingDetector {
 
   public static final String LOG_TAG = "EncodingDetector";
-  private static int BUFFER_SIZE = 1024 * 4; // was *10
+  private static int BUFFER_SIZE = 1024 * 5;
 
   public static Charset detectFileEncoding(String filePath) {
     return detectFileEncoding(new File(filePath));
@@ -96,7 +96,7 @@ public class EncodingDetector {
         }
       }
     }
-    // If no matching charset is found, return the default charset (UTF-8)
+
     Log.d(LOG_TAG, "No matching encoding found for " + charsetDef + ". Using default charset.");
     return StandardCharsets.UTF_8;
   }

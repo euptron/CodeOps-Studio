@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -556,5 +556,10 @@ public class FileUtil {
      */
     public static final File CODE_EDITOR_PERSISTENCE_DIRECTORY =
         new File(PERSISTENCE_DIRECTORY + File.separator + "editor");
+  }
+  
+  public static File[] listFiles(File parent) {
+    File[] children = parent.listFiles();
+    return (children == null) ? new File[0] : children;
   }
 }

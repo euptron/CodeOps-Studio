@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.tv.model;
+
+package com.eup.codeopsstudio.tv.model;
 
 import android.content.Context;
 import android.view.View;
@@ -80,8 +80,7 @@ public class TreeNode {
     childNode.mParent = this;
     childNode.mId = generateId();
     children.add(childNode);
-    Collections.sort(children, new SortFileName());
-    Collections.sort(children, new SortFolder());
+    children.sort(DIR_FIRST_SORT);    
     return this;
   }
 
@@ -315,23 +314,14 @@ public class TreeNode {
     }
   }
 
-  public class SortFileName implements Comparator<TreeNode> {
-    @Override
-    public int compare(TreeNode f1, TreeNode f2) {
-      return f1.getValue().getName().compareTo(f2.getValue().getName());
-    }
-  }
-
-  public class SortFolder implements Comparator<TreeNode> {
-    @Override
-    public int compare(TreeNode p1, TreeNode p2) {
-      File f1 = p1.getValue();
-      File f2 = p2.getValue();
-      if (f1.isDirectory() == f2.isDirectory()) return 0;
-      else if (f1.isDirectory() && !f2.isDirectory()) return -1;
-      else return 1;
-    }
-  }
+  private static final Comparator<TreeNode> DIR_FIRST_SORT =
+      (node1, node2) -> {
+        File a = node1.getValue();
+        File b = node2.getValue();
+        if (a.isDirectory() && b.isFile()) return -1;
+        if (a.isFile() && b.isDirectory()) return 1;
+        return String.CASE_INSENSITIVE_ORDER.compare(a.getName(), b.getName());
+      };
 
   public interface TreeNodeClickListener {
     void onClick(TreeNode node, Object value);

@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,8 @@ import java.util.Set;
 /** Constants class containing common constants used by CodeOps Studio. */
 public final class Constants {
   
-  public static final long AVG_WAIT_MILLS = 250;
+  public static final long AVG_WAIT_MILLS = 250;// MillSeconds
+  public static final long TOGGLE_TREENODE_ANIM_TIME = 500; // MillSeconds
   public static final Set<String> WEB_MARKUP_LANGUAGE =
       Collections.unmodifiableSet(new HashSet<>(Arrays.asList("html", "htm")));
 
@@ -163,15 +164,15 @@ public final class Constants {
   public static final String Telegram = "https://t.me/codeopsstudio";
   public static final String X = "https://x.com/codeopsstudio";
   public static final String DEFAULT_CHANGE_LOG_URL =
-      "https://raw.githubusercontent.com/etidoUP/CodeOps-Studio/main/release-notes.json";
+      "https://raw.githubusercontent.com/euptron/CodeOps-Studio/main/release-notes.json";
   public static final String WEBSITE_URL = "https://codeopsstudio.blogspot.com";
   public static final String DOCUMENTATION_URL =
       "https://codeopsstudio.blogspot.com/p/documentation.html";
   public static final String GOOGLE_PLAY_APP_URL =
       "https://play.google.com/store/apps/details?id=" + ContextManager.getPackageName();
-  public static final String GITHUB_URL = "https://github.com/etidoUP/CodeOps-Studio";
+  public static final String GITHUB_URL = "https://github.com/euptron/CodeOps-Studio";
   public static final String CHECK_UPDATE_URL = GITHUB_URL;
-  public static final String CHECK_UPDATE_GITHUB_URL = "https://github.com/etidoUP/CodeOps-Studio/releases";
+  public static final String CHECK_UPDATE_GITHUB_URL = "https://github.com/euptron/CodeOps-Studio/releases";
   public static final String PRIVACY_POLICY_URL = "https://codeopsstudio.blogspot.com/p/privacy-policy.html";
   public static final String TERMS_OF_SERVICE_URL = "https://codeopsstudio.blogspot.com/p/terms-of-service.html";
 

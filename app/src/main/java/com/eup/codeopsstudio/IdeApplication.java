@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
+
 package com.eup.codeopsstudio;
 
 import android.app.Application;
@@ -39,7 +39,6 @@ import com.eup.codeopsstudio.common.util.SDKUtil;
 import com.eup.codeopsstudio.common.util.SDKUtil.API;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.Wizard;
-import com.eup.codeopsstudio.common.AsyncTask;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.color.DynamicColors.Precondition;
 import com.google.android.material.color.DynamicColorsOptions;
@@ -58,8 +57,12 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
   public static Context applicationContext;
   private String newLine = "\n";
   private StringBuilder errorMessage = new StringBuilder();
-  private StringBuilder dateInfo = new StringBuilder();
   private FirebaseCrashlytics crashlytics;
+
+  private static final String ARM = "armeabi-v7a";
+  private static final String AARCH64 = "arm64-v8a";
+  private static final String I686 = "x86";
+  private static final String X86_64 = "x86_64";
 
   @Override
   public void onCreate() {
@@ -72,7 +75,6 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToCrashReporting());
     Thread.setDefaultUncaughtExceptionHandler(this);
     crashlytics.sendUnsentReports();
-    // uncomment for QA version
     // validateExpirationDate();
     changeTheme(PreferencesUtils.getCurrentTheme());
     applyDynamicColor();
@@ -92,7 +94,9 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     } else {
       errorMessage.append(throwable.getCause());
     }
-    dateInfo.append(Calendar.getInstance().getTime()).append(newLine);
+
+    final var crashDate = Calendar.getInstance().getTime().toString();
+    errorMessage.append(crashDate).append(Constants.NEXT_LINE.repeat(2));
 
     crashlytics.setUserId(Wizard.getUserID(getApplicationContext()));
     CustomKeysAndValues keysAndValues =
@@ -106,23 +110,23 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
             .putString("App Version Name", Wizard.getAppVersionName(getApplicationContext()))
             .putString("App Version Code", Wizard.getAppVersionCode(getApplicationContext()))
             .putString("Error", errorMessage.toString())
-            .putString("Crash Date", dateInfo.toString())
+            .putString("Crash Date", crashDate)
             .build();
     crashlytics.setCustomKeys(keysAndValues);
 
     crashlytics.log("Uncaught exception in thread: " + thread.getName());
     crashlytics.recordException(throwable);
+
     try {
-        var restartIntent = new Intent(this, CrashActivity.class);
-        restartIntent.putExtra("Error", errorMessage.toString());
-        restartIntent.putExtra("Date", dateInfo.toString());
-        restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(restartIntent);
-        // Kill the process after a delay to allow Crashlytics to log reports completely 
-        scheduleProcessTermination();
-     } catch (Throwable e) {
-        crashlytics.recordException(e);
-        e.printStackTrace();
+      var restartIntent = new Intent(this, CrashActivity.class);
+      restartIntent.putExtra("error", errorMessage.toString());
+      restartIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+      startActivity(restartIntent);
+      // Kills the process after a delay to allow Crashlytics to log reports completely
+      scheduleProcessTermination();
+    } catch (Throwable e) {
+      crashlytics.recordException(e);
+      e.printStackTrace();
     }
   }
 
@@ -136,7 +140,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
 
   private void applyDynamicColor() {
     if (!SDKUtil.isAtLeast(API.ANDROID_12)) return;
-    
+
     final Precondition precondition = (activity, theme) -> PreferencesUtils.useDynamicColors();
     DynamicColors.applyToActivitiesIfAvailable(
         this,
@@ -154,13 +158,13 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
   }
 
   public static boolean isAppInDebugMode() {
-    return /*BuildConfig.DEBUG*/ true;
+    return BuildConfig.DEBUG;
   }
 
   private void validateExpirationDate() {
     var currentDate = Calendar.getInstance();
     var fixedFutureDate = new GregorianCalendar(2024, Calendar.JUNE, 20);
-    
+
     if (currentDate.after(fixedFutureDate)) {
       var msg =
           "This QA version of the app has expired. Please download the latest version from Google Play Store: "
@@ -175,44 +179,53 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     final var log = ThrowableUtils.getFullStackTrace(th);
     // TODO: Write log to file to path
   }
- 
+
   private boolean userHasConsentedToCrashReporting() {
     // TODO: logic to check if the user has given consent
     return true;
   }
 
-  public static boolean isAbiSupported() {
-    return isAarch64() || isArmv7a();
+  private void scheduleProcessTermination() {
+    new Thread(
+            () -> {
+              try {
+                Thread.sleep(2000); // 2-second delay
+              } catch (InterruptedException ignore) {
+
+              }
+              // Terminate the process
+              Process.killProcess(Process.myPid());
+              System.exit(1);
+            })
+        .start();
   }
 
-  public static boolean isAarch64() {
-    return Arrays.asList(Build.SUPPORTED_ABIS).contains("arm64-v8a");
+  public static boolean supportsArm32Bit() {
+    return Arrays.asList(Build.SUPPORTED_ABIS).contains(ARM);
   }
 
-  public static boolean isArmv7a() {
-    return Arrays.asList(Build.SUPPORTED_ABIS).contains("armeabi-v7a");
+  public static boolean supportsArm64Bit() {
+    return Arrays.asList(Build.SUPPORTED_ABIS).contains(AARCH64);
+  }
+
+  public static boolean supportsX86_32Bit() {
+    return Arrays.asList(Build.SUPPORTED_ABIS).contains(I686);
+  }
+
+  public static boolean supportsX86_64Bit() {
+    return Arrays.asList(Build.SUPPORTED_ABIS).contains(X86_64);
+  }
+
+  public static boolean isSupportedArch() {
+    return supportsArm32Bit() || supportsArm64Bit() || supportsX86_32Bit() || supportsX86_64Bit();
   }
 
   @NonNull
-  public static String getArch() {
-    if (isAarch64()) {
-      return "arm64-v8a";
-    } else if (isArmv7a()) {
-      return "armeabi-v7a";
-    }
-    throw new UnsupportedOperationException("Device not supported");
-  }
-
- private void scheduleProcessTermination() {
-    new Thread(() -> {
-        try {
-            Thread.sleep(2000); // 2-second delay
-        } catch (InterruptedException e) {
-            // Handle the interruption
-        }
-        // Terminate the process
-        Process.killProcess(Process.myPid());
-        System.exit(1);
-    }).start();
+  public static String getArchitecture() {
+    if (supportsArm32Bit()) return ARM;
+    else if (supportsArm64Bit()) return AARCH64;
+    else if (supportsX86_32Bit()) return I686;
+    else if (supportsX86_64Bit()) return X86_64;
+    else throw new UnsupportedOperationException("Device architecture not supported");
   }
 }

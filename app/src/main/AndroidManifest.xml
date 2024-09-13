@@ -2,7 +2,7 @@
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  ~ This file is part of CodeOps Studio.
  ~ CodeOps Studio - code anywhere anytime
- ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ https://github.com/euptron/CodeOps-Studio
  ~ Copyright (C) 2024 EUP
  ~ 
  ~ This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  ~ questions or need additional information. Email: etido.up@gmail.com
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-   <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Connectivity -->
@@ -41,6 +41,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".IdeApplication"

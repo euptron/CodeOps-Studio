@@ -1,80 +1,67 @@
 # CodeOps Studio
 
-Welcome to CodeOps Studio a free open source software (FOSS) and this repository contains the community edition (CE) source code
-of this software.
+Welcome to **CodeOps Studio** is a free and open-source code editing workspace and Integrated Development Environment (IDE) designed specifically for Android OS.
 
-**Current App Version:** 1.0.0
+> [!NOTE]\
+> Development of CodeOps Studio is currently slow until i get a PC :( that's to say your pull requests to the `main branch` containing Kotlin, Python, C, C++ code would be rejected for now.\
+> Otherwise consider the `dev branch` (A fun place for experiments).\
+> CodeOps Studio is **NOT** intended for piracy and other non-legal uses. It could be used for localizing and adding features, adding support for custom platforms, and other GOOD purposes. Just try to be fair with the authors of an app, that you use and probably like.
 
-## New Features
+> [!IMPORTANT]\
+> CodeOps Studio main focus is on Android OS. Using it one other operating systems maybe impossible unless emulated, there is no guarantee that it'll work perfectly without errors.\
+> Minimum Android API level is `API level 26 (Android 8)`.\
+> Support for screens > 600dp is still experimental :)
 
-- **Git Integration**
-  - Effortlessly clone repositories with built-in Git support.
-
-- **Intuitive Navigation**
-  - Navigate your projects seamlessly with breadcrumb navigation.
-
-- **Multi-Language Syntax Highlighting**
-  - Enjoy syntax highlighting for over 50 programming languages.
-
-- **Customizable Code Editor**
-  - Tailor the code editor to your preferences for a personalized workflow.
-
-- **Persistent Panes**
-  - Maintain your workspace layout with persistable panes.
-
-- **Project Import**
-  - Easily import existing projects into CodeOps Studio.
-
-- **Comprehensive File Tree Explorer**
-  - Efficiently manage your files with an intuitive file tree explorer.
-
-- **Multi-Pane Layout**
-  - Utilize a multi-pane layout on devices with a minimum screen width of 600dp.
-
-- **Live Preview**
-  - Preview your websites live from various network sources:
-    - Remote
-    - Local host
-    - Hotspot
-    - Internet
-
-- **Project Templates**
-  - Kickstart your development with ready-to-use project templates.
-
-- **Material You Support**
-  - Experience a visually cohesive interface with Material You integration.
-
-- **JavaScript Console**
-  - Debug and interact with your JavaScript code in real-time.
-
-- **Advanced Code Editor Features**
-  - Jump to specific lines and use the search panel for efficient coding.
-  - Highly customizable code editor settings to suit your needs.
+### Goals
+  * Make coding possible anywhere anytime
+  * Provide advanced dev-ops tools and features
+  * Provide opportunity for anyone to code without a laptop
+  * Bring Visual Studio code and IntelliJ-like development experience to Android devices
+  * Support core `integrated development environment` fundamentals (Building, Debugging, Version Control, and Extensibility, e.t.c)
+  
+## Core Features
+- [ ] Git Integration
+- [ ] Auto completions
+- [x] File Tree Explorer
+- [x] Advanced Code Editor
+- [x] Multi-Pane Tab editor
+- [x] BreadCrumb Navigation
+- [x] Web Development support
+- [x] Multi-Language Syntax Highlighting
 
 ## Screenshots 
 
-<img src="screenshots/02.jpeg" alt="02" width="100" /> <img src="screenshots/03.jpeg" alt="03" width="100" /> <img src="screenshots/04.jpeg" alt="04" width="100" /> <img src="screenshots/05.jpeg" alt="05" width="100" /> <img src="screenshots/06.jpeg" alt="06" width="100" /> <img src="screenshots/07.jpeg" alt="07" width="100" />
+<img src="assets/intro.jpeg" alt="intro" width="100" /> <img src="assets/editor.jpeg" alt="editor" width="100" /> <img src="assets/breadcrumbs.jpeg" alt="breadcrumbs" width="100" /> <img src="assets/filetree.jpeg" alt="filetree" width="100" /> <img src="assets/jsconsole.jpeg" alt="jsconsole" width="100" /> <img src="assets/site_preview.jpeg" alt="site_preview" width="100" />
 
 ## Installation
+Current software version is `v1.0.1 beta`.
 
 [<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg"
     alt="Get it on Github"
-    height="80">](https://github.com/etidoUP/CodeOps-Studio/releases)
+    height="80">](https://github.com/euptron/CodeOps-Studio/releases)
 
 **Important:** Always install CodeOps Studio from trusted sources:
-- [GitHub Releases](https://github.com/etidoUP/CodeOps-Studio/releases)
-- [GitHub Actions](https://github.com/etidoUP/CodeOps-Studio/actions?query=branch%3Amain+event%3Apush)
+- [GitHub Releases](https://github.com/euptron/CodeOps-Studio/releases)
+- [GitHub Actions](https://github.com/euptron/CodeOps-Studio/actions?query=branch%3Amain+event%3Apush)
 
 ### Steps to Install
-1. Visit the [GitHub Releases](https://github.com/etidoUP/CodeOps-Studio/releases) page.
+1. Visit the [GitHub Releases](https://github.com/euptron/CodeOps-Studio/releases) page.
 2. Download the latest CodeOps Studio APK.
-3. Install the APK on your device.
+3. Install the APK on your device and start coding anywhere anytime.
 
-## CodeOps Studio Community
+## Important Links
 
-[X](https://x.com/codeopsstudio)
+### Community
+To stay updated join our community to stay updated on the latest developments.
 
-[Telegram](https://t.me/codeopsstudio)
+- [CodeOps Studio Telegram Channel](https://t.me/codeopsstudio)
+- [CodeOps Studio X (formerly Twitter)](https://x.com/codeopsstudio)
+- [CodeOps Studio Blog](https://codeopsstudio.blogspot.com/p/documentation.html)
+- [DEV Reports Email](mailto:etido.up@gmail.com)
+
+## Contribution Guidelines
+
+We welcome contributions from the community! Please see our [Contribution Guidelines](./CONTRIBUTING.md) for detailed instructions on how to contribute.
 
 ## License
 
@@ -82,10 +69,6 @@ This project is licensed under the GNU General Public License v3 (GPLv3). By con
 Any violations to the license can be reported either by opening an issue or writing a mail to us directly.
 
 You can read the full text of the license [here](./LICENSE).
-
-## Contribution Guidelines
-
-We welcome contributions from the community! Please see our [Contribution Guidelines](./CONTRIBUTING.md) for detailed instructions on how to contribute.
 
 ### License Notice
 
@@ -109,7 +92,7 @@ When you add new files to the project, please include the following license noti
  * along with CodeOps Studio. If not, see <https://www.gnu.org/licenses/>.
  */
 ```
-You can do so automatically by using the [add_license_header.sh](./documentation/add_license_header.md), also appreciate your contributions and look forward to collaborating with you!
+You can do so automatically by using the [add_license_header.sh](./docs/add_license_header.md) script.
 
 ## Code of Conduct
 
@@ -117,8 +100,21 @@ Please note that this project adheres to a [Code of Conduct](./CODE_OF_CONDUCT.m
 
 For any questions or clarifications, feel free to open an issue or contact the maintainers.
 
-Thank you for your contributions!
+Thank you for your using CodeOps Studio and your contributions.
 
+<!--
+## Sponsorship
+
+Support CodeOps Studio's growth by becoming a sponsor. Donate via [OpenCollective](https://opencollective.com/codeopsstudio). Your donation will play a vital role in driving the project's growth and success.
+
+*Funding Transparency*
+
+CodeOps Studio utilizes OpenCollective to manage and transparently display our funding. Your sponsorship will be acknowledged and appreciated.
+
+*Gratitude*
+
+We extend our sincere gratitude to our existing sponsors for their invaluable support.
+-->
 ## Special thanks
 
 - CodeAssist

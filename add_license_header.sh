@@ -4,7 +4,7 @@
 LICENSE_HEADER_NON_XML="/*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,11 +27,11 @@ LICENSE_HEADER_NON_XML="/*******************************************************
 "
 
 # Define the license header for XML files
-LICENSE_HEADER_XML="<?xml version=\""1.0"\" encoding=\""utf-8"\"?>
+LICENSE_HEADER_XML="<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  ~ This file is part of CodeOps Studio.
  ~ CodeOps Studio - code anywhere anytime
- ~ https://github.com/etidoUP/CodeOps-Studio
+ ~ https://github.com/euptron/CodeOps-Studio
  ~ Copyright (C) 2024 EUP
  ~ 
  ~ This program is free software: you can redistribute it and/or modify
@@ -105,8 +105,9 @@ if [[ "$1" == "--manual" ]]; then
     exit 1
   fi
 else
-  # Find and process files with specific extensions
-  find "$SEARCH_DIR" -type f \( -name "*.java" -o -name "*.py" -o -name "*.cpp" -o -name "*.xml" -o -name "*.gradle" -o -name "*.kts" -o -name "*.kt" \) -print0 |
+  # Find and process files with specific extensions, excluding 'Build' and 'Compile' directories
+  find "$SEARCH_DIR" -type d \( -path "$SEARCH_DIR/build" -o -path "$SEARCH_DIR/compile" \) -prune -o \
+  -type f \( -name "*.java" -o -name "*.py" -o -name "*.cpp" -o -name "*.xml" -o -name "*.gradle" -o -name "*.kts" -o -name "*.kt" \) -print0 |
   while IFS= read -r -d $'\0' file; do
     add_license_header "$file"
     show_progress "$file"

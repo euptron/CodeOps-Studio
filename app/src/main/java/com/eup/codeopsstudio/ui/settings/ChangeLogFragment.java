@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.settings;
+
+package com.eup.codeopsstudio.ui.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -142,14 +142,12 @@ public class ChangeLogFragment extends Fragment {
   private void showOfflineAlert(String errorMessage) {
     binding.alertIcon.setImageResource(R.drawable.ic_signal_off);
     binding.alertTitle.setText(R.string.failed_sync_change_log_title);
-    binding.alertMessage.setText(
-        getString(R.string.failed_sync_change_log_summ)
-            /*
+    binding.alertMessage.setText(getString(R.string.failed_sync_change_log_summ)/*
             + Constants.SPACE
             + "["
             + errorMessage
             + "]"
-            */);
+            */ );
     binding.retryButton.setVisibility(View.VISIBLE); // Show retry button
     binding.retryButton.setOnClickListener(
         v -> {
@@ -245,7 +243,8 @@ public class ChangeLogFragment extends Fragment {
         String versionName = jsonObject.getString("versionName");
         String description = jsonObject.getString("description");
         long releaseDate = jsonObject.getLong("releaseDate");
-        ChangelogItem.ReleaseType releaseType = ChangelogItem.ReleaseType.get(jsonObject.getString("releaseType"));
+        ChangelogItem.ReleaseType releaseType =
+            ChangelogItem.ReleaseType.get(jsonObject.getString("releaseType"));
         boolean hasVersionName = jsonObject.getBoolean("hasVersionName");
         ChangelogItem item =
             new ChangelogItem(versionName, description, releaseDate, hasVersionName, releaseType);
@@ -272,7 +271,8 @@ public class ChangeLogFragment extends Fragment {
           String versionName = changelogObject.optString("versionName", "No Title");
           String description = changelogObject.optString("description", "No Description");
           long releaseDate = changelogObject.optLong("releaseDate", 0);
-          ChangelogItem.ReleaseType releaseType = ChangelogItem.ReleaseType.get(changelogObject.optString("releaseType"));
+          ChangelogItem.ReleaseType releaseType =
+              ChangelogItem.ReleaseType.get(changelogObject.optString("releaseType", ""));
           boolean hasVersionName = changelogObject.optBoolean("hasVersionName", false);
           ChangelogItem item =
               new ChangelogItem(versionName, description, releaseDate, hasVersionName, releaseType);

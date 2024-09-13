@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio;
+
+package com.eup.codeopsstudio;
 
 import com.eup.codeopsstudio.common.Constants;
 import android.content.Intent;
@@ -50,13 +50,15 @@ public class CrashActivity extends AppCompatActivity {
     getSupportActionBar().setTitle(R.string.app_crashed);
 
     var error = new StringBuilder();
-    error.append(getString(R.string.msg_app_crashed) + "\n\n");
-    error.append(getString(R.string.msg_crash_report) + ":" + "\n");
-    error.append(getString(R.string.app_version) + ":" + Wizard.getAppVersionName(this) + "\n");
-    error.append(getString(R.string.stacktrace) + ":" + "\n");
-    error.append(getIntent().getStringExtra("Error"));
-    error.append(Constants.NEXT_LINE.repeat(2));
-    error.append(getIntent().getStringExtra("Date"));
+    error.append(getString(R.string.msg_app_crashed) + Constants.NEXT_LINE.repeat(2));
+    error.append(getString(R.string.msg_crash_report) + ":" + Constants.NEXT_LINE);
+    error.append(
+        getString(R.string.app_version)
+            + ":"
+            + Wizard.getAppVersionName(this)
+            + Constants.NEXT_LINE);
+    error.append(getString(R.string.stacktrace) + ":" + Constants.NEXT_LINE);
+    error.append(getIntent().getStringExtra("error"));
     error.append(Constants.NEXT_LINE.repeat(4));
     binding.result.setText(error.toString());
     binding.result.setTextIsSelectable(true);

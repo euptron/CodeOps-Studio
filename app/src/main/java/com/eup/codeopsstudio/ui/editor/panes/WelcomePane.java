@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.editor.panes;
+
+package com.eup.codeopsstudio.ui.editor.panes;
 
 import static android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
@@ -222,8 +222,8 @@ public class WelcomePane extends Pane
         binding.welcomeCheckbox.setChecked(isChecked);
         break;
       case SharedPreferenceKeys.KEY_RECENT_PROJECTS:
-         projects = getRecentProjects();
-         populateAdapter(projects);
+        projects = getRecentProjects();
+        populateAdapter(projects);
         break;
     }
   }
@@ -343,7 +343,8 @@ public class WelcomePane extends Pane
           });
       alertDialog.show();
     } else {
-      ToastUtils.showShort(getString(R.string.msg_selected_file_not_valid_type, getString(R.string.zip)));
+      ToastUtils.showShort(
+          getString(R.string.msg_selected_file_not_valid_type, getString(R.string.zip)));
     }
   }
 
@@ -524,19 +525,23 @@ public class WelcomePane extends Pane
       adapter.notifyDataSetChanged();
     }
   }
-
+    
   public ArrayList<Project> getRecentProjects() {
     var json = sharedPreferences.getString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, "");
+    if (json == null || json.isEmpty()) {
+      return new ArrayList<>();
+    }
+
     ArrayList<Project> recentProjects =
         new Gson().fromJson(json, new TypeToken<ArrayList<Project>>() {}.getType());
-    if (recentProjects != null && !recentProjects.isEmpty()) {
-      recentProjects.removeIf(project -> 
-        Optional.ofNullable(project.getFile())
-                .map(file -> !file.exists())
-                .orElse(true));
-      return recentProjects;
+    if (recentProjects == null) {
+      return new ArrayList<>();
     }
-    return new ArrayList<Project>();
+
+    recentProjects.removeIf(
+        project -> Optional.ofNullable(project.getFile()).map(file -> !file.exists()).orElse(true));
+
+    return recentProjects;
   }
 
   private void createRecentSheet() {
@@ -550,12 +555,12 @@ public class WelcomePane extends Pane
     bind.list.setAdapter(adapter);
     bottomSheetDialog.show();
   }
-  
+
   private void populateAdapter(List<Project> projects) {
     Collections.sort(projects, COMBINED_ORDER);
     adapter.submitList(projects);
   }
-  
+
   private void openProject(Project project) {
     if (project != null) {
       // BaseFragment performs sanity check for invalid files
@@ -624,5 +629,4 @@ public class WelcomePane extends Pane
   public static final Comparator<Project> COMBINED_ORDER =
       PROJECT_FIRST_ORDER.thenComparing(
           Comparator.comparingLong(project -> project.getFile().lastModified()));
-
 }

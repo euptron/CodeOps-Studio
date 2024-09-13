@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.ui.editor.code.breadcrumb.pane;
+package com.eup.codeopsstudio.ui.editor.code.breadcrumb.pane;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -38,8 +38,10 @@ import com.eup.codeopsstudio.MainFragment;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.res.databinding.LayoutCrumbTreePaneBinding;
 import com.eup.codeopsstudio.ui.explore.holder.FileTreeViewHolder;
+import com.eup.codeopsstudio.file.FileManager;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.tv.model.TreeNode;
 import com.eup.codeopsstudio.tv.view.AndroidTreeView;
@@ -164,16 +166,14 @@ public class CrumbTreePane extends Pane
     node.setExpanded(false);
     AsyncTask.runNonCancelable(
         () -> {
-                listFilesForNode(node);
-                TreeNode temp = node;
-
-                while (temp.size() == 1) {
-                  temp = temp.childAt(0);
-                  if (!temp.getValue().isDirectory()) {
-                    break;
-                  }
-                  listFilesForNode(temp);
-                  temp.setExpanded(true);
+                addChildrenToNode(node);
+                TreeNode parent = node;
+                 // expand dir with only 1 folder
+                while (parent.size() == 1) {
+                  parent = parent.childAt(0);
+                  if (!parent.getValue().isDirectory()) break;
+                  addChildrenToNode(parent);
+                  parent.setExpanded(true);
                 }
           return null;
         },
@@ -181,31 +181,25 @@ public class CrumbTreePane extends Pane
           post.run();
         });
   }
-
-  public void listFilesForNode(TreeNode parent) {
-    File[] files = parent.getValue().listFiles();
-    if (files != null) {
-      Arrays.sort(files, DIR_FIRST_SORT);
-      for (File file : files) {
-        TreeNode child = new TreeNode(file);
-        child.setViewHolder(new FileTreeViewHolder(getContext()));
-        parent.addChild(child);
-      }
+  
+  public void addChildrenToNode(TreeNode parent) {
+    File[] fileArray = FileUtil.listFiles(parent.getValue());
+    Arrays.sort(fileArray, FileManager.DIR_FIRST_SORT);
+    for (File file : fileArray) {
+      var child = new TreeNode(file);
+      child.setViewHolder(new FileTreeViewHolder(getContext()));
+      parent.addChild(child);
     }
   }
-
+  
   public void expandNode(TreeNode node) {
-    if (treeView == null) {
-      return;
-    }
+    if (treeView == null) return;
     treeView.expandNode(node);
     updateToggle(node);
   }
 
   public void collapseNode(TreeNode node) {
-    if (treeView == null) {
-      return;
-    }
+    if (treeView == null) return;
     treeView.collapseNode(node);
     updateToggle(node);
   }
@@ -232,15 +226,4 @@ public class CrumbTreePane extends Pane
         MaterialColors.getColor(getContext(), com.google.android.material.R.attr.colorOutline, 0));
     binding.getRoot().setBackground(drawable);
   }
-
-  public static final Comparator<File> DIR_FIRST_SORT =
-      (file1, file2) -> {
-        if (file1.isFile() && file2.isDirectory()) {
-          return 1;
-        } else if (file2.isFile() && file1.isDirectory()) {
-          return -1;
-        } else {
-          return String.CASE_INSENSITIVE_ORDER.compare(file1.getName(), file2.getName());
-        }
-      };
 }

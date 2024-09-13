@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
+
 package com.eup.codeopsstudio;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
@@ -125,11 +125,7 @@ public class MainFragment extends Fragment
   private static final int MENU_ICON_MARGIN = 8;
   private Pair<Integer, Pane> currentPanePair = Pair.create(-1, null);
   private OnBackPressedCallback onBackPressedCallback;
-  /**
-   * Debug only
-   *
-   * @return A new MainFragment
-   */
+
   @VisibleForTesting
   public static MainFragment newInstance() {
     return new MainFragment();
@@ -201,31 +197,12 @@ public class MainFragment extends Fragment
     }
 
     if (PreferencesUtils.canShareAnynomousStatistics()) {
-          wizard.uploadAnynomousAnalytics(true);
+      wizard.uploadAnynomousAnalytics(true);
     } else {
-          wizard.uploadAnynomousAnalytics(false);
+      wizard.uploadAnynomousAnalytics(false);
     }
 
-    if (PreferencesUtils.openLastOpenedProject()) {
-      var filePath =
-          PreferencesUtils.getLastOpenedProjectPreferences()
-              .getString(SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
-
-      if (!Wizard.isEmpty(filePath)) {
-        var projectFile = new File(filePath);
-        if (projectFile != null && projectFile.exists()) {
-          mMainViewModel.setTreeViewFragmentTreeDir(projectFile);
-        } else if (projectFile != null && !projectFile.exists()) {
-          // corrupted thus clear
-          PreferencesUtils.clearPerference(
-              PreferencesUtils.getLastOpenedProjectPreferences(),
-              SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
-          logger.e(
-              LOG_TAG,
-              "Failed to reopen last opened project because it no longer exists in that directory");
-        }
-      }
-    }
+    openLastOpenedProject();
 
     mPermissionLauncher =
         registerForActivityResult(
@@ -533,8 +510,7 @@ public class MainFragment extends Fragment
         // save editor content ahead of preview
         editorPane.saveEditor();
         mMainViewModel.setWebViewPaneFile(editorPane.getFile());
-      }
-      else if (id == R.id.menu_undo) editorPane.undo();
+      } else if (id == R.id.menu_undo) editorPane.undo();
       else if (id == R.id.menu_redo) editorPane.redo();
       else if (id == R.id.menu_save_file) editorPane.saveEditor();
       else if (id == R.id.menu_findFile) editorPane.openSearchPanel(true);
@@ -740,5 +716,29 @@ public class MainFragment extends Fragment
    */
   public FragmentMainBinding getBinding() {
     return this.binding;
+  }
+
+  void openLastOpenedProject() {
+
+    if (PreferencesUtils.openLastOpenedProject()) {
+      try {
+        var filePath =
+            PreferencesUtils.getLastOpenedProjectPreferences()
+                .getString(SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
+        if (!Wizard.isEmpty(filePath)) {
+
+          var projectFile = new File(filePath);
+          if (projectFile.exists() && projectFile.isDirectory()) {
+            mMainViewModel.setTreeViewFragmentTreeDir(projectFile);
+          }
+        }
+      } catch (Throwable e) {
+        // corrupted thus clear
+        PreferencesUtils.clearPerference(
+            PreferencesUtils.getLastOpenedProjectPreferences(),
+            SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
+        logger.e(LOG_TAG, "Failed to reopen last opened project" + "\n\n" + e.toString());
+      }
+    }
   }
 }

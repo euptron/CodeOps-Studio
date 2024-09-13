@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,46 +21,39 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.util;
+package com.eup.codeopsstudio.util;
 
+import static android.content.Context.UI_MODE_SERVICE;
 import static com.eup.codeopsstudio.common.models.Document.MimeType.*;
 import static com.eup.codeopsstudio.common.util.SDKUtil.API;
-import static android.content.Context.UI_MODE_SERVICE;
 
+import android.app.UiModeManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.app.UiModeManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
-import androidx.core.util.Pair;
-import com.google.android.material.tabs.TabLayout;
+import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
+import com.eup.codeopsstudio.BuildConfig;
+import com.eup.codeopsstudio.common.AsyncTask;
+import com.eup.codeopsstudio.common.util.SDKUtil;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
-import com.google.gson.internal.LinkedTreeMap;
-import com.eup.codeopsstudio.common.AsyncTask;
-import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.pane.TextPane;
-import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
-import com.eup.codeopsstudio.ui.editor.panes.WebViewPane;
-import com.eup.codeopsstudio.ui.editor.panes.WelcomePane;
-import com.eup.codeopsstudio.ui.settings.SettingsPane;
-import com.eup.codeopsstudio.common.util.SDKUtil;
 import java.io.File;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 /**
  * Main-Stream Utility class
@@ -129,22 +122,37 @@ public class Wizard {
     return new Date().getTime();
   }
 
-  public static String getLocaleCountry(Context context) {
-    Configuration configuration = context.getResources().getConfiguration();
-    Locale locale;
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-      locale = configuration.getLocales().get(0);
-    } else {
-      locale = configuration.locale;
+    public static String getLocaleCountry(Context context) {
+    String param = null;
+    TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+
+    if (tm != null) {
+      if (!isEmpty(tm.getSimCountryIso())) {
+        param = tm.getSimCountryIso();
+      } else if (!isEmpty(tm.getNetworkCountryIso())) {
+        param = tm.getNetworkCountryIso();
+      }
+
+      if (!isEmpty(param) && param.length() == 2) {
+        return validate(param.toUpperCase());
+      }
+
+      Configuration configuration = context.getResources().getConfiguration();
+      Locale locale;
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+        locale = configuration.getLocales().get(0);
+      } else {
+        locale = configuration.locale;
+      }
+      return validate(locale.getCountry());
     }
-    var param = locale.getCountry();
-    return validate(param);
+    return validate(null);
   }
 
   public static String getDeviceCountry(Context context) {
     return getLocaleCountry(context);
   }
-
+    
   public static String getDeviceBuildModel() {
     return validate(Build.MODEL);
   }
@@ -329,116 +337,6 @@ public class Wizard {
     }
   }
 
-  /////////////////////////////////
-  ///////// PANE CONVERSION/////////
-  ////////////////////////////////
-
-  protected static CodeEditorPane isCodeEditorPane(Pane pane) {
-    var current = pane;
-    if (current != null && current instanceof CodeEditorPane) {
-      return (CodeEditorPane) current;
-    }
-    return null;
-  }
-
-  protected static WebViewPane isWebPane(Pane pane) {
-    var current = pane;
-    if (current != null && current instanceof WebViewPane) {
-      return (WebViewPane) current;
-    }
-    return null;
-  }
-
-  protected static WelcomePane isWelcomePane(Pane pane) {
-    var current = pane;
-    if (current != null && current instanceof WelcomePane) {
-      return (WelcomePane) current;
-    }
-    return null;
-  }
-
-  protected static SettingsPane isSettingsPane(Pane pane) {
-    var current = pane;
-    if (current != null && current instanceof SettingsPane) {
-      return (SettingsPane) current;
-    }
-    return null;
-  }
-
-  /**
-   * Get the selected text pane
-   *
-   * @param pane The selected pane
-   * @return The selected text pane
-   */
-  protected static TextPane isTextPane(Pane pane) {
-    var current = pane;
-    if (current != null && current instanceof TextPane) {
-      return (TextPane) current;
-    }
-    return null;
-  }
-
-  /**
-   * Converts a list of pane tabs to JSON string
-   *
-   * @param cues The list of pane tabs to be converted
-   * @return The JSON String
-   */
-  public static String paneTabsToJson(List<Pair<TabLayout.Tab, Pane>> cues) {
-    if (cues == null || cues.isEmpty()) return "";
-    List<LinkedTreeMap<String, Object>> temps = new LinkedList<>();
-    var json = "";
-
-    for (Pair<TabLayout.Tab, Pane> pair : cues) {
-      LinkedTreeMap<String, Object> temp = new LinkedTreeMap<>();
-      if (pair != null) {
-        var tab = pair.first;
-        var pane = pair.second;
-        // ...
-        TextPane textPane = isTextPane(pane);
-        WebViewPane webPane = isWebPane(pane);
-        CodeEditorPane codeEditorPane = isCodeEditorPane(pane);
-        WelcomePane welcomePane = isWelcomePane(pane);
-        SettingsPane settingsPane = isSettingsPane(pane);
-
-        if (textPane != null) {
-          temp.put("type", textPane.getClass().getSimpleName());
-          temp.put("tp-content", textPane.getText());
-        } else if (webPane != null) {
-          temp.put("type", webPane.getClass().getSimpleName());
-          temp.put("web-preview-file", getFilePathOrEmpty(webPane.getFile()));
-          temp.put("wp-isZoomable", webPane.isZoomable());
-          temp.put("wp-isDeskTopMode", webPane.isDeskTopMode());
-        } else if (codeEditorPane != null) {
-          temp.put("type", codeEditorPane.getClass().getSimpleName());
-          temp.put("cep-file", codeEditorPane.getFilePath());
-          var contextualEditor = codeEditorPane.getEditor();
-          if (contextualEditor != null) {
-            temp.put("cep-left-index", contextualEditor.getCursor().getLeft());
-            temp.put("cep-left-column", contextualEditor.getCursor().getLeftColumn());
-            temp.put("cep-left-line", contextualEditor.getCursor().getLeftLine());
-            temp.put("cep-right-index", contextualEditor.getCursor().getRight());
-            temp.put("cep-right-column", contextualEditor.getCursor().getRightColumn());
-            temp.put("cep-right-line", contextualEditor.getCursor().getRightLine());
-          }
-        } else if (welcomePane != null) {
-          temp.put("type", welcomePane.getClass().getSimpleName());
-        } else if (settingsPane != null) {
-          temp.put("type", settingsPane.getClass().getSimpleName());
-        }
-        temp.put("title", pane.getTitle());
-        temp.put("pinned", pane.isPinned());
-        // temp.put("uuid", pane.getUUID());// identification use only! UUID will not persist to
-        // pane window
-        // temp.put("isSelected", tab.isSelected());
-        temps.add(temp);
-      }
-    }
-    return prettyPrintJson(new Gson().toJson(temps));
-  }
-
-  // New public method
   public static String prettyPrintJson(String jsonString) {
     CompletableFuture<String> resultFuture = new CompletableFuture<>();
     prettyPrintJsonAsync(
@@ -515,7 +413,7 @@ public class Wizard {
    */
   public boolean isTv() {
     // See https://developer.android.com/training/tv/start/hardware.html#runtime-check.
-    @Nullable // LINE 2461
+    @Nullable
     UiModeManager uiModeManager =
         (UiModeManager) mContext.getApplicationContext().getSystemService(UI_MODE_SERVICE);
     return uiModeManager != null
@@ -552,4 +450,24 @@ public class Wizard {
     }
     return false;
   }
+    
+    public static void installApplication(Context context, File file) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uriFromFile(context, file), "application/vnd.android.package-archive");
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Uri uriFromFile(Context context, File file) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
+        } else {
+            return Uri.fromFile(file);
+        }
+    }
 }

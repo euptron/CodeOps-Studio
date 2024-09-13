@@ -58,8 +58,9 @@ if [[ "$1" == "--manual" ]]; then
     exit 1
   fi
 else
-  # Find and process files with specific extensions
-  find "$SEARCH_DIR" -type f \( -name "*.java" -o -name "*.py" -o -name "*.cpp" -o -name "*.xml" -o -name "*.gradle" -o -name "*.kts" -o -name "*.kt" \) -print0 |
+  # Find and process files with specific extensions, excluding 'Build' and 'Compile' directories
+  find "$SEARCH_DIR" -type d \( -path "$SEARCH_DIR/build" -o -path "$SEARCH_DIR/compile" \) -prune -o \
+  -type f \( -name "*.java" -o -name "*.py" -o -name "*.cpp" -o -name "*.xml" -o -name "*.gradle" -o -name "*.kts" -o -name "*.kt" \) -print0 |
   while IFS= read -r -d '' file; do
     remove_license_header "$file"
     show_progress "$file"

@@ -1,6 +1,7 @@
 # Contributing to CodeOps Studio
 
 Thank you for your interest in contributing to CodeOps Studio! We value your input and strive to make the contribution process straightforward and transparent.
+This project uses [semantic version `2.0.0` spec](https://semver.org/spec/v2.0.0.html) in the format `major.minor.patch(-prerelease)(+buildmetadata)`. When bumping `versionName` in `constants.gradle` file and when creating a tag for new releases on github, make sure to include the patch number as well, like `v1.1.0` instead of just `v1.1`. The `build.gradle` files for consistency.
 
 ## Ways to Contribute
 
@@ -24,7 +25,14 @@ To contribute to CodeOps Studio, follow these steps:
 
 2. **Create a Branch:** Create a new branch from the `main` branch for your feature or bug fix.
 
-3. **Implement Changes:** Make your changes in the branch you created, ensuring each commit has a clear and descriptive message.
+3. **Implement Changes:** Make your changes in the branch you created, ensuring each commit has a clear and descriptive message and **must** use [Conventional Commits](https://www.conventionalcommits.org) specs like:
+      - **Added** for new features.
+      - **Changed** for changes in existing functionality.
+      - **Deprecated** for soon-to-be removed features.
+      - **Removed** for now removed features.
+      - **Fixed** for any bug fixes.
+      - **Security** in case of vulnerabilities.
+      - **Docs** for updating documentation.
 
 4. **Submit a Pull Request:** Open a pull request (PR) against the `main` branch of this repository. Provide a detailed description of the changes you've made and the problem they solve.
 
@@ -40,7 +48,7 @@ To contribute to CodeOps Studio, follow these steps:
 
 ## Bug Reporting
 
-We use GitHub issues to track bugs. If you encounter a bug, please report it by [opening a new issue](link-to-new-issue). Include detailed steps to reproduce the bug, expected behavior, actual behavior observed, and any relevant code snippets.
+We use GitHub issues to track bugs. If you encounter a bug, please report it by [opening a new issue](https://github.com/euptron/CodeOps-Studio/issues). Include detailed steps to reproduce the bug, expected behavior, actual behavior observed, and any relevant code snippets.
 
 ## Licensing
 

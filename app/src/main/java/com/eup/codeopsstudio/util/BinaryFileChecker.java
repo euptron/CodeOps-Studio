@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.util;
+
+package com.eup.codeopsstudio.util;
 
 import com.eup.codeopsstudio.common.util.FileUtil;
 import java.io.FileInputStream;
@@ -53,7 +53,7 @@ public class BinaryFileChecker {
   private static final byte UPPER_BOUND = 0x20;
   private static final byte BACKSPACE = 0x08;
   private static final byte LOWER_BOUND_EXCLUSIVE = 0x0E;
-  private static final double ENTROPY_THRESHOLD = 7;
+  private static final double ENTROPY_THRESHOLD = 8; // was 7
   private static final int MAX_SAMPLE_SIZE = 1024;
 
   private BinaryFileChecker() {
@@ -65,12 +65,13 @@ public class BinaryFileChecker {
   }
 
   public static boolean isBinaryFile(File file, boolean useFileFormat) throws IOException {
+    int binaryIndicators = 0;
+    int nonBinaryIndicators = 0;
 
     if (file.isDirectory()) {
       throw new IllegalArgumentException("Provided file is a directory!");
     }
 
-    // Check for magic numbers in header
     try (InputStream inputStream = new FileInputStream(file)) {
       byte[] fileContentBuffer = new byte[MAX_READ_BYTES];
       int bytesRead = inputStream.read(fileContentBuffer, 0, MAX_READ_BYTES);
@@ -81,30 +82,38 @@ public class BinaryFileChecker {
       }
 
       if (checkForMagicNumbers(fileContentBuffer)) {
-        return true;
+        binaryIndicators++;
+      } else {
+        nonBinaryIndicators++;
       }
 
       if (hasHighEntropy(fileContentBuffer)) {
-        return true;
+        binaryIndicators++;
+      } else {
+        nonBinaryIndicators++;
       }
-      
-      /* 
-       * Not so accurate...flags numbers as binary.
+
+      /*
+       * Not so accurate...flags all numbers as binary.
        * TODO: Improve algorithm to know determine if number sequence is that of binary rather than flagging
        * non-ascii chars as binary
        */
       if (containsBinaryContent(fileContentBuffer)) {
-        return true;
+        binaryIndicators++;
+      } else {
+        nonBinaryIndicators++;
       }
-      
+
       if (useFileFormat) {
         if (isBinaryExtension(file)) {
-          return true;
+          binaryIndicators++;
+        } else {
+          nonBinaryIndicators++;
         }
       }
     }
 
-    return false;
+    return binaryIndicators > nonBinaryIndicators;
   }
 
   private static boolean checkForMagicNumbers(byte[] buffer) {
@@ -145,10 +154,9 @@ public class BinaryFileChecker {
   private static boolean hasHighEntropy(byte[] buffer) {
     int totalBytes = buffer.length;
 
-    // Calculate the sample size as one-third of the total file size
+    // one-third of the total file size
     int sampleSize = Math.min(totalBytes / 3, MAX_SAMPLE_SIZE);
 
-    // Ensure that the sample size is at least 1 byte
     sampleSize = Math.max(sampleSize, 1);
 
     int[] occurrences = new int[256]; // Assuming bytes are unsigned
@@ -167,7 +175,6 @@ public class BinaryFileChecker {
       }
     }
 
-    // If entropy exceeds threshold, return true
     if (entropy > ENTROPY_THRESHOLD) {
       return true;
     }
@@ -178,7 +185,7 @@ public class BinaryFileChecker {
       entropy = 0;
       for (int count : occurrences) {
         if (count > 0) {
-          double probability = (double) count / (i + 1); // Incremental probability calculation
+          double probability = (double) count / (i + 1);
           entropy -= probability * Math.log(probability) / Math.log(2);
         }
       }
@@ -187,7 +194,7 @@ public class BinaryFileChecker {
       }
     }
 
-    // If no high entropy found, return false
+    // No high entropy found, return false
     return false;
   }
 
@@ -202,7 +209,7 @@ public class BinaryFileChecker {
     }
     return false;
   }
-
+    
   /**
    * File magic numbers are the first bits (HEX BASED) of a file which is used as a unique refrence
    * when identifying the type of file.

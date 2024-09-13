@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.pane;
+
+package com.eup.codeopsstudio.pane;
 
 import android.content.Context;
 import android.view.View;
@@ -33,11 +33,11 @@ import androidx.fragment.app.FragmentActivity;
 import com.google.gson.Gson;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,7 +60,8 @@ import org.json.JSONObject;
  *
  * <p>This class provides a foundation for custom pane implementations and includes methods to
  * create, manage, and interact with panes. Always call {@code createView()} before interacting with
- * a pane to prevent crashes. Note that this class does not support it's own thread, integrate a thread or leverage @link ComponentActivity.runOnUiThread(Runnable)
+ * a pane to prevent crashes. Note that this class does not support it's own thread, integrate a
+ * thread or leverage @link ComponentActivity.runOnUiThread(Runnable)
  *
  * <p><b>CHANGE LOG</b>
  *
@@ -155,8 +156,8 @@ public abstract class Pane {
   // Indicates whether createView() method has been executed for this pane
   protected boolean hasPerformedCreateView = false;
 
-  // List to store generated UUIDs for this pane
-  final List<UUID> generatedIDS = new ArrayList<>();
+  // A shared set of generated IDs to ensure uniqueness across all instances of subclasses.
+  private static final Set<UUID> generatedIDS = new HashSet<>();
 
   // keeps track of all pane arguments
   final HashMap<String, Object> mArguments = new HashMap<>();
@@ -504,43 +505,13 @@ public abstract class Pane {
     this.mUUID = id;
   }
 
-  /**
-   * Generates a unique UUID for the pane, ensuring it is not a duplicate of any previously
-   * generated UUID. If the list of generated UUIDs is empty, the generated UUID is assigned without
-   * further checks.
-   */
-  private void generateUUID() {
-    // Generate a new UUID.
-    UUID newUUID = UUID.randomUUID();
-
-    // Check if the list of generated UUIDs is empty.
-    if (generatedIDS.isEmpty()) {
-      // If the list is empty, assign the generated UUID directly.
-      this.mUUID = newUUID;
-      // Add the UUID to the list of generated UUIDs.
-      generatedIDS.add(mUUID);
-    } else {
-      // If the list is not empty, check if the generated UUID is unique.
-      if (!hasDuplicateUUID(newUUID)) {
-        // If the new UUID is unique, assign it to the pane's UUID and add it to the list of
-        // generated UUIDs.
-        this.mUUID = newUUID;
-        generatedIDS.add(mUUID);
-      } else {
-        // If a duplicate UUID is generated, recursively call generateUUID to ensure uniqueness.
-        generateUUID();
-      }
-    }
-  }
-
-  /**
-   * Checks if the given UUID is already generated for this pane.
-   *
-   * @param uuid The UUID to check for duplication.
-   * @return True if the UUID is already generated, false otherwise.
-   */
-  private boolean hasDuplicateUUID(UUID uuid) {
-    return generatedIDS.contains(uuid);
+  protected synchronized void generateUUID() {
+    UUID id;
+    do {
+      id = UUID.randomUUID();
+    } while (generatedIDS.contains(id));
+    generatedIDS.add(id);
+    mUUID = id;
   }
 
   /**

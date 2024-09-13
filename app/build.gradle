@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -64,9 +64,9 @@ android {
     buildTypes {
         release {
             // Enables code shrinking, obfuscation, and optimization
-            minifyEnabled true
+            minifyEnabled false
             // Enables resource shrinking
-            shrinkResources true
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if(signingEnabled) {
               signingConfig signingConfigs.global
@@ -133,6 +133,7 @@ dependencies {
     implementation project(path: ":pane")
     implementation project(path: ":common")
     implementation project(path: ":server")
+    implementation project(path: ":ast-core")
     implementation project(path: ":treeview")
     implementation project(path: ":shared-res")
     implementation project(path: ":code-editor")

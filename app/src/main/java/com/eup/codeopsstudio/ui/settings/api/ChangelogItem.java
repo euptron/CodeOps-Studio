@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.settings.api;
+
+package com.eup.codeopsstudio.ui.settings.api;
 
 /**
  * Defines a change log item
@@ -45,17 +45,23 @@ public class ChangelogItem {
     /**
      * A near-final version that's considered stable and ready for release unless any critical
      * issues are found.
+     *
+     * <p>release-candidate
      */
-    RELEASE_CANDIDATE("release-candidate"),
+    RELEASE_CANDIDATE("rc"),
     /**
      * The official version of the app that's intended for the general public. It has undergone
      * testing and bug fixing.
      */
     STABLE("stable"),
-    /** A version of the app that's released before the stable version. */
-    PRE_RELEASE("pre-release");
+    /**
+     * A version of the app that's released before the stable version.
+     *
+     * <p>pre-release
+     */
+    PRE_RELEASE("pr");
 
-    public String releaseName;
+    public final String releaseName;
 
     ReleaseType(String releaseName) {
       this.releaseName = releaseName;
@@ -65,11 +71,16 @@ public class ChangelogItem {
       if (name == null) return ALPHA;
 
       for (ReleaseType value : values()) {
-        if (value.releaseName.equals(name)) {
+        if (value.releaseName.equalsIgnoreCase(name)) {
           return value;
         }
       }
       return ALPHA;
+    }
+
+    @Override
+    public String toString() {
+      return releaseName;
     }
   }
 

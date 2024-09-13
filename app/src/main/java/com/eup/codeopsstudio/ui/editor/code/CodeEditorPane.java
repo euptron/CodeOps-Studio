@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
+
 package com.eup.codeopsstudio.ui.editor.code;
 
 import static android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -123,7 +123,8 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
     PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
 
     try {
-      ThemeRegistry.getInstance().setTheme(binding.editor.isUIDarkMode() ? "darcula" : "quietlight");
+      ThemeRegistry.getInstance()
+          .setTheme(binding.editor.isUIDarkMode() ? "darcula" : "quietlight");
       binding.editor.ensureTextmateTheme();
     } catch (Exception e) {
       logger.w(LOG_TAG, e.getMessage());
@@ -138,7 +139,8 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
 
     updateCrumbPanelVisibility();
     binding.breadCrumbBar.setFile(mEditorFile);
-    binding.breadCrumbBar
+    binding
+        .breadCrumbBar
         .getAdapter()
         .setOnItemClickListener(
             (anchorView, crumb, position) -> {
@@ -196,7 +198,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
   }
 
   private void readFile(@NonNull File file) {
-            setLoading(true);
+    setLoading(true);
     Charset detectedCharset = EncodingDetector.detectFileEncoding(file);
     try {
       if (!EncodingDetector.isSupportedEncoding(detectedCharset) || isBinaryFile(file)) {
@@ -217,12 +219,9 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
 
   private void readFileWithCharset(@NonNull File file, @NonNull Charset charset) {
     AsyncTask.runNonCancelable(
-        () -> {
-          return FileUtils.readFileToString(file, charset);
-        },
+        () -> FileUtils.readFileToString(file, charset),
         (result, throwable) -> {
           setLoading(false);
-
           if (result != null) {
             binding.editor.setText(result, null);
             loadEditorLanguage(file);
@@ -265,7 +264,8 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
 
   public void refreshEditorLanguageSyntax(boolean enableAutoComplete) {
     try {
-      binding.editor.refreshEditorLanguageSyntax(getEditorLanguagScope(getFile()), enableAutoComplete);
+      binding.editor.refreshEditorLanguageSyntax(
+          getEditorLanguagScope(getFile()), enableAutoComplete);
     } catch (Exception e) {
       logger.e(LOG_TAG, "Failed to refresh editor language configurations");
       // logger.d(e.getLocalizedMessage());
@@ -462,7 +462,7 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
                           + " Try saving this editor");
                 }
               },
-              50);
+              /* MilliSeconds= */ 50);
         });
     binding.editor.subscribeEvent(
         PublishSearchResultEvent.class,
@@ -614,27 +614,24 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
     saveEditor(true);
   }
 
-  public void saveEditor(boolean recreateDeletedFile) {
-    // Avoid saving if the file has been deleted externally and should not be recreated
-    if (!recreateDeletedFile && !mEditorFile.exists()) return;
+  /**
+   * Clear persisted content {@see BaseFragment#. } for how the {@code CodeEditorPane} contents are
+   * persisted
+   *
+   * @param recreateIfDeleted recreates the editor file incase it was deleted
+   */
+  public void saveEditor(boolean recreateIfDeleted) {
 
     AsyncTask.runNonCancelable(
         () -> {
-          // Create the file if it doesn't exist
-          if (!mEditorFile.exists()) mEditorFile.createNewFile();
+          if (recreateIfDeleted && !mEditorFile.exists()) mEditorFile.createNewFile();
 
-          // Write content to the file
-          FileUtils.writeStringToFile(
-              mEditorFile,
-              binding.editor.getText().toString(),
-              EncodingDetector.getEncoding(PreferencesUtils.getDefaultFileEncoding()));
-
-          setModified(false);
+          writeEditorContentToFile();
           return null;
         },
         (result, throwable) -> {
           if (throwable == null) {
-            addArguments("editor_content", ""); // Clear persisted editor content
+            addArguments("editor_content", ""); // persisted editor content
           } else {
             logger.e(
                 LOG_TAG,
@@ -644,5 +641,13 @@ public class CodeEditorPane extends Pane implements OnSharedPreferenceChangeList
                     + throwable.getMessage());
           }
         });
+  }
+
+  private void writeEditorContentToFile() throws IOException {
+    FileUtils.writeStringToFile(
+        mEditorFile,
+        binding.editor.getText().toString(),
+        EncodingDetector.getEncoding(PreferencesUtils.getDefaultFileEncoding()));
+    setModified(false);
   }
 }

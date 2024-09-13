@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.logging;
+
+package com.eup.codeopsstudio.logging;
 
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -68,6 +68,8 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
   @Override
   public void onBindViewHolder(ViewHolder holder, int position) {
     Log log = mDiffer.getCurrentList().get(position);
+    if (log == null) return;
+
     SpannableStringBuilder sb = new SpannableStringBuilder();
     if (log.getDateFormat() != null && !TextUtils.isEmpty(log.getDateFormat())) {
       sb.append(" ");

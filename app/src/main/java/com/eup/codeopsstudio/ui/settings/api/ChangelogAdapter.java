@@ -1,7 +1,7 @@
 /*************************************************************************
  * This file is part of CodeOps Studio.
  * CodeOps Studio - code anywhere anytime
- * https://github.com/etidoUP/CodeOps-Studio
+ * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.settings.api;
+
+package com.eup.codeopsstudio.ui.settings.api;
 
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -101,7 +101,6 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
 
     public void bind(ChangelogItem item, int position) {
       if (item == null) {
-        // TODO: @Log:"Failed to bind change logs to VH"
         return;
       }
       String release = item.getReleaseType().releaseName;
@@ -134,7 +133,10 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
 
       if (item.getVersionName()
           .equalsIgnoreCase(Wizard.getAppVersionName(ContextManager.getApplicationContext()))) {
-        advancedCorners(binding.versionIndicator, "#FFB0F0C0");// light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal) | FFB0F0C0 (prime)
+        advancedCorners(
+            binding.versionIndicator,
+            "#FFB0F0C0"); // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal) |
+                          // FFB0F0C0 (prime)
       } else {
         binding.versionIndicator.setBackground(null);
       }
