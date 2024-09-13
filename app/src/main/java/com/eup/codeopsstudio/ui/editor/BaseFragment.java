@@ -1214,6 +1214,10 @@ public class BaseFragment extends Fragment
   }
   
   public CodeEditorPane addCodeEditorPane(@NonNull File file) {
+    return addCodeEditorPane(file, true);
+  }
+
+  public CodeEditorPane addCodeEditorPane(@NonNull File file, boolean select) {
     var tabName = file.getName();
     CodeEditorPane codeEditor = null;
     // Check if the code editor pane has already been added
