@@ -38,7 +38,7 @@ Current software version is `v1.0.1 beta`.
 
 [<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg"
     alt="Get it on Github"
-    height="80">](https://github.com/euptron/CodeOps-Studio/releases)
+    height="80">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.0.1-beta/CodeOps-Studio.v1.0.1-beta.apk)
 
 **Important:** Always install CodeOps Studio from trusted sources:
 - [GitHub Releases](https://github.com/euptron/CodeOps-Studio/releases)
