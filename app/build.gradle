@@ -83,7 +83,6 @@ android {
     }
 
     compileOptions {
-        //coreLibraryDesugaringEnabled true
         sourceCompatibility project.ext.javaSourceVersion
         targetCompatibility project.ext.javaTargetVersion
     }
@@ -139,6 +138,5 @@ dependencies {
     implementation project(path: ":code-editor")
     implementation project(path: ":share-layout")
     
-    //coreLibraryDesugaring other.desugar
     debugImplementation other.leakcanary_android
 }

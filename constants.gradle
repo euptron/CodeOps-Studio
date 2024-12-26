@@ -23,16 +23,16 @@
  
 project.ext {
     // Android versions
-    compileSdkVersion = 34
+    compileSdkVersion = 35
     buildToolsVersion = '34.0.0'
-    targetSdkVersion = 34
+    targetSdkVersion = 35
     minSdkVersion = 26
     
     // App Constants
     appNameSpace = "com.eup.codeopsstudio"
     applicationId = "com.eup.codeopsstudio"
-    appVersionCode = 2
-    appVersionName = "1.0.1 beta" // X.Y.Z; X = Major, Y = minor, Z = Patch level
+    appVersionCode = 3
+    appVersionName = "1.0.2 beta" // X.Y.Z; X = Major, Y = minor, Z = Patch level
     
     javaSourceVersion = JavaVersion.VERSION_17
     javaTargetVersion = JavaVersion.VERSION_17
@@ -63,7 +63,6 @@ project.ext {
       commons: 'commons-io:commons-io:2.11.0',
       zip4j: 'net.lingala.zip4j:zip4j:2.11.1',
       utilcodex: 'com.blankj:utilcodex:1.31.1',
-      glide: 'com.github.bumptech.glide:glide:4.12.0',
       volley: 'com.android.volley:volley:1.2.1',
       jsoup: 'org.jsoup:jsoup:1.15.3',
       juniversalchardet: 'com.github.albfernandez:juniversalchardet:2.4.0',
@@ -74,7 +73,6 @@ project.ext {
       // currently removed from v0.0.1
       rhino_android: 'io.apisense:rhino-android:1.0',
       nanohttpd: 'org.nanohttpd:nanohttpd:2.3.1',
-      desugar: 'com.android.tools:desugar_jdk_libs:2.0.4',
       leakcanary_android: 'com.squareup.leakcanary:leakcanary-android:2.14'
     ]
 }

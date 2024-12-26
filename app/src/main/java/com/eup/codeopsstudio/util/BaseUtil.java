@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.util;
+
+package com.eup.codeopsstudio.util;
 
 import android.animation.ObjectAnimator;
 import android.content.ClipData;
@@ -41,70 +41,31 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.annotation.StringRes;
 import androidx.core.app.ShareCompat;
+import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.Constants;
-import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.res.R;
 
 public class BaseUtil {
 
-  private static final Context context = ContextManager.getApplicationContext();
-  public static final int LENGTH_SHORT = 0;
-  public static final int LENGTH_LONG = 1;
+  private static final Context context = IdeApplication.getGlobalContext();
   public static final int MEDIUM_SCREEN_WIDTH_SIZE = 600;
   public static final int LARGE_SCREEN_WIDTH_SIZE = 1240;
 
-  public static int dp(float px) {
-    if (px == 0) {
-      return 0;
-    }
-    return Math.round(context.getResources().getDisplayMetrics().density * px);
-  }
+  public static int dp(float dp) {
+    if (dp == 0) return 0;
 
-  /**
-   * method to display toast with a certain duration @StringRes returns the string id of a string
-   * res
-   */
-  public static void showToast(@StringRes int id, int duration) {
-    switch (duration) {
-      case LENGTH_SHORT:
-        Toast.makeText(context, id, Toast.LENGTH_SHORT).show();
-        break;
-      case LENGTH_LONG:
-        Toast.makeText(context, id, Toast.LENGTH_LONG).show();
-        break;
-    }
-  }
-
-  /*
-   * method to display toast with a certain duration
-   */
-  public static void showToast(String message, int duration) {
-    switch (duration) {
-      case LENGTH_SHORT:
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-        break;
-      case LENGTH_LONG:
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-        break;
-    }
+    return Math.round(
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
   }
 
   public static void showToast(String message) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
   }
-
-  /**
-   * Converts a dp value into px that can be applied on margins, paddings etc
-   *
-   * @param dp The dp value that will be converted into px
-   * @return The converted px value from the dp argument given
-   */
-  public static int dpToPx(float dp) {
-    return Math.round(
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
+  
+  public static void showLongToast(String message) {
+    Toast.makeText(context, message, Toast.LENGTH_LONG).show();
   }
 
   public static int getRowCount(int itemWidth) {
@@ -207,7 +168,7 @@ public class BaseUtil {
 
   public static void copyToClipBoard(String text, boolean withToast) {
     copyToClipBoard(text);
-    if (withToast) showToast(context.getString(R.string.copied_to_clipboard), LENGTH_SHORT);
+    if (withToast) showToast(context.getString(R.string.copied_to_clipboard));
   }
 
   public static void startObjectAnimation(
@@ -236,7 +197,9 @@ public class BaseUtil {
     ShareCompat.IntentBuilder shareIntent = new ShareCompat.IntentBuilder(context);
     shareIntent.setType("text/plain");
     shareIntent.setChooserTitle(context.getString(R.string.app_name));
-    shareIntent.setText(context.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GITHUB_URL));
+    shareIntent.setText(
+        context.getString(
+            R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/ CHECK_UPDATE_GITHUB_URL));
     shareIntent.getIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     shareIntent.startChooser();
   }
@@ -250,7 +213,9 @@ public class BaseUtil {
     ShareCompat.IntentBuilder shareIntent = new ShareCompat.IntentBuilder(ctx);
     shareIntent.setType("text/plain");
     shareIntent.setChooserTitle(ctx.getString(R.string.app_name));
-    shareIntent.setText(ctx.getString(R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/CHECK_UPDATE_GITHUB_URL));
+    shareIntent.setText(
+        ctx.getString(
+            R.string.share_app_info, Constants./*GOOGLE_PLAY_APP_URL*/ CHECK_UPDATE_GITHUB_URL));
     shareIntent.getIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     shareIntent.startChooser();
   }

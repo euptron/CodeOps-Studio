@@ -20,15 +20,15 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.editor.panes.recent.model;
+
+package com.eup.codeopsstudio.models.recents;
 
 import com.eup.codeopsstudio.file.FileAction;
 import java.io.File;
 import java.util.Objects;
 
 /**
- * Stores information about a recent project
+ * A model of a recent project
  *
  * @author EUP
  */
@@ -36,9 +36,9 @@ public class Project {
 
   private final File file;
   private boolean isBookmarked;
-  private History history;
+  private ProjectHistory history;
 
-  public Project(File file, History history) {
+  public Project(File file, ProjectHistory history) {
     this.file = file;
     this.history = history;
   }
@@ -75,19 +75,8 @@ public class Project {
   public int hashCode() {
     return Objects.hash(getName(), file);
   }
-  
-  public History getHistory() {
+
+  public ProjectHistory getHistory() {
     return this.history;
-  }
-
-  public static final class History {
-
-    public final long creationDate;
-    public final FileAction fileAction;
-
-    public History(long date, FileAction act) {
-      this.creationDate = date;
-      this.fileAction = act;
-    }
   }
 }

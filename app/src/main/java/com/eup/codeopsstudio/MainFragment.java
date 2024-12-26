@@ -24,6 +24,7 @@
 package com.eup.codeopsstudio;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
+import static com.eup.codeopsstudio.common.models.Document.MimeType.*;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -63,6 +64,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import com.blankj.utilcode.util.KeyboardUtils;
 import com.blankj.utilcode.util.ToastUtils;
+import com.eup.codeopsstudio.models.user.User;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
@@ -166,8 +168,8 @@ public class MainFragment extends Fragment
     requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
     mLifecycleObserver =
         new ContextualLifecycleObserver(
-            requireContext(), requireActivity().getActivityResultRegistry());
-    mLifecycleObserver.setFileActionListener(this);
+            requireContext(), requireActivity().getActivityResultRegistry(), this);
+    
     getLifecycle().addObserver(mLifecycleObserver);
     logger.attach(requireActivity());
     onBackPressedCallback =
@@ -197,10 +199,8 @@ public class MainFragment extends Fragment
     }
 
     if (PreferencesUtils.canShareAnynomousStatistics()) {
-      wizard.uploadAnynomousAnalytics(true);
-    } else {
-      wizard.uploadAnynomousAnalytics(false);
-    }
+      User.registerSession();
+    } 
 
     openLastOpenedProject();
 
@@ -330,13 +330,10 @@ public class MainFragment extends Fragment
   @Override
   public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
     menuInflater.inflate(R.menu.main_menu, menu);
-    // There is no public API to make icons show on menus.
-    // TODO: Always check {@link MenuBuilder} is still available or supported
     if (menu instanceof MenuBuilder) {
       MenuBuilder menuBuilder = (MenuBuilder) menu;
-      //noinspection RestrictedApi
       menuBuilder.setOptionalIconsVisible(true);
-      //noinspection RestrictedApi
+      
       for (MenuItem item : menuBuilder.getVisibleItems()) {
         int iconMarginPx =
             (int)
@@ -419,12 +416,11 @@ public class MainFragment extends Fragment
 
   @Override
   public void onFilePicked(@NonNull File file) {
-    openFileInPane(file);
-  }
-
-  @Override
-  public void onFilePicked(@NonNull Uri uri) {
-    // No-op
+    if(Wizard.getMimeType(requireContext(),file).equals(ZIP.toString())||file.getName().endsWith(".zip")) {
+      mMainViewModel.setZipFile(file);
+    } else {
+      openFileInPane(file);
+    }
   }
 
   @Override
@@ -452,9 +448,7 @@ public class MainFragment extends Fragment
     switch (key) {
       case SharedPreferenceKeys.KEY_SHARE_STATISTICS:
         if (PreferencesUtils.canShareAnynomousStatistics()) {
-          wizard.uploadAnynomousAnalytics(true);
-        } else {
-          wizard.uploadAnynomousAnalytics(false);
+          User.registerSession();
         }
         break;
     }
@@ -627,7 +621,15 @@ public class MainFragment extends Fragment
   public void openFileFromManager() {
     if (mLifecycleObserver != null) mLifecycleObserver.pickFile();
   }
-
+  
+   /*
+   * Open zip file manager to select file
+   */
+  public void openZipFileFromManager() {
+    if (mLifecycleObserver != null) mLifecycleObserver.pickZipFile();
+  }
+  
+  
   /*
    * Open file manager to create file
    */
@@ -685,7 +687,16 @@ public class MainFragment extends Fragment
               == PackageManager.PERMISSION_GRANTED;
     }
   }
-
+  
+  /* Check storage permission state */
+  private void checkStoragePermission() {
+    if (!isStoragePermissionGranted(requireContext())) {
+      requestStoragePermission(true);
+    } else {
+      checkPlugins();
+    }
+  }
+  
   private void checkPlugins() {
     logger.d(LOG_TAG, getString(R.string.msg_checking_plugins));
     if (!FileUtil.Path.ERUDA_CONSOLE.exists()) {
@@ -701,16 +712,7 @@ public class MainFragment extends Fragment
       }
     }
   }
-
-  /* Check storage permission state */
-  private void checkStoragePermission() {
-    if (!isStoragePermissionGranted(requireContext())) {
-      requestStoragePermission(true);
-    } else {
-      checkPlugins();
-    }
-  }
-
+  
   /**
    * @return ActivityMainBinding
    */

@@ -23,92 +23,76 @@
 
 package com.eup.codeopsstudio.ui.editor.panes;
 
-import static android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
+import static com.eup.codeopsstudio.common.models.Document.MimeType.*;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
-import android.os.Bundle;
 import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.RatingBar;
-import android.widget.TextView;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ThreadUtils;
 import com.blankj.utilcode.util.ToastUtils;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.elevation.SurfaceColors;
-import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.textfield.TextInputLayout;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.eup.codeopsstudio.MainFragment;
+import com.eup.codeopsstudio.adapters.ProjectAdapter;
+import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.Archive;
-import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.LayoutLoggingSheetBinding;
 import com.eup.codeopsstudio.databinding.LayoutPaneWelcomeBinding;
+import com.eup.codeopsstudio.domain.FormatDateUseCase;
 import com.eup.codeopsstudio.git.GitRepository;
+import com.eup.codeopsstudio.listeners.FileActionListener;
 import com.eup.codeopsstudio.logging.LogAdapter;
 import com.eup.codeopsstudio.logging.Logger;
+import com.eup.codeopsstudio.models.recents.Project;
+import com.eup.codeopsstudio.models.user.User;
+import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.res.databinding.LayoutSheetRecentProjectsBinding;
-import com.eup.codeopsstudio.ui.editor.panes.recent.adapter.ProjectAdapter;
-import com.eup.codeopsstudio.ui.editor.panes.recent.model.Project;
-import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class WelcomePane extends Pane
-    implements SharedPreferences.OnSharedPreferenceChangeListener {
+    implements SharedPreferences.OnSharedPreferenceChangeListener, FileActionListener {
+
+  public static final String LOG_TAG = WelcomePane.class.getSimpleName();
 
   private String title;
   private MainViewModel mMainViewModel;
   private LayoutPaneWelcomeBinding binding;
   private GitRepository gitRepository;
-  public static final String LOG_TAG = WelcomePane.class.getSimpleName();
-  private ActivityResultLauncher<Intent> mPickFolder;
-  private ActivityResultLauncher<String> devicePickFile;
   private Logger logger;
   private LogAdapter logAdapter;
   private AlertDialog alertDialog;
+  private ContextualLifecycleObserver lifecycleObserver;
   private LayoutDialogTextInputBinding dialogTextInputBinding;
   private LayoutLoggingSheetBinding layoutLoggingSheetBinding;
   private Archive.onUnzippedListener listener;
   // recent
   private SharedPreferences sharedPreferences;
-  private List<Project> projects = new ArrayList<>();
   private BottomSheetDialog bottomSheetDialog;
   private LayoutSheetRecentProjectsBinding bind;
+  private Recents recentProjects;
   private ProjectAdapter adapter;
 
   public WelcomePane(Context context, String title) {
@@ -131,48 +115,32 @@ public class WelcomePane extends Pane
   @Override
   public void onViewCreated(View view) {
     super.onViewCreated(view);
+    lifecycleObserver =
+        new ContextualLifecycleObserver(
+            requireContext(), requireActivity().getActivityResultRegistry(), this);
+
     logger.attach(requireActivity());
     PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
     // recent
-    sharedPreferences =
-        requireActivity()
-            .getSharedPreferences(
-                Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS, Context.MODE_PRIVATE);
+    recentProjects = Recents.initialize(requireContext());
+    sharedPreferences = recentProjects.getSharedPreferences();
     sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
     adapter = new ProjectAdapter();
-    projects = getRecentProjects();
 
-    mPickFolder =
-        requireActivity()
-            .registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                  if (result.getResultCode() == Activity.RESULT_OK) {
-                    Intent intent = result.getData();
-                    if (intent != null) {
-                      Uri folderUri = intent.getData();
-                      if (folderUri != null) {
-                        onFolderSelected(folderUri);
-                      }
-                    }
-                  }
-                });
+    mMainViewModel
+        .getZipFile()
+        .observe(
+            requireActivity(),
+            file -> {
+                try {
+                  openFile(file);
+                } catch (Exception e) {
+                  logger.e(LOG_TAG, e.getMessage());
+                }
+            });
 
-    devicePickFile =
-        requireActivity()
-            .registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                uri -> {
-                  if (uri != null) {
-                    try {
-                      openFile(new File(FileUtil.getPathFromUri(getContext(), uri)));
-                    } catch (Exception e) {
-                      logger.e(LOG_TAG, e.getMessage());
-                    }
-                  }
-                });
-    gitRepository = new GitRepository(getContext(), requireActivity());
+    gitRepository = new GitRepository(requireActivity());
     // TODO: Support git preferences
     gitRepository.setAuthenticationDetails(null, null);
 
@@ -202,7 +170,10 @@ public class WelcomePane extends Pane
         v -> {
           gitRepository.initalize();
         });
-    binding.importZipBtn.setOnClickListener(v -> devicePickFile.launch("*/*"));
+    binding.importZipBtn.setOnClickListener(
+        v -> {
+          callFragmentMethod(MainFragment.TAG, "openZipFileFromManager");
+        });
     binding.recentProjectBtn.setOnClickListener(v -> createRecentSheet());
   }
 
@@ -222,8 +193,7 @@ public class WelcomePane extends Pane
         binding.welcomeCheckbox.setChecked(isChecked);
         break;
       case SharedPreferenceKeys.KEY_RECENT_PROJECTS:
-        projects = getRecentProjects();
-        populateAdapter(projects);
+        populateAdapter(recentProjects.getRecentProjects());
         break;
     }
   }
@@ -234,29 +204,39 @@ public class WelcomePane extends Pane
     // No-op
   }
 
-  private void onFolderSelected(Uri uri) {
-    try {
-      DocumentFile pickedDir = DocumentFile.fromTreeUri(getContext(), uri);
-      File selectedFolder = new File(FileUtil.getPathFromUri(getContext(), pickedDir.getUri()));
-      String folderPath = selectedFolder.getAbsolutePath();
-      if (folderPath != null) {
-        dialogTextInputBinding.tilOther.getEditText().setText(folderPath);
-      }
-    } catch (Exception e) {
-      logger.e(LOG_TAG, e.getMessage());
+  @Override
+  public void onFolderPicked(@NonNull File file) {
+    if (file != null || file.exists()) {
+      var folderPath = file.getAbsolutePath();
+      dialogTextInputBinding.tilOther.getEditText().setText(folderPath);
+      logger.d(LOG_TAG, getString(R.string.folder_selection_success));
     }
+  }
+
+  @Override
+  public void onFilePicked(@NonNull File file) {
+    // No-op
+  }
+
+  @Override
+  public void onCreateFile(@NonNull File file) {
+    // No-op
+  }
+
+  @Override
+  public void onActionFailed(@NonNull String message) {
+    logger.e(LOG_TAG, message);
   }
 
   private void openFile(File file) {
-    if (file == null) {
+    if (file == null ||!file.exists() ||!file.isFile()) {
+      logger.w(LOG_TAG, "Cannot open invalid zip file");
       return;
     }
-    if (file.isFile() && file.exists()) {
-      initalize(file);
-    }
+      initializeUnzipping(file);
   }
 
-  public void initalize(File zipFile) {
+  public void initializeUnzipping(File zipFile) {
     if (zipFile.getName().endsWith(".zip")) {
 
       MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(getContext());
@@ -274,7 +254,7 @@ public class WelcomePane extends Pane
       dialogTextInputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
       dialogTextInputBinding.tilOther.setEndIconOnClickListener(
           v -> {
-            mPickFolder.launch(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE));
+            lifecycleObserver.pickFolder();
           });
 
       builder.setPositiveButton(
@@ -301,8 +281,6 @@ public class WelcomePane extends Pane
                     new TextWatcherAdapter() {
                       @Override
                       public void afterTextChanged(Editable editable) {
-                        String url =
-                            dialogTextInputBinding.tilName.getEditText().getText().toString();
                         final File output = new File(editable.toString());
                         if ((output != null && !output.exists())) {
                           positiveButton.setEnabled(false);
@@ -366,17 +344,16 @@ public class WelcomePane extends Pane
         getString(R.string.unzipping) + Constants.SPACE + zipFile.getName());
 
     layoutLoggingSheetBinding.progressbar.setProgress(100);
-
     layoutLoggingSheetBinding.loggingList.setLayoutManager(new LinearLayoutManager(getContext()));
     layoutLoggingSheetBinding.loggingList.setAdapter(logAdapter);
-
     logger.d("Archive", getString(R.string.initialilizing));
+        
     mMainViewModel
         .getIDELogs()
         .observe(
             requireActivity(),
             data -> {
-              if (!data.isEmpty()) {
+              if (data!= null && !data.isEmpty()) {
                 logAdapter.submitList(data);
                 scrollToLastItem();
               }
@@ -504,51 +481,11 @@ public class WelcomePane extends Pane
     }
   }
 
-  public void addToRecent(@NonNull Project project) {
-    projects.add(project);
-    sharedPreferences
-        .edit()
-        .putString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, new Gson().toJson(projects))
-        .apply();
-    if (adapter != null) {
-      adapter.notifyDataSetChanged();
-    }
-  }
-
-  public void removeFromRecent(@NonNull Project project) {
-    projects.removeIf(currentProject -> project.equals(currentProject));
-    sharedPreferences
-        .edit()
-        .putString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, new Gson().toJson(projects))
-        .apply();
-    if (adapter != null) {
-      adapter.notifyDataSetChanged();
-    }
-  }
-    
-  public ArrayList<Project> getRecentProjects() {
-    var json = sharedPreferences.getString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, "");
-    if (json == null || json.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    ArrayList<Project> recentProjects =
-        new Gson().fromJson(json, new TypeToken<ArrayList<Project>>() {}.getType());
-    if (recentProjects == null) {
-      return new ArrayList<>();
-    }
-
-    recentProjects.removeIf(
-        project -> Optional.ofNullable(project.getFile()).map(file -> !file.exists()).orElse(true));
-
-    return recentProjects;
-  }
-
   private void createRecentSheet() {
     bottomSheetDialog = new BottomSheetDialog(getContext());
     bind = LayoutSheetRecentProjectsBinding.inflate(requireActivity().getLayoutInflater());
     bottomSheetDialog.setContentView(bind.getRoot());
-    populateAdapter(projects);
+    populateAdapter(recentProjects.getRecentProjects());
     adapter.setOnItemClickListener(this::openProject);
     adapter.setOnItemLongClickListener(this::inflateProjectDialogs);
     bind.list.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -563,11 +500,15 @@ public class WelcomePane extends Pane
 
   private void openProject(Project project) {
     if (project != null) {
-      // BaseFragment performs sanity check for invalid files
       var file = project.getFile();
-      if (file.exists() && file.isFile()) {
+      if (file == null || !file.exists()) {
+        logger.w(LOG_TAG, "Cannot open invalid document");
+        return;
+      }
+
+      if (file.isFile()) {
         callFragmentMethod(MainFragment.TAG, "openFileInPane", file);
-      } else if (file.exists() && file.isDirectory()) {
+      } else if  (file.isDirectory()) {
         callFragmentMethod(MainFragment.TAG, "openFolderInTreeViewFragment", file);
       }
       bottomSheetDialog.dismiss();
@@ -587,7 +528,11 @@ public class WelcomePane extends Pane
                 new MaterialAlertDialogBuilder(getContext())
                     .setMessage(message)
                     .setPositiveButton(
-                        R.string.yes, (dialogInterface, item) -> removeFromRecent(project))
+                        R.string.yes,
+                        (dialogInterface, item) -> {
+                          recentProjects.remove(project);
+                          if (adapter != null) adapter.notifyDataSetChanged();
+                        })
                     .setNegativeButton(R.string.no, null)
                     .show();
               } else if (which == 1) {
@@ -597,7 +542,7 @@ public class WelcomePane extends Pane
                         .getString(
                             R.string.msg_recent_project_history,
                             getDate(project.getHistory().creationDate),
-                            project.getHistory().fileAction);
+                            project.getHistory().fileAction.toString());
                 new MaterialAlertDialogBuilder(getContext())
                     .setTitle(project.getName() + " " + getString(R.string.history))
                     .setMessage(message)
@@ -610,9 +555,7 @@ public class WelcomePane extends Pane
   }
 
   private String getDate(long time) {
-    SimpleDateFormat dateFormat =
-        new SimpleDateFormat("EEE, MMM dd, yyyy HH:mm:ss:S", Locale.getDefault());
-    return dateFormat.format(new Date(time));
+    return new FormatDateUseCase(User.newInstance()).format(new Date(time));
   }
 
   public static final Comparator<Project> PROJECT_FIRST_ORDER =

@@ -20,10 +20,14 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.models;
+
+package com.eup.codeopsstudio.models;
 
 import android.graphics.drawable.Drawable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.Objects;
 
 /** Defines a List of actions */
 public class ActionModel {
@@ -34,12 +38,17 @@ public class ActionModel {
   private Drawable drawable;
   private String buttonText;
 
+  // unique ID for this class
+  private UUID id;
+  private static final List<UUID> generatedIds = new ArrayList<>();
+
   // Tri set item with Button
   public ActionModel(int icon, String title, String summary, String buttonText) {
     this.icon = icon;
     this.title = title;
     this.summary = summary;
     this.buttonText = buttonText;
+    this.id = generateUUID();
   }
 
   // Tri set item
@@ -47,23 +56,27 @@ public class ActionModel {
     this.icon = icon;
     this.title = title;
     this.summary = summary;
+    this.id = generateUUID();
   }
 
   // Dual set item
   public ActionModel(int icon, String title) {
     this.icon = icon;
     this.title = title;
+    this.id = generateUUID();
   }
 
   // Dual set item with drawable
   public ActionModel(Drawable drawable, String title) {
     this.drawable = drawable;
     this.title = title;
+    this.id = generateUUID();
   }
 
   // Singel set item
   public ActionModel(String title) {
     this.title = title;
+    this.id = generateUUID();
   }
 
   public int getIcon() {
@@ -80,6 +93,24 @@ public class ActionModel {
 
   public void setDrawable(Drawable drawable) {
     this.drawable = drawable;
+  }
+
+  public UUID getID() {
+    return this.id;
+  }
+
+  protected UUID generateUUID() {
+    UUID generatedId = UUID.randomUUID();
+    if (isUniqueId(generatedId)) {
+      generatedIds.add(generatedId);
+      return generatedId;
+    } else {
+      return generateUUID();
+    }
+  }
+
+  private boolean isUniqueId(UUID id) {
+    return !generatedIds.contains(id);
   }
 
   public String getTitle() {
@@ -104,5 +135,22 @@ public class ActionModel {
 
   public void setButtonText(String text) {
     this.buttonText = text;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(new Object[] {buttonText, drawable, summary, title});
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || !(o instanceof ActionModel)) {
+      return false;
+    }
+        
+    ActionModel other = (ActionModel) o;
+    return Objects.equals(buttonText, other.getButtonText())
+        && Objects.equals(title, other.getTitle())
+        && Objects.equals(summary, other.getSummary());
   }
 }

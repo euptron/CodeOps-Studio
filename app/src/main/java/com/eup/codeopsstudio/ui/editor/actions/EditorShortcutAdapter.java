@@ -75,16 +75,16 @@ public class EditorShortcutAdapter
               }
             }
             switch (name) {
-              case "←":
+              case "MCL":
                 editor.moveSelectionLeft();
                 break;
-              case "→":
+              case "MCR":
                 editor.moveSelectionRight();
                 break;
-              case "↑":
+              case "MCU":
                 editor.moveSelectionUp();
                 break;
-              case "↓":
+              case "MCD":
                 editor.moveSelectionDown();
                 break;
               case "home":

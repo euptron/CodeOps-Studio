@@ -64,9 +64,15 @@ import java.io.File;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.greenrobot.eventbus.EventBus;
 
 public class TreeViewFragment extends Fragment
@@ -217,6 +223,7 @@ public class TreeViewFragment extends Fragment
     rootNode.setViewHolder(new FileTreeViewHolder(requireContext()));
 
     binding.filetreeProgressIndicator.setVisibility(View.VISIBLE);
+
     listNode(
         rootNode,
         () -> {
@@ -268,13 +275,26 @@ public class TreeViewFragment extends Fragment
   }
 
   public void addChildrenToNode(TreeNode parent) {
-    File[] fileArray = FileUtil.listFiles(parent.getValue());
-    Arrays.sort(fileArray, FileManager.DIR_FIRST_SORT);
-    for (File file : fileArray) {
+    List<File> files = toSortedList(FileUtil.listFiles(parent.getValue()));
+
+    for (File file : files) {
       var child = new TreeNode(file);
       child.setViewHolder(new FileTreeViewHolder(getContext()));
       parent.addChild(child);
     }
+  }
+
+  public static List<File> toSortedList(File[] files) {
+    Executor executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    List<File> list =
+        Stream.of(files)
+            .sorted(FileManager.DIR_FIRST_SORT)
+            .map(file -> CompletableFuture.supplyAsync(() -> file, executor))
+            .collect(Collectors.toList())
+            .stream()
+            .map(CompletableFuture::join)
+            .collect(Collectors.toList());
+    return list;
   }
 
   public void expandNode(TreeNode node) {
@@ -415,7 +435,8 @@ public class TreeViewFragment extends Fragment
     var bind = LayoutSheetListBinding.inflate(getLayoutInflater());
     bottomSheetDialog.setContentView(bind.getRoot());
     // Get the options list
-    var adapter = new ActionAdapter(getFolderOptionsList());
+    var adapter = new ActionAdapter();
+    adapter.submitList(getFolderOptionsList());
     adapter.setOnItemClickListener(
         model -> {
           String label = model.getTitle();
@@ -491,8 +512,8 @@ public class TreeViewFragment extends Fragment
     var bind = LayoutSheetListBinding.inflate(getLayoutInflater());
     bottomSheetDialog.setContentView(bind.getRoot());
     List<ActionModel> optionsList = getFolderOptionsList(treeFile);
-    var adapter = new ActionAdapter(optionsList);
-
+    var adapter = new ActionAdapter();
+    adapter.submitList(optionsList);
     adapter.setOnItemClickListener(
         model -> {
           var label = model.getTitle();

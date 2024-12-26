@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.editor.panes.recent.adapter;
+
+package com.eup.codeopsstudio.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,12 +34,17 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.models.ExtensionTable;
+import com.eup.codeopsstudio.models.recents.Project;
 import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.res.databinding.RecentProjectItemBinding;
 import com.eup.codeopsstudio.databinding.LayoutEmptyProjectsBinding;
-import com.eup.codeopsstudio.ui.editor.panes.recent.model.Project;
 import java.util.List;
 
+/**
+ * Adapter class for recent project recyclerview
+ *
+ * @author EUP
+ */
 public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
   final int EMPTY_VIEW = 66666;

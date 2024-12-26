@@ -47,7 +47,7 @@ import java.io.InputStream;
  */
 public class BinaryFileChecker {
 
-  private static final int MAX_READ_BYTES = 256; // higher tweaks may affect performance
+  private static final int MAX_READ_BYTES = 256; // higher tweaks affects performance
   private static final int BYTE_MASK = 0xFF;
   private static final byte LOWER_BOUND = 0x09;
   private static final byte UPPER_BOUND = 0x20;
@@ -154,7 +154,7 @@ public class BinaryFileChecker {
   private static boolean hasHighEntropy(byte[] buffer) {
     int totalBytes = buffer.length;
 
-    // one-third of the total file size
+    //  of the total file size
     int sampleSize = Math.min(totalBytes / 3, MAX_SAMPLE_SIZE);
 
     sampleSize = Math.max(sampleSize, 1);
@@ -211,14 +211,12 @@ public class BinaryFileChecker {
   }
     
   /**
-   * File magic numbers are the first bits (HEX BASED) of a file which is used as a unique refrence
+   * File magic numbers are the first bits (HEX BASED) of a file which are used as a unique reference
    * when identifying the type of file.
    *
-   * <p>NOTE: Using the file magic number we can easily detect the file type because we do not have
-   * to search a complex file structure in other to identify the file type. However plain text files
+   * <p>By using the file magic number, detecting the file type is faster because we do not have
+   * to search a complex file structure in other to do so. However plain text files
    * have no magic number although they may contain a byte order mark.
-   *
-   * @see
    */
   private static final String[] FILE_MAGIC_NUMBERS = {
     // IMAGE FILES

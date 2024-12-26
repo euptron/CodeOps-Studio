@@ -126,6 +126,9 @@ public final class Document  {
 
     /** Video files only */
     VIDEO("video/*"),
+    
+    /** Zip files only */
+    ZIP ("application/zip"),
 
     /** All files */
     ALL("*/*");

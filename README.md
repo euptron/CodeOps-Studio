@@ -4,8 +4,6 @@ Welcome to **CodeOps Studio** is a free and open-source code editing workspace a
 
 > [!NOTE]\
 > Development of CodeOps Studio is currently slow until i get a PC :( that's to say your pull requests to the `main branch` containing Kotlin, Python, C, C++ code would be rejected for now.\
-> Otherwise consider the `dev branch` (A fun place for experiments).\
-> CodeOps Studio is **NOT** intended for piracy and other non-legal uses. It could be used for localizing and adding features, adding support for custom platforms, and other GOOD purposes. Just try to be fair with the authors of an app, that you use and probably like.
 
 > [!IMPORTANT]\
 > CodeOps Studio main focus is on Android OS. Using it one other operating systems maybe impossible unless emulated, there is no guarantee that it'll work perfectly without errors.\
@@ -28,17 +26,19 @@ Welcome to **CodeOps Studio** is a free and open-source code editing workspace a
 - [x] BreadCrumb Navigation
 - [x] Web Development support
 - [x] Multi-Language Syntax Highlighting
+- [x] Access multiple storage volumes
+- [x] Hosting over localhost, WiFi hotspot, or internet via shared address
 
 ## Screenshots 
 
 <img src="assets/intro.jpeg" alt="intro" width="100" /> <img src="assets/editor.jpeg" alt="editor" width="100" /> <img src="assets/breadcrumbs.jpeg" alt="breadcrumbs" width="100" /> <img src="assets/filetree.jpeg" alt="filetree" width="100" /> <img src="assets/jsconsole.jpeg" alt="jsconsole" width="100" /> <img src="assets/site_preview.jpeg" alt="site_preview" width="100" />
 
 ## Installation
-Current software version is `v1.0.1 beta`.
+Current software version is `v1.0.2 beta`.
 
 [<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg"
     alt="Get it on Github"
-    height="80">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.0.1-beta/CodeOps-Studio.v1.0.1-beta.apk)
+    height="80">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.0.2-beta/CodeOps-Studio.v1.0.2-beta.apk)
 
 **Important:** Always install CodeOps Studio from trusted sources:
 - [GitHub Releases](https://github.com/euptron/CodeOps-Studio/releases)

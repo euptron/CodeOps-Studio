@@ -74,29 +74,42 @@ public class EditorShortcutView extends RecyclerView {
 
     var indentation = useTabs ? Constants.TAB.repeat(numberOfTabs) : " ".repeat(numberOfTabs);
     shortcutActions.add(new EditorAction("TAB", indentation));
-    shortcutActions.add(new EditorAction("{", "{}"));
+    // Script actions
+    shortcutActions.add(new EditorAction("{", "{"));
     shortcutActions.add(new EditorAction("}", "}"));
-    shortcutActions.add(new EditorAction("(", "()"));
+    shortcutActions.add(new EditorAction("(", "("));
     shortcutActions.add(new EditorAction(")", ")"));
+    shortcutActions.add(new EditorAction("[", "["));
+    shortcutActions.add(new EditorAction("]", "]"));
     shortcutActions.add(new EditorAction(",", ","));
     shortcutActions.add(new EditorAction(".", "."));
+    shortcutActions.add(new EditorAction("'", "'"));
     shortcutActions.add(new EditorAction(";", ";"));
     shortcutActions.add(new EditorAction("\"", "\""));
-    shortcutActions.add(new EditorAction("?", "?"));
+    shortcutActions.add(new EditorAction("_", "_"));
+    shortcutActions.add(new EditorAction("&", "&"));
+    // Arithmetic actions
+    shortcutActions.add(new EditorAction("/", "/"));
+    shortcutActions.add(new EditorAction("*", "*"));
     shortcutActions.add(new EditorAction("+", "+"));
     shortcutActions.add(new EditorAction("-", "-"));
-    shortcutActions.add(new EditorAction("*", "*"));
-    shortcutActions.add(new EditorAction("/", "/"));
-    shortcutActions.add(new EditorAction("[", "[]"));
-    shortcutActions.add(new EditorAction("]", "]"));
-    shortcutActions.add(new EditorAction("<", "<>"));
+    shortcutActions.add(new EditorAction("<", "<"));
     shortcutActions.add(new EditorAction(">", ">"));
     shortcutActions.add(new EditorAction("=", "="));
-    // selection names
-    shortcutActions.add(new EditorAction("←"));
-    shortcutActions.add(new EditorAction("→"));
-    shortcutActions.add(new EditorAction("↑"));
-    shortcutActions.add(new EditorAction("↓"));
+    shortcutActions.add(new EditorAction("%", "%"));
+    shortcutActions.add(new EditorAction("^", "^"));
+    // Symbols actions
+    shortcutActions.add(new EditorAction("@", "@"));
+    shortcutActions.add(new EditorAction("#", "#"));
+    shortcutActions.add(new EditorAction("?", "?"));
+    shortcutActions.add(new EditorAction("÷", "÷"));
+    shortcutActions.add(new EditorAction("!", "!"));
+    shortcutActions.add(new EditorAction("|", "|"));
+    // Editor actions
+    shortcutActions.add(new EditorAction("MCL"));
+    shortcutActions.add(new EditorAction("MCR"));
+    shortcutActions.add(new EditorAction("MCU"));
+    shortcutActions.add(new EditorAction("MCD"));
     shortcutActions.add(new EditorAction("home"));
     shortcutActions.add(new EditorAction("end"));
     return shortcutActions;

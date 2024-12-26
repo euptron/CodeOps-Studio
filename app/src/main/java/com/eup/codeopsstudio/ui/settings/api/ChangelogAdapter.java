@@ -35,26 +35,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.LayoutChangeLogItemBinding;
+import com.eup.codeopsstudio.domain.FormatDateUseCase;
+import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.BaseUtil;
-import java.text.SimpleDateFormat;
+import com.eup.codeopsstudio.util.Wizard;
 import java.util.Date;
 import java.util.List;
-import com.eup.codeopsstudio.common.ContextManager;
-import com.eup.codeopsstudio.util.Wizard;
-import java.util.Locale;
-import java.util.TimeZone;
 
 public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.ViewHolder> {
-
-  private final AsyncListDiffer<ChangelogItem> mDiffer =
-      new AsyncListDiffer<ChangelogItem>(this, DIFF_CALLBACK);
-
-  public ChangelogAdapter(List<ChangelogItem> newData) {
-    mDiffer.submitList(newData);
-  }
 
   public static final DiffUtil.ItemCallback<ChangelogItem> DIFF_CALLBACK =
       new DiffUtil.ItemCallback<ChangelogItem>() {
@@ -70,6 +62,13 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
           return oldLog.getReleaseType().equals(newLog.getReleaseType());
         }
       };
+
+  private final AsyncListDiffer<ChangelogItem> mDiffer =
+      new AsyncListDiffer<ChangelogItem>(this, DIFF_CALLBACK);
+
+  public ChangelogAdapter(List<ChangelogItem> newData) {
+    mDiffer.submitList(newData);
+  }
 
   @NonNull
   @Override
@@ -91,7 +90,6 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
   }
 
   public class ViewHolder extends RecyclerView.ViewHolder {
-
     private LayoutChangeLogItemBinding binding;
 
     public ViewHolder(LayoutChangeLogItemBinding binding) {
@@ -100,43 +98,32 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
     }
 
     public void bind(ChangelogItem item, int position) {
-      if (item == null) {
-        return;
-      }
+      if (item == null) return;
+
       String release = item.getReleaseType().releaseName;
-      String title = ContextManager.getStringRes(R.string.release);
+      String title = IdeApplication.getInstance().getString(R.string.release);
       title += Constants.SPACE + item.getVersionName() + ((release != null) ? "-" + release : "");
       binding.title.setText(title);
       binding.log.setText(item.getDescription());
-
       long releaseDate = item.getReleaseDate();
 
       if (releaseDate > 0) {
+        var date = new FormatDateUseCase(User.newInstance()).format(new Date(releaseDate));
+        var summary = itemView.getContext().getString(R.string.released_on) + ": " + date + " UTC";
+        binding.summary.setText(summary);
         binding.summary.setVisibility(View.VISIBLE);
-        long timestamp = releaseDate;
-        SimpleDateFormat formatter =
-            new SimpleDateFormat(
-                "EEE, dd MMM yyyy HH:mm",
-                Locale.US); // "EEE, d MMM yyyy HH:mm a" yyyy-MM-dd -> (2023-11-04)
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-        binding.summary.setText(
-            itemView.getContext().getString(R.string.released_on)
-                + ": "
-                + formatter.format(new Date(timestamp))
-                + " UTC");
       } else if (releaseDate <= 0) {
         binding.summary.setVisibility(View.GONE);
       }
-
-      binding.expandablePane.setVisibility(item.getIsExpanded() ? View.VISIBLE : View.GONE);
-      binding.chevron.setRotation(item.getIsExpanded() ? 0 : -180); // 180:0,0:180
-
-      if (item.getVersionName()
-          .equalsIgnoreCase(Wizard.getAppVersionName(ContextManager.getApplicationContext()))) {
-        advancedCorners(
-            binding.versionIndicator,
-            "#FFB0F0C0"); // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal) |
-                          // FFB0F0C0 (prime)
+            
+      int visibility = item.getIsExpanded() ? View.VISIBLE : View.GONE;
+      binding.expandablePane.setVisibility(visibility);
+      binding.chevron.setRotation(item.getIsExpanded() ? 0 : -180);
+            
+      var currentVersionName = Wizard.getAppVersionName(IdeApplication.getGlobalContext());
+      if (item.getVersionName().equalsIgnoreCase(currentVersionName)) {
+        // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal), FFB0F0C0 (prime)
+        addCorners(binding.versionIndicator, "#FFB0F0C0");
       } else {
         binding.versionIndicator.setBackground(null);
       }
@@ -159,13 +146,12 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
   }
 
   private static void animateLayoutChanges(LinearLayout view) {
-    // i used this instead of the xml attribute because this one looks better and smoother.
     AutoTransition autoTransition = new AutoTransition();
     autoTransition.setDuration((short) 300);
     TransitionManager.beginDelayedTransition(view, autoTransition);
   }
 
-  private static void advancedCorners(View view, String color) {
+  private static void addCorners(View view, String color) {
     GradientDrawable gd = new GradientDrawable();
     gd.setColor(Color.parseColor(color));
     gd.setCornerRadii(new float[] {0, 0, 30, 30, 30, 30, 0, 0});

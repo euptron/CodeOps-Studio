@@ -20,29 +20,27 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.adapters;
+
+package com.eup.codeopsstudio.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.eup.codeopsstudio.databinding.LayoutActionItemBinding;
 import com.eup.codeopsstudio.models.ActionModel;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
 
-  private List<ActionModel> list;
-  
-    
-
-  public ActionAdapter(List<ActionModel> list) {
-    this.list = list;
-  }
+  private List<ActionModel> items = new ArrayList<>();
 
   /**
    * An interface that defines a click listener for an item
@@ -93,16 +91,16 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
 
   @Override
   public void onBindViewHolder(VH holder, int position) {
-    String title = list.get(position).getTitle();
-    String summary = list.get(position).getSummary();
-    String buttonText = list.get(position).getButtonText();
+    String title = items.get(position).getTitle();
+    String summary = items.get(position).getSummary();
+    String buttonText = items.get(position).getButtonText();
 
     holder.title.setText(title);
-    holder.icon.setImageResource(list.get(position).getIcon());
+    holder.icon.setImageResource(items.get(position).getIcon());
 
     if (summary != null) {
       holder.summary.setVisibility(View.VISIBLE);
-      holder.summary.setText(list.get(position).getSummary());
+      holder.summary.setText(items.get(position).getSummary());
     } else {
       holder.summary.setVisibility(View.GONE);
     }
@@ -123,18 +121,79 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
     holder.itemView.setOnClickListener(
         v -> {
           if (mListener != null) {
-            mListener.onItemClick(list.get(holder.getAdapterPosition()));
+            mListener.onItemClick(items.get(holder.getAdapterPosition()));
           }
         });
   }
 
   @Override
   public int getItemCount() {
-    return list.size();
+    return items != null ? items.size() : 0;
   }
 
-  public class VH extends RecyclerView.ViewHolder {
+  public void submitList(@NonNull List<ActionModel> payloads) {
+    computeDifference(
+        items,
+        payloads,
+        () -> {
+          // update items before dispatching updates
+          items.clear();
+          items.addAll(payloads);
+        });
+  }
 
+    public void refresh(List<ActionModel> actions) {
+    items.clear();
+    items.addAll(actions);
+    notifyDataSetChanged();
+  }
+    
+  private void computeDifference(
+      @NonNull List<ActionModel> oldItems, @NonNull List<ActionModel> newItems, Runnable task) {
+
+    DiffUtil.DiffResult result =
+        DiffUtil.calculateDiff(
+            new DiffUtil.Callback() {
+              @Override
+              public int getOldListSize() {
+                return oldItems.size();
+              }
+
+              @Override
+              public int getNewListSize() {
+                return newItems.size();
+              }
+
+              @Override
+              public boolean areItemsTheSame(
+                  @NonNull int oldItemPosition, @NonNull int newItemPosition) {
+                ActionModel oldItem = oldItems.get(oldItemPosition);
+                ActionModel newItem = newItems.get(newItemPosition);
+                return Objects.equals(oldItem.getID(), newItem.getID());
+              }
+
+              @Override
+              public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                ActionModel oldItem = oldItems.get(oldItemPosition);
+                ActionModel newItem = newItems.get(newItemPosition);
+                return Objects.equals(oldItem, newItem);
+              }
+            });
+
+    if (task != null) {
+      task.run();
+    }
+
+    try {
+      result.dispatchUpdatesTo(this);
+    } catch (IndexOutOfBoundsException e) {
+      notifyDataSetChanged();
+    }
+  }
+
+  
+
+  public class VH extends RecyclerView.ViewHolder {
     TextView title, summary;
     MaterialButton buttonText;
     ImageView icon;

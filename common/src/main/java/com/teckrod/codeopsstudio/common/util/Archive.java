@@ -20,25 +20,24 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.common.util;
 
+package com.eup.codeopsstudio.common.util;
+
+import android.content.Context;
+import android.util.Log;
 import com.blankj.utilcode.util.FileUtils;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import android.content.Context;
-import java.util.Enumeration;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.util.Enumeration;
 
 /**
  * Class to handle archive files
@@ -47,9 +46,8 @@ import java.util.Enumeration;
  */
 public class Archive {
 
-  public static final int BYTE_SIZE = 10240; // 10MB Cap
-
-  protected static final int BUFFER_SIZE = BYTE_SIZE;
+  public static final int BYTE_SIZE = 10240;
+  private static final String LOG_TAG = "Archive";
 
   /** Interface to listen for events when files are unzipped. */
   public interface onUnzippedListener {
@@ -105,18 +103,6 @@ public class Archive {
   }
 
   /**
-   * Unzips a file to the specified destination folder.
-   *
-   * @param sourceFilePath The file object representing the ZIP file to unzip.
-   * @param destinationFolder The file object representing the destination folder to unzip the
-   *     files.
-   * @throws IOException if an I/O error occurs.
-   */
-  public void unzip(File sourceFilePath, File destinationFolder) throws IOException {
-    unzip(sourceFilePath.getAbsolutePath(), destinationFolder.getAbsolutePath());
-  }
-
-  /**
    * Unzips a file to the specified destination folder without creating an intermediate folder.
    *
    * @param sourceFilePath The path of the ZIP file to unzip.
@@ -125,49 +111,6 @@ public class Archive {
    */
   public void unzipIntoDestination(File sourceFilePath, File destinationFolder) throws IOException {
     unzipIntoDestination(sourceFilePath.getAbsolutePath(), destinationFolder.getAbsolutePath());
-  }
-
-  public void unzip(String sourceFilePath, String destinationFolder) throws IOException {
-    byte[] buffer = new byte[BYTE_SIZE];
-    FileInputStream fis = new FileInputStream(sourceFilePath);
-    ZipInputStream zipInputStream = new ZipInputStream(fis);
-    ZipEntry zipEntry = zipInputStream.getNextEntry();
-    ZipFile zipFile = new ZipFile(new File(sourceFilePath), ZipFile.OPEN_READ);
-
-    int fileIndex = 0; // Track the file index
-
-    while (zipEntry != null) {
-      String entryName = zipEntry.getName();
-
-      File file = new File(destinationFolder + File.separator + entryName);
-
-      // Increment file index and get total count for callback
-      fileIndex++;
-      int totalFiles = zipFile.size();
-
-      // Update the listener with the correct index and total count
-      if (listener != null) {
-        listener.onFileUnArchiving(fileIndex, totalFiles, zipEntry.getName());
-      }
-
-      if (zipEntry.isDirectory()) {
-        file.mkdirs();
-      } else {
-        file.getParentFile().mkdirs();
-        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
-          int len;
-          while ((len = zipInputStream.read(buffer)) > 0) {
-            outputStream.write(buffer, 0, len);
-          }
-        }
-      }
-
-      // close zipInputStream to prevent memory leaks
-      zipInputStream.closeEntry();
-      zipEntry = zipInputStream.getNextEntry();
-    }
-    // just added below
-    zipInputStream.close();
   }
 
   /**
@@ -229,7 +172,7 @@ public class Archive {
       try {
         in = new BufferedInputStream(zip.getInputStream(entry));
         out = new BufferedOutputStream(new FileOutputStream(file));
-        byte buffer[] = new byte[BUFFER_SIZE];
+        byte buffer[] = new byte[BYTE_SIZE];
         int len;
         while ((len = in.read(buffer)) != -1) {
           out.write(buffer, 0, len);
@@ -244,5 +187,60 @@ public class Archive {
       }
     }
     return true;
+  }
+
+  public static void unzip(File sourceFilePath, File destinationFolder) throws IOException {
+    unzip(sourceFilePath.getAbsolutePath(), destinationFolder.getAbsolutePath());
+  }
+
+  public static void unzip(String sourceFilePath, String destinationFolder) throws IOException {
+    unzip(new FileInputStream(sourceFilePath), destinationFolder);
+  }
+
+  public static void unzip(InputStream inputStream, String destination) throws IOException{
+    createDirectory(destination);
+    byte[] buffer = new byte[BYTE_SIZE];
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+    ZipEntry zipEntry = zipInputStream.getNextEntry();
+
+    while (zipEntry != null) {
+      String entryName = zipEntry.getName();
+
+      Log.v(LOG_TAG, "Unzipping " + entryName);
+      if (zipEntry.isDirectory()) {
+        createDirectory(destination + File.separator + entryName);
+      } else {
+        File file = new File(destination, entryName);
+        if (!file.exists()) {
+          if (file.getParentFile() == null || !file.getParentFile().exists()) {
+            if (!file.getParentFile().mkdirs()) {
+              continue;
+            }
+          }
+
+          if (!file.createNewFile()) {
+            Log.w(LOG_TAG, "Failed to create file " + file.getName());
+            continue;
+          }
+
+          try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
+            int bytesRead;
+            while ((bytesRead = zipInputStream.read(buffer)) != -1) {
+              outputStream.write(buffer, 0, bytesRead);
+            }
+          }
+        }
+      }
+      zipInputStream.closeEntry();
+      zipEntry = zipInputStream.getNextEntry();
+    }
+    zipInputStream.close();
+  }
+
+  private static void createDirectory(String directory) {
+    File dir = new File(directory);
+    if (!dir.exists() && !dir.mkdirs()) {
+      Log.w(LOG_TAG, "Failed to create directory " + directory);
+    }
   }
 }

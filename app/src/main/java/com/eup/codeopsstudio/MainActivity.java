@@ -21,28 +21,23 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio;
+package com.eup.codeopsstudio;
 
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
+import com.eup.codeopsstudio.common.BaseActivity;
 import com.eup.codeopsstudio.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private ActivityMainBinding binding;
-    private boolean isColorHarmonizationEnabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Handle the splash screen transition.
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        
-        isColorHarmonizationEnabled = false;
         
         if (getSupportFragmentManager().findFragmentByTag(MainFragment.TAG) == null) {
             getSupportFragmentManager()
@@ -54,6 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     /** Returns {@code true} if color harmonization is enabled. */
     public boolean isColorHarmonizationEnabled() {
-        return isColorHarmonizationEnabled;
+        return false;
     }
 }

@@ -20,21 +20,21 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.logging;
 
-import android.text.style.ForegroundColorSpan;
+package com.eup.codeopsstudio.logging;
+
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
+import com.eup.codeopsstudio.domain.FormatDateUseCase;
+import com.eup.codeopsstudio.models.user.User;
+import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 public class Logger {
 
@@ -61,39 +61,29 @@ public class Logger {
   }
 
   public void d(String message) {
-    if (!mAttached) {
-      return;
-    }
+    if (!mAttached) return;
     add(new Log(highlightNumbers(message)));
   }
 
   public void d(String tag, String message) {
-    if (!mAttached) {
-      return;
-    }
+    if (!mAttached) return;
     add(new Log(formatDate(), tag, getLogLevel(LogLevel.DEBUG), highlightNumbers(message)));
   }
 
   public void e(String tag, String message) {
-    if (!mAttached) {
-      return;
-    }
+    if (!mAttached) return;
     add(
         new Log(
             formatDate(), tag, highlightSpan(getLogLevel(LogLevel.ERROR), 0xffff0000), message));
   }
 
   public void w(String tag, String message) {
-    if (!mAttached) {
-      return;
-    }
+    if (!mAttached) return;
     add(new Log(formatDate(), tag, highlightSpan(getLogLevel(LogLevel.WARN), 0xffff7043), message));
   }
 
   public void i(String tag, String message) {
-    if (!mAttached) {
-      return;
-    }
+    if (!mAttached) return;
     add(
         new Log(
             formatDate(),
@@ -103,30 +93,26 @@ public class Logger {
   }
 
   private void add(Log log) {
-    if (logClass == null) {
-      throw new IllegalArgumentException("LogClass has not been set");
-    }
+    if (logClass == null) throw new IllegalArgumentException("LogClass has not been set");
+
     if (logClass == LogClass.BUILD) {
       ArrayList<Log> currentList = model.getBUILDLogs().getValue();
-      if (currentList == null) {
-        currentList = new ArrayList<>();
-      }
+      if (currentList == null) currentList = new ArrayList<>();
+
       currentList.add(log);
       model.getBUILDLogs().postValue(currentList);
     } else if (logClass == LogClass.IDE) {
       ArrayList<Log> currentList = model.getIDELogs().getValue();
-      if (currentList == null) {
-        currentList = new ArrayList<>();
-      }
+      if (currentList == null) currentList = new ArrayList<>();
+
       currentList.add(log);
       model.getIDELogs().postValue(currentList);
     }
   }
 
   public void clear() {
-    if (logClass == null) {
-      throw new IllegalArgumentException("LogClass has not been set");
-    }
+    if (logClass == null) throw new IllegalArgumentException("LogClass has not been set");
+
     if (logClass == LogClass.BUILD) {
       model.getBUILDLogs().setValue(new ArrayList<>());
     } else if (logClass == LogClass.IDE) {
@@ -171,8 +157,6 @@ public class Logger {
   }
 
   public static String getTime() {
-    SimpleDateFormat dateFormat =
-        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:S", Locale.getDefault());
-    return dateFormat.format(new Date());
+    return new FormatDateUseCase(User.newInstance()).format(Calendar.getInstance().getTime());
   }
 }

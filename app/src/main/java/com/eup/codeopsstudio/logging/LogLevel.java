@@ -20,28 +20,30 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.logging;
 
+package com.eup.codeopsstudio.logging;
+
+import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.common.ContextManager;
 
 public enum LogLevel {
-	WARN(ContextManager.getStringRes(R.string.warn)), INFO(ContextManager.getStringRes(R.string.info)),
-	DEBUG(ContextManager.getStringRes(R.string.debug)), ERROR(ContextManager.getStringRes(R.string.error));
+  WARN(IdeApplication.getInstance().getString(R.string.warn)),
+  INFO(IdeApplication.getInstance().getString(R.string.info)),
+  DEBUG(IdeApplication.getInstance().getString(R.string.debug)),
+  ERROR(IdeApplication.getInstance().getString(R.string.error));
 
-	public String level;
+  public String level;
 
-	LogLevel(String level) {
-		this.level = level;
-	}
+  LogLevel(String level) {
+    this.level = level;
+  }
 
-	public static String getLevel(LogLevel level) {
-		for (LogLevel value : values()) {
-			if (value.level.equals(level.level)) {
-				return value.level;
-			}
-		}
-		return "INVALID-LOG-LEVEL";
-	}
+  public static String getLevel(LogLevel level) {
+    for (LogLevel value : values()) {
+      if (value.level.equals(level.level)) {
+        return value.level;
+      }
+    }
+    return "INVALID-LOG-LEVEL";
+  }
 }

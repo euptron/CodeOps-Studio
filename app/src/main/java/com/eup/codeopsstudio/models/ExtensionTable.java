@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.models;
+
+package com.eup.codeopsstudio.models;
 
 import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;

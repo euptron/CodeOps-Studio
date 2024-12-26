@@ -20,36 +20,23 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
+
 package com.eup.codeopsstudio.common.util;
 
-import android.annotation.SuppressLint;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
-import android.provider.OpenableColumns;
-import android.text.TextUtils;
 import android.util.Log;
+import androidx.core.content.ContextCompat;
 import com.blankj.utilcode.util.FileUtils;
 import com.eup.codeopsstudio.common.ContextManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.net.URLDecoder;
 
 /**
  * Adapation file utility to suite that needs com.blankj.utilcode.util.FileUtil and
@@ -59,13 +46,7 @@ import java.net.URLDecoder;
  */
 public class FileUtil {
 
-  public static final int BYTE = 1;
-  public static final int KB = 1024;
-  public static final int MB = 1048576;
-  public static final int GB = 1073741824;
-  private static final int BUFFER_SIZE = MB * 10;
   private static final String TAG = "FileUtil";
-  private static Uri contentUri = null;
 
   /** Listener that is called periodically as progress is made. */
   public interface ProgressListener {
@@ -81,93 +62,13 @@ public class FileUtil {
     return context.getAssets().open(filename);
   }
 
-  public static FileInputStream getFileInputStreamFromAssetsFile(Context context, String filename)
-      throws IOException {
-    File file = new File(context.getFilesDir(), filename);
-    FileInputStream fis = new FileInputStream(file);
-    return fis;
-  }
-
-  public static void unzipFromAssets(Context context, String zipFile, String destination) {
-    try {
-      if (destination == null || destination.length() == 0)
-        destination = context.getFilesDir().getAbsolutePath();
-      try (InputStream stream = context.getAssets().open(zipFile)) {
-        unzip(stream, destination);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
   public static boolean rename(File file, String newName) {
     return FileUtils.rename(file, newName);
   }
 
   public static void unzipFromAsset(Context context, String zipFile, String destination)
       throws IOException {
-    unzip(openAssetFile(context, zipFile), destination);
-  }
-
-  @SuppressWarnings("unused")
-  public static void unzip(String zipFile, String location) {
-    try (FileInputStream fin = new FileInputStream(zipFile)) {
-      unzip(fin, location);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public static void unzip(InputStream stream, String destination) {
-    checkDir(destination, "");
-    byte[] buffer = new byte[BUFFER_SIZE];
-    try {
-      ZipInputStream zin = new ZipInputStream(stream);
-      ZipEntry ze;
-
-      while ((ze = zin.getNextEntry()) != null) {
-        Log.v(TAG, "Unzipping " + ze.getName());
-
-        if (ze.isDirectory()) {
-          checkDir(destination, ze.getName());
-        } else {
-          File f = new File(destination, ze.getName());
-          if (!f.exists()) {
-            if (f.getParentFile() == null || !f.getParentFile().exists()) {
-              if (!f.getParentFile().mkdirs()) {
-                continue;
-              }
-            }
-            boolean success = f.createNewFile();
-            if (!success) {
-              Log.w(TAG, "Failed to create file " + f.getName());
-              continue;
-            }
-            FileOutputStream fout = new FileOutputStream(f);
-            int count;
-            while ((count = zin.read(buffer)) != -1) {
-              fout.write(buffer, 0, count);
-            }
-            zin.closeEntry();
-            fout.close();
-          }
-        }
-      }
-      zin.close();
-    } catch (Exception e) {
-      Log.e(TAG, "unzip", e);
-    }
-  }
-
-  public static void checkDir(String destination, String dir) {
-    File f = new File(destination, dir);
-    if (!f.isDirectory()) {
-      boolean success = f.mkdirs();
-      if (!success) {
-        // throws exception if failed to create folder
-        Log.w(TAG, "Failed to create folder " + f.getName());
-      }
-    }
+    Archive.unzip(openAssetFile(context, zipFile), destination);
   }
 
   // Hash file
@@ -215,11 +116,6 @@ public class FileUtil {
     }
   }
 
-  /**
-   * Returns a file name without extension
-   *
-   * @param file The file
-   */
   public static String getFileNameWithoutExtension(File file) {
     if (file.getName() == null) return null;
     String ext = file.getName().substring(file.getName().lastIndexOf(".") + 1);
@@ -230,22 +126,14 @@ public class FileUtil {
     return file.getName();
   }
 
-  /**
-   * Returns a file extension
-   *
-   * @param file The file
-   */
   public static String getFileExtension(File file) {
     if (file.getName() == null) return null;
     String ext = file.getName().substring(file.getName().lastIndexOf(".") + 1);
-
-    /*
-     * Some Textmate file extension may exist without `.`
-     */
+    // Some file extensions may exist without `.`
     if (ext != null) return ext;
     return null;
   }
-  
+
   public static String getExternalStorageDir() {
     return Environment.getExternalStorageDirectory().getAbsolutePath();
   }
@@ -298,7 +186,6 @@ public class FileUtil {
     return name + (num == 1 ? "" : " (" + num + ")") + ext;
   }
 
-  /** Recursively deletes a directory and its content. */
   public static void recursiveDelete(File fileOrDirectory, DeleteListener deleteListener) {
     File[] directoryFiles = fileOrDirectory.listFiles();
     if (directoryFiles != null) {
@@ -320,210 +207,65 @@ public class FileUtil {
   public static String[] listAllFileNamesInFileDir() {
     return ContextManager.getApplicationContext().fileList();
   }
-  
-  public static String getPathFromUri(final Context context, final Uri uri) throws Exception {
-    String path = null;
-    
-    if (DocumentsContract.isDocumentUri(context, uri)) {
-      if (isExternalStorageDocument(uri)) {
-        final String docId = DocumentsContract.getDocumentId(uri);
-        final String[] split = docId.split(":");
-        final String type = split[0];
-        path = getPathFromExtSD(split);
-      } else if (isDownloadsDocument(uri)) {
-        final String id;
-        Cursor cursor = null;
-        try {
-            cursor = context.getContentResolver().query(
-                    uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-              String fileName = cursor.getString(0);
-              String realPath = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
-              if (!TextUtils.isEmpty(path)) {
-                 path = realPath;
-              }
-            }
-          } finally {
-            if (cursor != null) cursor.close();
-          }
-          id = DocumentsContract.getDocumentId(uri);
-          if (!TextUtils.isEmpty(id)) {
-            if (id.startsWith("raw:")) {
-              return id.replaceFirst("raw:", "");
-            }
-            String[] contentUriPrefixesToTry = new String[]{
-                    "content://downloads/public_downloads", "content://downloads/my_downloads"
-                };
-            for (String contentUriPrefix : contentUriPrefixesToTry) {
-              try {
-                final Uri contentUri =
-                    ContentUris.withAppendedId(Uri.parse(contentUriPrefix), Long.valueOf(id));
-                path = getDataColumn(context, contentUri, null, null);
-              } catch (NumberFormatException e) {
-                // In Android 8 and Android P the id is not a number
-                path = uri.getPath().replaceFirst("^/document/raw:", "").replaceFirst("^raw:", "");
-              }
-            }
-          }
-      } else if (isMediaDocument(uri)) {
-        final String docId = DocumentsContract.getDocumentId(uri);
-        final String[] split = docId.split(":");
-        final String type = split[0];
-        Uri contentUri = null;
-        if ("image".equals(type)) {
-          contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        } else if ("video".equals(type)) {
-          contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        } else if ("audio".equals(type)) {
-          contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        }
-        final String selection = MediaStore.Audio.Media._ID + "=?";
-        final String[] selectionArgs = new String[] {split[1]};
-        path = getDataColumn(context, contentUri, selection, selectionArgs);
-      }
-    } else if (ContentResolver.SCHEME_CONTENT.equalsIgnoreCase(uri.getScheme())) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          path = copyFileToInternalStorage(context, uri, "userfiles");
-      } else {
-          path = getDataColumn(context, uri, null, null);
-      }
-    } else if (ContentResolver.SCHEME_FILE.equalsIgnoreCase(uri.getScheme())) {
-      path = uri.getPath();
-    }
 
-    if (path != null) {
-       return URLDecoder.decode(path, "UTF-8");
-    }
-    return null;
+  public static File[] getExternalStorageVolumeDirs(Context context) {
+    return ContextCompat.getExternalFilesDirs(context, null);
   }
-  
-   /***
-   * Used for Android Q+
-   * @param uri
-   * @param newDirName if you want to create a directory, you can set this variable
-   * @return
+
+  /**
+   * Return root directory where all external storage devices will be mounted. For example, {@link
+   * #getExternalStorageDirectory()} will appear under this location.
    */
-  private static String copyFileToInternalStorage(Context context, Uri uri, String newDirName) throws Exception {
-    Uri returnUri = uri;
-
-    Cursor returnCursor =
-        context
-            .getContentResolver()
-            .query(
-                returnUri,
-                new String[] {OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE},
-                null,
-                null,
-                null);
-
-    /*
-     * Get the column indexes of the data in the Cursor,
-     *     * move to the first row in the Cursor, get the data,
-     *     * and display it.
-     * */
-    int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-    int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
-    returnCursor.moveToFirst();
-    String name = (returnCursor.getString(nameIndex));
-    String size = (Long.toString(returnCursor.getLong(sizeIndex)));
-
-    File output;
-    if (!newDirName.equals("")) {
-      File dir = new File(context.getFilesDir() + "/" + newDirName);
-      if (!dir.exists()) {
-        dir.mkdir();
-      }
-      output =
-          new File(
-              context.getFilesDir() + "/" + newDirName + "/" + name);
-    } else {
-      output = new File(context.getFilesDir() + "/" + name);
-    }
-    InputStream inputStream =
-        context.getContentResolver().openInputStream(uri);
-    FileOutputStream outputStream = new FileOutputStream(output);
-    int read = 0;
-    int bufferSize = 1024;
-    final byte[] buffers = new byte[bufferSize];
-    while ((read = inputStream.read(buffers)) != -1) {
-      outputStream.write(buffers, 0, read);
-    }
-
-    inputStream.close();
-    outputStream.close();
-    return output.getPath();
+  public static File findInVolumes(String relativePath) {
+    return findInStorageDirectory(Environment.getStorageDirectory(), relativePath);
   }
-  
-  private static String getDataColumn(
-      Context context, Uri uri, String selection, String[] selectionArgs) throws Exception {
-    Cursor cursor = null;
 
-    final String column = MediaStore.Images.Media.DATA;
-    final String[] projection = {column};
-
-    try {
-      cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
-      if (cursor != null && cursor.moveToFirst()) {
-        final int column_index = cursor.getColumnIndexOrThrow(column);
-        return cursor.getString(column_index);
-      }
-    } finally {
-      if (cursor != null) cursor.close();
+  /**
+   * Searches a directory for a file with the given relative path.
+   *
+   * @param currentDir the root directory to search in
+   * @param relativePath the path relative to the parent volume e.g Download/EUP
+   * @return the file if it exists in any volume, may be {@code null}
+   */
+  public static File findInStorageDirectory(File currentDir, String relativePath) {
+    if (currentDir == null || !currentDir.exists() || !currentDir.isDirectory()) {
+      return null;
     }
+
+    File targetFile = new File(currentDir, relativePath);
+    if (targetFile.exists()) {
+      return targetFile;
+    }
+
+    File[] files = currentDir.listFiles();
+
+    if (files == null || files.length == 0) {
+      return null; // Skip empty directories
+    }
+
+    for (File file : files) {
+      if (file.isDirectory() && containsFiles(file)) {
+        File result = findInStorageDirectory(file, relativePath);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+
     return null;
   }
 
-  private static boolean isExternalStorageDocument(Uri uri) {
-    return "com.android.externalstorage.documents".equals(uri.getAuthority());
+  /**
+   * Checks if a directory contains files or subdirectories (non-empty).
+   *
+   * @param dir The directory to check
+   * @return {@code true} if the directory contains files or folders, otherwise {@code false}
+   */
+  public static boolean containsFiles(File dir) {
+    File[] files = dir.listFiles();
+    return files != null && files.length > 0;
   }
 
-  private static boolean isDownloadsDocument(Uri uri) {
-    return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-  }
-
-  private static boolean isMediaDocument(Uri uri) {
-    return "com.android.providers.media.documents".equals(uri.getAuthority());
-  }
-  
-  private static String getPathFromExtSD(String[] pathData) {
-    final String type = pathData[0];
-    final String relativePath = "/" + pathData[1];
-    String fullPath = "";
-
-    // on my Sony devices (4.4.4 & 5.1.1), `type` is a dynamic string
-    // something like "71F8-2C0A", some kind of unique id per storage
-    // don't know any API that can get the root path of that storage based on its id.
-    //
-    // so no "primary" type, but let the check here for other devices
-    if ("primary".equalsIgnoreCase(type)) {
-      fullPath = Environment.getExternalStorageDirectory() + relativePath;
-      if (fileExists(fullPath)) {
-        return fullPath;
-      }
-    }
-
-    // Environment.isExternalStorageRemovable() is `true` for external and internal storage
-    // so we cannot relay on it.
-    //
-    // instead, for each possible path, check if file exists
-    // we'll start with secondary storage as this could be our (physically) removable sd card
-    fullPath = System.getenv("SECONDARY_STORAGE") + relativePath;
-    if (fileExists(fullPath)) {
-      return fullPath;
-    }
-
-    fullPath = System.getenv("EXTERNAL_STORAGE") + relativePath;
-    if (fileExists(fullPath)) {
-      return fullPath;
-    }
-
-    return fullPath;
-  }
-  
-  private static boolean fileExists(String filePath) {
-    return new File(filePath).exists();
-  }
-  
   public static class Path {
     public static final File PLUGINS_FOLDER =
         ContextManager.getApplicationContext().getExternalFilesDir("plugins");
@@ -557,7 +299,7 @@ public class FileUtil {
     public static final File CODE_EDITOR_PERSISTENCE_DIRECTORY =
         new File(PERSISTENCE_DIRECTORY + File.separator + "editor");
   }
-  
+
   public static File[] listFiles(File parent) {
     File[] children = parent.listFiles();
     return (children == null) ? new File[0] : children;

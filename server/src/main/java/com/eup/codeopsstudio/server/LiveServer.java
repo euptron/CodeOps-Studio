@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.server;
+package com.eup.codeopsstudio.server;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -31,7 +31,6 @@ import android.net.Network;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import com.eup.codeopsstudio.common.AsyncTask;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import java.io.File;
@@ -62,7 +61,7 @@ public class LiveServer {
   public Server server;
   private Context context;
   private int port = 0;
-  private ServerSocket socket;
+  private String socketHostAddress = null;
   private String rootFolder;
   private File mFile;
   private String fileName;
@@ -86,50 +85,40 @@ public class LiveServer {
     this.rootFolder = (String) dir.subSequence(0, dir.lastIndexOf("/"));
     this.fileName = dir.substring(dir.lastIndexOf("/") + 1);
   }
-  
-  public interface onServerStarted {
-    void onStarted(Boolean successful, Throwable throwable);
-  }
 
   /**
-   * Starts a live server async
+   * Starts a live server with dynamic host address.
+   * <p> <strong>This is a thread blocking call</strong>
    *
-   * <p>Reports a throwable and the url to {@code onServerStarted}
-   *
-   * @param listener callback for liveserver
+   * @throws Exception if an error occurs
    */
-  public void start(onServerStarted listener) {
-    AsyncTask.runNonCancelable(
-        () -> {
+  public void launch() throws Exception {
           String deviceIp = getWifiOrDeviceIP();
           InetAddress inet = InetAddress.getByName(deviceIp);
           byte[] bytes = inet.getAddress();
+          ServerSocket socket = null;
+          
           try {
             socket = new ServerSocket(port, 0, InetAddress.getByAddress(bytes));
             port = socket.getLocalPort();
-            socket.close(); // Close the socket to initialize the HttpServer
-            server = new Server(socket.getInetAddress().getHostAddress(), port);
+            socketHostAddress = socket.getInetAddress().getHostAddress();
+            socket.close(); // Close to instantiate the Server class
+            server = new Server(socketHostAddress, port);
             server.start();
-            return true; // Task completed successfully
-          } catch (IOException e) {
-            e.printStackTrace();
-            return false; // Task failed
+          } catch (Throwable th) {
+            throw new Exception(th);
           } finally {
             if (socket != null && !socket.isClosed()) {
               try {
                 socket.close();
+                socket = null;
               } catch (IOException e) {
                 e.printStackTrace();
               }
             }
           }
-        },
-        (successful, throwable) -> {
-          // @server initialization is complete
-          listener.onStarted(successful, throwable);
-        });
   }
-
+  
   public void start() {
     try {
       server = new Server();
@@ -147,9 +136,9 @@ public class LiveServer {
   }
 
   public String getUrl() {
-    if (socket != null) {
+    if (socketHostAddress != null) {
       return "http://"
-          + socket.getInetAddress().getHostAddress()
+          + socketHostAddress
           + ":"
           + port
           + "/"
@@ -160,8 +149,8 @@ public class LiveServer {
   }
 
   public String getAddress() {
-    if (socket != null) {
-      return "http://" + socket.getInetAddress().getHostAddress() + ":" + port + "/";
+    if (socketHostAddress != null) {
+      return "http://" + socketHostAddress + ":" + port + "/";
     } else {
       return "http://" + "localhost" + ":" + port + "/";
     }

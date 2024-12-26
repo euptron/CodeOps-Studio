@@ -20,28 +20,23 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-buildscript {
-    repositories {
-        google()
-    }
-    
-    dependencies {
-        classpath 'com.google.android.gms:oss-licenses-plugin:0.10.6'
-    }
-}
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    id 'com.android.application' version '8.7.0' apply false
-    id 'com.android.library' version '8.7.0' apply false
-    id 'com.google.gms.google-services' version '4.4.2' apply false
-    id 'com.google.firebase.crashlytics' version '3.0.2' apply false
-}
 
-allprojects {
-  apply from: "$rootDir/constants.gradle"
-}
+package com.eup.codeopsstudio.models.recents;
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+import com.eup.codeopsstudio.file.FileAction;
+
+/**
+ * Model class for projects
+ *
+ * @author EUP
+ */
+public class ProjectHistory {
+
+  public final long creationDate;
+  public final FileAction fileAction;
+
+  public ProjectHistory(long date, FileAction act) {
+    this.creationDate = date;
+    this.fileAction = act;
+  }
 }

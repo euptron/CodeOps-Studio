@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
  
-   package com.eup.codeopsstudio.listeners;
+package com.eup.codeopsstudio.listeners;
 
 import android.net.Uri;
 import androidx.annotation.NonNull;
@@ -32,8 +32,6 @@ public interface FileActionListener {
   public void onFolderPicked(@NonNull File file);
 
   public void onFilePicked(@NonNull File file);
-
-  public void onFilePicked(@NonNull Uri uri);
 
   public void onCreateFile(@NonNull File file);
 

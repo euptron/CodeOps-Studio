@@ -34,10 +34,10 @@ import com.google.gson.Gson;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -136,9 +136,6 @@ public abstract class Pane {
   // The view generated for this pane
   View mView;
 
-  // The unique identifier for this pane
-  UUID mUUID;
-
   // The tag of the pane, typically used when matching subclasses
   public final String TAG = getClass().getSimpleName();
 
@@ -155,11 +152,17 @@ public abstract class Pane {
 
   // Indicates whether createView() method has been executed for this pane
   protected boolean hasPerformedCreateView = false;
+  
+  // The unique identifier for this pane
+  UUID id;
+  
+  // static set to maintain uniqueness of generated IDS across all instances of subclasses.
+  private static final List<UUID> generatedIds = new ArrayList<>();
 
-  // A shared set of generated IDs to ensure uniqueness across all instances of subclasses.
-  private static final Set<UUID> generatedIDS = new HashSet<>();
-
-  // keeps track of all pane arguments
+  /*
+   * Keeps track of all pane arguments
+   * <p> Each argument is unique to a particular pane
+   */
   final HashMap<String, Object> mArguments = new HashMap<>();
 
   public Pane(Context context, String title) {
@@ -178,7 +181,7 @@ public abstract class Pane {
     mState = PaneState.INITIALIZING;
     mPinned = false;
     if (generateUUID) {
-      generateUUID();
+      id =  generateUUID();
     }
   }
 
@@ -307,16 +310,14 @@ public abstract class Pane {
    * @param args Any arguments to pass to the method.
    */
   protected void callFragmentMethod(String fragmentTag, String methodName, Object... args) {
-    FragmentActivity activity = getActivity();
-    if (activity != null) {
-      Fragment fragment = activity.getSupportFragmentManager().findFragmentByTag(fragmentTag);
-      if (fragment != null) {
-        try {
-          Method method = fragment.getClass().getMethod(methodName, getArgumentsTypes(args));
-          method.invoke(fragment, args);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-          e.printStackTrace();
-        }
+    FragmentActivity activity = requireActivity();
+    Fragment fragment = activity.getSupportFragmentManager().findFragmentByTag(fragmentTag);
+    if (fragment != null) {
+      try {
+        Method method = fragment.getClass().getMethod(methodName, getArgumentsTypes(args));
+        method.invoke(fragment, args);
+      } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        e.printStackTrace();
       }
     }
   }
@@ -498,20 +499,20 @@ public abstract class Pane {
    */
   @Nullable
   public UUID getUUID() {
-    return mUUID;
+    return id;
   }
 
   public void setUUID(UUID id) {
-    this.mUUID = id;
+    this.id = id;
   }
 
-  protected synchronized void generateUUID() {
-    UUID id;
+  protected synchronized UUID generateUUID() {
+    UUID generatedId;
     do {
-      id = UUID.randomUUID();
-    } while (generatedIDS.contains(id));
-    generatedIDS.add(id);
-    mUUID = id;
+      generatedId = UUID.randomUUID();
+    } while (generatedIds.contains(generatedId));
+    generatedIds.add(generatedId);
+    return generatedId;
   }
 
   /**
@@ -575,23 +576,25 @@ public abstract class Pane {
     addArguments("title", mTitle);
     addArguments("pinned", mPinned);
     addArguments("selected", isSelected);
-    addArguments("uuid", mUUID.toString());
+    addArguments("uuid", id.toString());
     return this.mArguments;
   }
 
   /**
-   * Compares this pane with the specified object for equality. Subclasses cannot override this
-   * method.
+   * Compares this pane with the specified plausible pane subclass object for equality. 
+   * <p> <strong> Subclasses cannot override this method </strong>
    *
-   * @param obj The object to compare for equality.
-   * @return True if the specified object is equal to this pane, false otherwise.
+   * @param other {@code Pane} subclass object to compare for equality.
+   * @return True if the specified object ID is equal to the subclass ID, false otherwise.
    */
   @Override
-  public final boolean equals(@Nullable Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
-    Pane other = (Pane) obj;
-    return Objects.equals(mUUID, other.mUUID);
+  public final boolean equals(@Nullable Object other) {
+    if (this == other) return true;
+    // other is not a subclass of this pane or null
+    if (other == null || getClass() != other.getClass()) return false;
+    // much is not known about a pane subclass, consider uuid for uniqueness
+    Pane otherPane = (Pane) other;
+    return Objects.equals(id, otherPane.id);
   }
 
   /**
@@ -601,7 +604,7 @@ public abstract class Pane {
    */
   @Override
   public final int hashCode() {
-    return Objects.hash(mUUID);
+    return Objects.hash(id);
   }
 
   /**
@@ -618,7 +621,7 @@ public abstract class Pane {
         getClass().getSimpleName(),
         Integer.toHexString(System.identityHashCode(this)),
         hashCode(),
-        mUUID.toString(),
+        id.toString(),
         mTitle,
         mPinned);
   }
@@ -634,7 +637,7 @@ public abstract class Pane {
       json.put("class_name", getClass().getSimpleName());
       json.put("memoryAddress", Integer.toHexString(System.identityHashCode(this)));
       json.put("hashCode", hashCode());
-      json.put("uuid", mUUID.toString());
+      json.put("uuid", id.toString());
       json.put("title", mTitle);
       json.put("pinned", mPinned);
       json.put("arguments", mArguments);

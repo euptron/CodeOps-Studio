@@ -20,17 +20,17 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.viewmodel;
 
+package com.eup.codeopsstudio.viewmodel;
+
+import android.app.Application;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.logging.Log;
 import java.io.File;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
  *
  * @author EUP
  */
-public class MainViewModel extends ViewModel {
+public class MainViewModel extends AndroidViewModel {
 
   private final MutableLiveData<Boolean> mDrawerState = new MutableLiveData<>(false);
   private final MutableLiveData<String> mToolbarTitle = new MutableLiveData<>();
@@ -58,11 +58,13 @@ public class MainViewModel extends ViewModel {
   private MutableLiveData<File> mOpenEditorFile = new MutableLiveData<>();
   private MutableLiveData<ArrayList<Log>> mIDELogs;
   private MutableLiveData<ArrayList<Log>> mBUILDLogs;
-   
-  public MainViewModel() {
-    mToolbarTitle.setValue(ContextManager.getStringRes(R.string.app_name));
-  }
+  private MutableLiveData<File> pickZipFile = new MutableLiveData<>();
 
+  public MainViewModel(Application application) {
+    super(application);
+    mToolbarTitle.setValue(application.getString(R.string.app_name));
+  }
+  
   public LiveData<Integer> getBottomSheetState() {
     return mBottomSheetState;
   }
@@ -161,6 +163,14 @@ public class MainViewModel extends ViewModel {
 
   public void addSettingsPane(boolean enabled) {
     this.addSettingsPane.setValue(enabled);
+  }
+
+  public void setZipFile(File file) {
+    this.pickZipFile.setValue(file);
+  }
+
+  public LiveData<File> getZipFile() {
+    return this.pickZipFile;
   }
 
   public MutableLiveData<ArrayList<Log>> getIDELogs() {

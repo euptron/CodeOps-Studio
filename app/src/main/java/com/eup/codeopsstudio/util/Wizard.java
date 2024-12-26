@@ -20,7 +20,7 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
+
 package com.eup.codeopsstudio.util;
 
 import static android.content.Context.UI_MODE_SERVICE;
@@ -29,6 +29,7 @@ import static com.eup.codeopsstudio.common.util.SDKUtil.API;
 
 import android.app.UiModeManager;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,19 +39,20 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import com.eup.codeopsstudio.BuildConfig;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.util.SDKUtil;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -65,45 +67,21 @@ import java.util.concurrent.CompletableFuture;
 public class Wizard {
 
   protected Context mContext;
-  private Analytics mAnalytics;
   public static final String LOG_TAG = Wizard.class.getSimpleName();
 
   public Wizard(Context context) {
     mContext = context;
-    mAnalytics = new Analytics(context);
-  }
-  
-  public void uploadAnynomousAnalytics(){
-     uploadAnynomousAnalytics(true);
-  }
-  public void uploadAnynomousAnalytics(boolean enabled) {
-    if (enabled) {
-      mAnalytics.enableAnalytics(true);
-      // Set user properties
-      mAnalytics.setUserProperty("package_name", getAppPackageName(mContext));
-      mAnalytics.setUserProperty("app_version_code", getAppVersionCode(mContext));
-      mAnalytics.setUserProperty("app_version_name", getAppVersionName(mContext));
-      // Set system properties
-      mAnalytics.setUserProperty("device_model", getDeviceBuildModel());
-      mAnalytics.setUserProperty("device_sdk_version", getDeviceSDKVersion());
-      mAnalytics.setUserProperty("device_build_id", getDeviceBuildID());
-      mAnalytics.setUserProperty("device_release", getDeviceReleaseVersion());
-      mAnalytics.setUserProperty("device_board", getDeviceBoard());
-      mAnalytics.setUserProperty("device_brand", getDeviceManuFacturer());
-      mAnalytics.setUserProperty("device_cpu_arch", getDeviceArchitecture());
-      mAnalytics.setUserProperty("device_locale_country", getLocaleCountry(mContext));
-      mAnalytics.setUserProperty("device_locale", getDeviceLocaleLanguage());
-      mAnalytics.setUserProperty("device_country", getDeviceCountry(mContext));
-      mAnalytics.setUserProperty("user_id", getUserID(mContext));
-    } else {
-      mAnalytics.enableAnalytics(false);
-    }
   }
 
   private static String uniqueID = null;
   private static final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
 
-  public static synchronized String getUserID(Context context) {
+  /**
+   * Gets the unique id given to devices at first launch time
+   *
+   * @return the pesudo ID
+   */
+  public static synchronized String getInstallUserID(Context context) {
     if (uniqueID == null) {
       SharedPreferences sharedPrefs =
           context.getSharedPreferences(PREF_UNIQUE_ID, Context.MODE_PRIVATE);
@@ -118,11 +96,15 @@ public class Wizard {
     return uniqueID;
   }
 
+  public static synchronized String getUserID(Context context) {
+    return getInstallUserID(context);
+  }
+
   public static long getTime() {
     return new Date().getTime();
   }
 
-    public static String getLocaleCountry(Context context) {
+  public static String getLocaleCountry(Context context) {
     String param = null;
     TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
@@ -139,7 +121,7 @@ public class Wizard {
 
       Configuration configuration = context.getResources().getConfiguration();
       Locale locale;
-      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+      if (SDKUtil.isAtLeast(SDKUtil.API.ANDROID_7)) {
         locale = configuration.getLocales().get(0);
       } else {
         locale = configuration.locale;
@@ -152,7 +134,7 @@ public class Wizard {
   public static String getDeviceCountry(Context context) {
     return getLocaleCountry(context);
   }
-    
+
   public static String getDeviceBuildModel() {
     return validate(Build.MODEL);
   }
@@ -287,56 +269,6 @@ public class Wizard {
     }
   }
 
-  /** The Analytics class is responsible for handling Firebase Analytics operations. */
-  public class Analytics {
-    /** The FirebaseAnalytics instance used to record events and user properties. */
-    private FirebaseAnalytics mFirebaseAnalytics;
-
-    /**
-     * Initializes the Analytics object with the FirebaseAnalytics instance. Call this method in the
-     * onCreate() of your activity or application context.
-     *
-     * @param context The activity or application context.
-     */
-    public Analytics(Context context) {
-      mFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
-    }
-    
-    public void enableAnalytics(boolean enable) {
-      mFirebaseAnalytics.setAnalyticsCollectionEnabled(enable);
-    }
-    
-    /**
-     * Sets a user property to a given value.
-     *
-     * @param propertyKey The key of the user property.
-     * @param propertyName The value of the user property.
-     */
-    public void setUserProperty(String propertyKey, String propertyName) {
-      mFirebaseAnalytics.setUserProperty(propertyKey, propertyName);
-    }
-
-    /**
-     * Records a Firebase Analytics event with a specific name and parameters.
-     *
-     * @param event The event to be logged.
-     * @param bundle A Bundle containing event parameters.
-     */
-    public void recordEvent(FirebaseAnalytics.Event event, Bundle bundle) {
-      mFirebaseAnalytics.logEvent(event.toString(), bundle);
-    }
-
-    /**
-     * Records a Firebase Analytics event with a custom name and parameters.
-     *
-     * @param eventName The name of the event to be logged.
-     * @param params A Bundle containing event parameters.
-     */
-    public void recordEvent(String eventName, Bundle params) {
-      mFirebaseAnalytics.logEvent(eventName, params);
-    }
-  }
-
   public static String prettyPrintJson(String jsonString) {
     CompletableFuture<String> resultFuture = new CompletableFuture<>();
     prettyPrintJsonAsync(
@@ -450,24 +382,53 @@ public class Wizard {
     }
     return false;
   }
-    
-    public static void installApplication(Context context, File file) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uriFromFile(context, file), "application/vnd.android.package-archive");
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        try {
-            context.startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static Uri uriFromFile(Context context, File file) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
-        } else {
-            return Uri.fromFile(file);
-        }
+  public static void installApplication(Context context, File file) {
+    Intent intent = new Intent(Intent.ACTION_VIEW);
+    intent.setDataAndType(getUriForFile(context, file), "application/vnd.android.package-archive");
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    try {
+      context.startActivity(intent);
+    } catch (ActivityNotFoundException e) {
+      e.printStackTrace();
     }
+  }
+
+  /**
+   * @return mimeType of a file
+   */
+  public String getMimeType(Context context, Uri uri) {
+    if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+      return context.getContentResolver().getType(uri);
+    }
+    var file = new File(uri.getPath());
+    var extension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(file).toString());
+    var type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+
+    return (type != null) ? type : "*/*";
+  }
+
+  public static String getMimeType(Context context, File file) {
+    var extension = MimeTypeMap.getFileExtensionFromUrl(getUriForFile(context, file).getPath());
+    var type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+
+    return (type != null) ? type : "*/*";
+  }
+
+  public static Uri getUriForFile(Context context, File file) {
+    if (SDKUtil.isAtLeast(SDKUtil.API.ANDROID_7)) {
+      return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
+    } else {
+      return Uri.fromFile(file);
+    }
+  }
+
+  private List<String> listOf(String... args) {
+    List<String> values = new ArrayList<String>();
+    for (String value : args) {
+      values.add(value);
+    }
+    return values;
+  }
 }

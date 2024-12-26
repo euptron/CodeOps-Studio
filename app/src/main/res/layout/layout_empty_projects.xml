@@ -39,7 +39,7 @@
         android:gravity="center"
         android:text="@string/recent_projects_empty"
         tools:text="No Projects found"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge" />
+        android:textAppearance="?attr/textAppearanceTitleLarge" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -49,6 +49,6 @@
         android:padding="8dp"
         android:text="@string/recent_projects_empty_suggestions"
         android:textColor="?attr/colorOnSurface"
-        android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
 
 </LinearLayout>

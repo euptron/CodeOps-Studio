@@ -20,14 +20,12 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.explore.template;
 
+package com.eup.codeopsstudio.ui.explore.template;
+
+import com.blankj.utilcode.util.ToastUtils;
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -35,16 +33,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.transition.TransitionManager;
+import com.eup.codeopsstudio.listeners.FileActionListener;
+import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
@@ -52,7 +48,6 @@ import com.google.android.material.transition.MaterialFadeThrough;
 import com.google.android.material.transition.MaterialSharedAxis;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.util.FileUtil;
-import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.FragmentTemplateBinding;
 import com.eup.codeopsstudio.logging.Logger;
@@ -68,10 +63,9 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
 import org.apache.commons.io.FileUtils;
 
-public class TemplateFragment extends BottomSheetDialogFragment {
+public class TemplateFragment extends BottomSheetDialogFragment implements FileActionListener {
 
   public static final String LOG_TAG = "TemplateFragment";
   private boolean previous; // used for backward navigation
@@ -80,7 +74,6 @@ public class TemplateFragment extends BottomSheetDialogFragment {
   private ProjectTemplateModel mCurrentTemplate;
   private MainViewModel mainViewModel;
   private Logger logger;
-  private ActivityResultLauncher<Intent> mStartForResult;
   private final OnBackPressedCallback onBackPressedCallback =
       new OnBackPressedCallback(true) {
         @Override
@@ -88,6 +81,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
           navigatePrevious();
         }
       };
+  private ContextualLifecycleObserver lifecycleObserver;
 
   public static TemplateFragment newInstance() {
     return new TemplateFragment();
@@ -99,20 +93,6 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     mainViewModel =
         new ViewModelProvider(requireActivity() /*shared activity scope*/).get(MainViewModel.class);
     logger = new Logger(Logger.LogClass.IDE);
-    mStartForResult =
-        registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-              if (result.getResultCode() == Activity.RESULT_OK) {
-                Intent intent = result.getData();
-                if (intent != null) {
-                  Uri folderUri = intent.getData();
-                  if (folderUri != null) {
-                    onFolderSelected(folderUri);
-                  }
-                }
-              }
-            });
   }
 
   @Override
@@ -136,6 +116,9 @@ public class TemplateFragment extends BottomSheetDialogFragment {
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    this.lifecycleObserver =
+        new ContextualLifecycleObserver(
+            requireContext(), requireActivity().getActivityResultRegistry(), this);
     loadTemplates();
     binding.footer.previous.setVisibility(View.GONE);
   }
@@ -152,6 +135,36 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     onBackPressedCallback.setEnabled(false);
   }
 
+  @Override
+  public void onFolderPicked(File file) {
+    if (file != null) {
+      String folderPath = file.getAbsolutePath();
+      mSaveLocationLayout.getEditText().setText(folderPath);
+      logger.d(LOG_TAG, getString(R.string.folder_selection_success));
+    }
+  }
+
+  @Override
+  public void onFilePicked(@NonNull File file) {
+    // No-op
+  }
+
+  @Override
+  public void onCreateFile(@NonNull File file) {
+    // No-op
+  }
+
+  @Override
+  public void onActionFailed(@NonNull String message) {
+    logger.e(
+        LOG_TAG,
+        getString(R.string.folder_selection_error)
+            + " ["
+            + getString(R.string.cause)
+            + "] "
+            + message);
+  }
+
   private void navigatePrevious() {
     if (!previous) {
       getParentFragmentManager().popBackStack();
@@ -165,26 +178,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
   }
 
   private void openFolder() {
-    mStartForResult.launch(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE));
-  }
-
-  private void onFolderSelected(Uri uri) {
-    try {
-      DocumentFile pickedDir = DocumentFile.fromTreeUri(requireContext(), uri);
-      File file = new File(FileUtil.getPathFromUri(requireActivity(), pickedDir.getUri()));
-      String folderPath = file.getAbsolutePath();
-      if (folderPath != null) {
-        mSaveLocationLayout.getEditText().setText(folderPath);
-      }
-    } catch (Exception e) {
-      logger.e(
-          LOG_TAG,
-          getString(R.string.folder_selection_error)
-              + " ["
-              + getString(R.string.cause)
-              + "] "
-              + e.getMessage());
-    }
+    lifecycleObserver.pickFolder();
   }
 
   private void navigateNext(View view) {
@@ -358,7 +352,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     binding.projectDetails.getRoot().setVisibility(View.GONE);
     binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
 
-    AsyncTask.runNonCancelable(
+    AsyncTask.runOnBackgroundThread(
         () -> {
           String savePath = mSaveLocationLayout.getEditText().getText().toString();
           try {
@@ -380,7 +374,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             requireActivity()
                 .runOnUiThread(
                     () -> {
-                      BaseUtil.showToast(e.getMessage(), BaseUtil.LENGTH_SHORT);
+                      ToastUtils.showLong(e.getMessage());
                       logger.e(
                           LOG_TAG,
                           getString(R.string.project_creation_fail)
@@ -399,9 +393,10 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
     binding.dynamicList.setVisibility(View.GONE);
 
-    AsyncTask.runNonCancelable(
+    AsyncTask.runOnBackgroundThread(
         () -> {
           List<ProjectTemplateModel> templates = getTemplates();
+
           if (getActivity() != null) {
             getActivity()
                 .runOnUiThread(
@@ -429,7 +424,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
                             msg.append("Description : " + model.getDescription() + "\n");
                             msg.append("Version Code: " + model.getVersion() + "\n");
                             msg.append("Version Name: " + model.getVersionName());
-                            
+
                             new MaterialAlertDialogBuilder(requireContext())
                                 .setTitle(R.string.about_template)
                                 .setMessage(msg.toString())
@@ -483,9 +478,6 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     }
   }
 
-  /**
-   * @throws IOException Thrown if an error occurs on extraction
-   */
   private void extractTemplatesMaybe() throws IOException {
     File hashFile = new File(requireContext().getExternalFilesDir("templates"), "hash");
     if (!hashFile.exists()) {
@@ -505,15 +497,12 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     }
   }
 
-  /**
-   * @throws IOException Thrown if an error occurs on extraction
-   */
   private void extractZipFiles() throws IOException {
     File templatesDir = new File(requireContext().getExternalFilesDir(null), "templates");
     if (templatesDir.exists()) {
       FileUtils.deleteDirectory(templatesDir);
     }
-    FileUtil.unzipFromAssets(requireContext(), "templates.zip", templatesDir.getParent());
+    FileUtil.unzipFromAsset(requireContext(), "templates.zip", templatesDir.getParent());
     File hashFile = new File(templatesDir, "hash");
     if (!hashFile.createNewFile()) {
       throw new IOException("Unable to create hash file");

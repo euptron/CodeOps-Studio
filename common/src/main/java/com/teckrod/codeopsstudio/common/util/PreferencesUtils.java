@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.common.util;
+
+package com.eup.codeopsstudio.common.util;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 
@@ -516,17 +516,20 @@ public class PreferencesUtils {
         .putString(SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding)
         .apply();
   }
-  
+
   public static boolean canCloseUnPinnedProjectPanes() {
-    return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, true);
+    return getDefaultPreferences()
+        .getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, true);
   }
 
   public static void setCloseUnPinnedProjectPanes(boolean closeUnPinned) {
     getDefaultPreferences()
         .edit()
-        .putBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, closeUnPinned)
+        .putBoolean(
+            SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, closeUnPinned)
         .apply();
   }
+
   // =======================
   // Other Preferences
   // =======================
@@ -604,7 +607,7 @@ public class PreferencesUtils {
         .putBoolean(SharedPreferenceKeys.KEY_SHARE_STATISTICS, enabled)
         .apply();
   }
-  
+
   public static boolean clearPerference(SharedPreferences pref, String key) {
     return pref.edit().putString(key, "").commit();
   }

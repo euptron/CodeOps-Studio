@@ -1015,10 +1015,10 @@ public class BaseFragment extends Fragment
                   return codeEditorPane.getArguments().get("editor_content").toString();
                 },
                 (result) -> {
-                  // null or empty persisted content default to the read editoe file
+                  // null or empty persisted content default to the read editor file
                   if (!Wizard.isEmpty(result)) {
                     codeEditorPane.getEditor().setText(result);
-                    // mark persisted content as modified
+                    // mark persisted content a)s modified
                     codeEditorPane.setModified(true);
 
                     int left_column =

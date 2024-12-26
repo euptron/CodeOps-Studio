@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.common;
+
+package com.eup.codeopsstudio.common;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
@@ -44,16 +44,6 @@ public class ContextManager {
       throw new IllegalStateException("initialize() hasn't been called.");
     }
     return mContext;
-  }
-
-  /**
-   * Gets string value from an integer
-   *
-   * @param i The integer containing a value
-   * @return The string value of the integer
-   */
-  public static String getStringRes(int i) {
-    return mContext.getString(i);
   }
 
   public static String getPackageName() {

@@ -42,8 +42,6 @@
     }
     
     compileOptions {
-        // due to tm4e-textmate upstream to support min-api versions < 33
-        //coreLibraryDesugaringEnabled true
         sourceCompatibility project.ext.javaSourceVersion
         targetCompatibility project.ext.javaTargetVersion
     }
@@ -61,6 +59,4 @@ dependencies {
     api "io.github.Rosemoe.sora-editor:language-textmate"
     implementation project(path: ":common")
     implementation project(path: ":shared-res")
-    
-    //coreLibraryDesugaring other.desugar
 }

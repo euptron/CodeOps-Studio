@@ -40,7 +40,7 @@
     <!-- ShareLayout -->
     <string name="sharelayout_actiontext">@string/share</string>
     <string name="sharelayout_prompttext">Generating link please wait</string>
-    <string name="sharelayout_summarytext">Share this link with anyone passionate about mobile coding, and let them experience seamless coding on the go.</string>
+    <string name="sharelayout_summarytext">Share this link with anyone passionate about coding, and let them experience seamless coding on the go.</string>
     <string name="sharelayout_titletext">Share CodeOps Studio</string>
     <!-- Functions -->
     <string name="retry">Retry</string>
@@ -193,6 +193,7 @@
     <string name="prompt_file_name">File name</string>
     <string name="prompt_folder_name">Folder name</string>
     <string name="request_again">Request again</string>
+    <string name="msg_error_occured">Oops! an error occured</string>
     <string name="unarchiving_file">Unarchiving file</string>
     <string name="prompt_contains_slashes">"If the path contains File separator ('/'), then the required (parent) directories will be created if they don't exist."</string>
     <!-- Pane Tabs -->
@@ -222,9 +223,9 @@
     </plurals>
     <!-- Pane -->
     <string name="new_project">New project</string>
-    <string name="recent_project">Recent project</string>
-    <string name="recent_projects_empty">No Project Found</string>
-    <string name="recent_projects_empty_suggestions">To get started:\n\n  - Create New Project\n  - Open a folder\n - Open a file</string>
+    <string name="recent_project">Recent projects</string>
+    <string name="recent_projects_empty">No project found</string>
+    <string name="recent_projects_empty_suggestions">To get started:\n\n  - Create a new project\n  - Open a folder\n  - Open a file\n  - Import a zip file\n  - Clone a git repository</string>
     <string name="remove">Remove</string>
     <string name="check_history">Check History</string>
     <string name="start">Start</string>
@@ -274,9 +275,11 @@
     <string name="history">History</string>
     <string name="drag_up_for_logs">Drag up for logs</string>
     <!-- Message and prompt -->
+    <string name="msg_storage_permission_request">%1$s needs to access your device storage in order to manage project files.</string>
     <string name="msg_folder_exists">Folder already exists</string>
+    <string name="msg_unable_to_format">Unable to format sequence</string>
     <string name="msg_unsupported_sdk_dynamic_colors">Material you is usually only available for android devices 12 and above</string>
-    <string name="msg_recent_project_history">Date of creation: %1$s\n Action: %2$s</string>
+    <string name="msg_recent_project_history">Created on: %1$s\nAction: %2$s</string>
     <string name="msg_dir_not_exist">Save location does not exist</string>
     <string name="msg_dir_does_exist">Save location already exist</string>
     <string name="msg_invalid_templates">Invalid templates detected; Fixing templates</string>

@@ -20,227 +20,178 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.observers;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
+package com.eup.codeopsstudio.observers;
+
 import static com.eup.codeopsstudio.common.models.Document.MimeType.*;
-import static com.eup.codeopsstudio.ui.editor.panes.recent.model.Project.History;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.ActivityResultRegistry;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.activity.result.contract.ActivityResultContracts.GetContent;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.eup.codeopsstudio.common.util.FileUtil;
-import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.file.FileAction;
+import com.eup.codeopsstudio.aggregators.Recents;
+import com.eup.codeopsstudio.common.util.FileUriMediator;
 import com.eup.codeopsstudio.listeners.FileActionListener;
-import com.eup.codeopsstudio.ui.editor.panes.recent.model.Project;
-import com.eup.codeopsstudio.util.Wizard;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
 
-  private FileActionListener mFileActionListener;
-  private Context obCtx;
-  private final ActivityResultRegistry mRegistry;
-  private ActivityResultLauncher<String> mPickFile;
-  private ActivityResultLauncher<String> mPickArchiveFile;
-  private ActivityResultLauncher<String> mCreateFile;
-  private ActivityResultLauncher<Intent> mPickFolder;
-  private SharedPreferences sharedPreferences;
-  private List<Project> projects = new ArrayList<>();
+  private Context context;
+  private FileActionListener fileActionListener;
+  private final ActivityResultRegistry resultRegistry;
+  private ActivityResultLauncher<String> pickFileLauncher, createFileLauncher;
+  private ActivityResultLauncher<Uri> pickFolderLauncher;
+  private Recents recentProjects;
+
+  public static final String KEY_PICK_DIRECTORY = "pick_folder_key";
+  public static final String KEY_CREATE_FILE = "create_file";
+  public static final String KEY_PICK_FILE = "pick_file";
 
   public ContextualLifecycleObserver(
-      @NonNull Context context, @NonNull ActivityResultRegistry registry) {
-    obCtx = context;
-    mRegistry = registry;
+      @NonNull Context context,
+      @NonNull ActivityResultRegistry registry,
+      @NonNull FileActionListener fileActionListener) {
+    this.context = context;
+    this.resultRegistry = registry;
+    this.fileActionListener = fileActionListener;
+
+    if (fileActionListener == null) {
+      throw new IllegalArgumentException(
+          "ContextualLifeCycleObserver: FileActionListener is invalid");
+    }
   }
 
   @Override
   public void onCreate(@NonNull LifecycleOwner owner) {
-    sharedPreferences =
-        obCtx.getSharedPreferences(SharedPreferenceKeys.KEY_RECENT_PROJECTS, Context.MODE_PRIVATE);
-    projects = getRecentProjects();
+    recentProjects = Recents.initialize(context);
 
-    mPickFile =
-        mRegistry.register(
-            "select_file",
-            owner,
-            new GetContent(),
-            new ActivityResultCallback<Uri>() {
-              @Override
-              public void onActivityResult(@Nullable Uri uri) {
-                try {
-                 if (uri != null && mFileActionListener != null) {
-                   var mPickedFile = new File(FileUtil.getPathFromUri(obCtx, uri));
-                   var history = new History(Wizard.getTime(), FileAction.OPEN_FILE);
-                   if (mPickedFile != null && history != null) {
-                     addToRecentOrReplace(mPickedFile, history);
-                     mFileActionListener.onFilePicked(mPickedFile);
-                    }
-                  }
-                } catch (Exception e) {
-                  mFileActionListener.onActionFailed(e.getMessage());
-                }
-              }
-            });
+    pickFileLauncher =
+        resultRegistry.register(
+            KEY_PICK_FILE, owner, new ActivityResultContracts.GetContent(), this::mediateFileUri);
 
-    mPickArchiveFile =
-        mRegistry.register(
-            "select_zip_file",
-            owner,
-            new GetContent(),
-            new ActivityResultCallback<Uri>() {
-              @Override
-              public void onActivityResult(@Nullable Uri uri) {
-                if (uri != null && mFileActionListener != null) {
-                  mFileActionListener.onFilePicked(uri);
-                }
-              }
-            });
-
-    mCreateFile =
-        mRegistry.register(
-            "create_file",
+    createFileLauncher =
+        resultRegistry.register(
+            KEY_CREATE_FILE,
             owner,
             new ActivityResultContracts.CreateDocument(ALL.toString()),
-            new ActivityResultCallback<Uri>() {
-              @Override
-              public void onActivityResult(@Nullable Uri uri) {
-                try {
-                  if (uri != null && mFileActionListener != null) {
-                    var mCreatedFile = new File(FileUtil.getPathFromUri(obCtx, uri));
-                    var history = new History(Wizard.getTime(), FileAction.CREATE_FILE);
-                    if (mCreatedFile != null && history != null) {
-                      addToRecentOrReplace(mCreatedFile, history);
-                      mFileActionListener.onCreateFile(mCreatedFile);
-                    }
-                  }
-                } catch (Exception e) {
-                  mFileActionListener.onActionFailed(e.getMessage());
-                }
-              }
-            });
+            this::mediateFileCreation);
 
-    mPickFolder =
-        mRegistry.register(
-            "select_folder",
+    pickFolderLauncher =
+        resultRegistry.register(
+            KEY_PICK_DIRECTORY,
             owner,
-            new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>() {
-              @Override
-              public void onActivityResult(ActivityResult result) {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                  Intent intent = result.getData();
-                  if (intent != null) {
-                    Uri uri = intent.getData();
-                    if (uri != null && mFileActionListener != null) {
-                      try {
-                        var pickedDir = DocumentFile.fromTreeUri(obCtx, uri);
-                        var mFile = new File(FileUtil.getPathFromUri(obCtx, pickedDir.getUri()));
-
-                        if (mFile != null) {
-                          createHistory(mFile);
-                          mFileActionListener.onFolderPicked(mFile);
-                        }
-                      } catch (Exception e) {
-                        mFileActionListener.onActionFailed(e.getMessage());
-                      }
-                    }
-                  }
-                }
-              }
-            });
-  }
-
-  public void setFileActionListener(FileActionListener fileActionListener) {
-    mFileActionListener = fileActionListener;
+            new ActivityResultContracts.OpenDocumentTree(),
+            this::mediateFolderUri);
   }
 
   public void pickFile() {
-    // Open the activity to select a file
-    mPickFile.launch(ALL.toString());
+    pickFileLauncher.launch(ALL.toString());
   }
 
-  public void pickArchiveFile() {
-    // Open the activity to select an archive file
-    mPickArchiveFile.launch(ALL.toString());
+  public void pickZipFile() {
+    pickFileLauncher.launch(ZIP.toString());
   }
 
   public void pickFolder() {
-    // Open the activity to select a folder
-    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-    mPickFolder.launch(intent);
+    pickFolderLauncher.launch(/*null to open root=*/ null);
   }
 
   /**
-   * Create a new file
+   * Creates a new file
    *
    * @param name The file name
    */
   public void createFile(String name) {
-    mCreateFile.launch(name);
+    createFileLauncher.launch(name);
   }
 
-  // ..//
+  private void mediateFolderUri(Uri uri) {
+    if (uri == null) {
+      toast("Invalid folder selection. Please try again.");
+      return;
+    }
 
-  private void createHistory(File file) {
-    History history = new History(Wizard.getTime(), FileAction.OPEN_FOLDER);
-    addToRecentOrReplace(file, history);
-  }
+    FileUriMediator mediator = FileUriMediator.resolveTree(uri, context);
 
-  private void addToRecentOrReplace(File file, History history) {
-    Project newProject = new Project(file, history);
-    for (Project existingProject : projects) {
-      if (existingProject.equals(newProject) || existingProject.getFile().getPath().equals(file.getPath())) {
-        removeFromRecent(existingProject);
-        break;
+    if (!mediator.isAllowedAuthority(mediator.getAuthority())) {
+      toast("The selected folder cannot be accessed due to unsupported authority.");
+      return;
+    }
+
+    try {
+      var pickedFolder = mediator.getFile();
+
+      if (pickedFolder == null || !pickedFolder.exists() || !pickedFolder.isDirectory()) {
+        toast("The selected folder either does not exist or is not a valid directory.");
+        return;
       }
+
+      recentProjects.recordFolderCreation(pickedFolder);
+      fileActionListener.onFolderPicked(pickedFolder);
+    } catch (Exception e) {
+      fileActionListener.onActionFailed(
+          String.format("Error: %s - %s", e.getClass().getSimpleName(), e.getMessage()));
     }
-    addToRecent(newProject);
   }
 
-  public void addToRecent(@NonNull Project project) {
-    List<Project> projects = getRecentProjects();
-    projects.add(project);
-    sharedPreferences
-        .edit()
-        .putString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, new Gson().toJson(projects))
-        .apply();
-  }
-
-  public void removeFromRecent(@NonNull Project project) {
-    List<Project> recents = getRecentProjects();
-    recents.removeIf(currentProject -> currentProject.equals(project));
-    sharedPreferences
-        .edit()
-        .putString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, new Gson().toJson(recents))
-        .apply();
-  }
-
-  public ArrayList<Project> getRecentProjects() {
-    var json = sharedPreferences.getString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, "");
-    ArrayList<Project> recentProjects = new Gson().fromJson(json, new TypeToken<ArrayList<Project>>() {}.getType());
-    if (recentProjects != null && !recentProjects.isEmpty()) {
-      return recentProjects;
+  private void mediateFileCreation(Uri uri) {
+    if (uri == null) {
+      toast("Invalid file selection. Please try again.");
+      return;
     }
-    return new ArrayList<Project>();
+
+    var mediator = FileUriMediator.resolveDocument(uri, context);
+
+    try {
+      var createdFile = mediator.getFile();
+
+      if (createdFile == null || !createdFile.exists() || !createdFile.isFile()) {
+        toast("The newly created file either does not exist or is invalid.");
+        return;
+      }
+
+      recentProjects.recordFileCreation(createdFile);
+      fileActionListener.onCreateFile(createdFile);
+    } catch (Exception e) {
+      fileActionListener.onActionFailed(
+          String.format("Error: %s - %s", e.getClass().getSimpleName(), e.getMessage()));
+    }
+  }
+
+  private void mediateFileUri(Uri uri) {
+    if (uri == null) {
+      toast("Invalid file selection. Please try again.");
+      return;
+    }
+
+    FileUriMediator mediator = FileUriMediator.resolveDocument(uri, context);
+
+    if (!mediator.isAllowedAuthority(mediator.getAuthority())) {
+      toast("The selected file cannot be accessed due to unsupported authority.");
+      return;
+    }
+
+    try {
+      var pickedFile = mediator.getFile();
+
+      if (pickedFile == null || !pickedFile.exists() || !pickedFile.isFile()) {
+        toast("The selected file either does not exist or is not a valid file.");
+        return;
+      }
+
+      recentProjects.recordFileOpening(pickedFile);
+      fileActionListener.onFilePicked(pickedFile);
+    } catch (Exception e) {
+      fileActionListener.onActionFailed(
+          String.format("Error: %s - %s", e.getClass().getSimpleName(), e.getMessage()));
+    }
+  }
+
+  void toast(String msg) {
+    Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
   }
 }

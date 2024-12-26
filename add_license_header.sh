@@ -3,7 +3,7 @@
 # Define the license header for non-XML files
 LICENSE_HEADER_NON_XML="/*************************************************************************
  * This file is part of CodeOps Studio.
- * CodeOps Studio - code anywhere anytime
+ * CodeOps Studio - Code anywhere anytime
  * https://github.com/euptron/CodeOps-Studio
  * Copyright (C) 2024 EUP
  *
@@ -30,7 +30,7 @@ LICENSE_HEADER_NON_XML="/*******************************************************
 LICENSE_HEADER_XML="<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  ~ This file is part of CodeOps Studio.
- ~ CodeOps Studio - code anywhere anytime
+ ~ CodeOps Studio - Code anywhere anytime
  ~ https://github.com/euptron/CodeOps-Studio
  ~ Copyright (C) 2024 EUP
  ~ 

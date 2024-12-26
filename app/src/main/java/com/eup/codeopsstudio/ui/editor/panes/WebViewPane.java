@@ -20,14 +20,12 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.editor.panes;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
+package com.eup.codeopsstudio.ui.editor.panes;
+
+import com.blankj.utilcode.util.ToastUtils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebChromeClient;
@@ -38,7 +36,6 @@ import android.webkit.WebViewClient;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.FileUtil;
-import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.LayoutPaneWebviewBinding;
 import com.eup.codeopsstudio.logging.Logger;
 import com.eup.codeopsstudio.pane.Pane;
@@ -48,7 +45,6 @@ import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 import java.io.File;
 import android.graphics.Bitmap;
-
 
 public class WebViewPane extends Pane {
 
@@ -60,6 +56,7 @@ public class WebViewPane extends Pane {
   private LiveServer consoleServer;
   private File mFile;
   private Logger logger;
+  public static final String LOG_TAG = WebViewPane.class.getSimpleName();
 
   public WebViewPane(Context context, String title) {
     this(context, title, /* generate new uuid= */ true);
@@ -80,7 +77,7 @@ public class WebViewPane extends Pane {
   public void onViewCreated(View view) {
     super.onViewCreated(view);
     logger.attach(requireActivity());
-    
+
     liveServer = new LiveServer(getContext());
     consoleServer = new LiveServer(getContext());
 
@@ -103,19 +100,24 @@ public class WebViewPane extends Pane {
     webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
     setZoomable(true);
     enableDeskTopMode(false);
-    
+
+    // web view -since v1.0.3
+    binding.webview.setFocusable(true);
+    binding.webview.setFocusableInTouchMode(true);
+
     binding.progressbar.setMax(100);
     binding.progressbar.setProgress(1);
     binding.progressbar.setVisibility(View.GONE);
-    
+
     binding.webview.setWebViewClient(
         new WebViewClient() {
           @Override
           public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
+            // show progress bar
             binding.progressbar.setVisibility(View.VISIBLE);
           }
-          
+
           @Override
           public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             view.loadUrl(request.getUrl().toString());
@@ -125,7 +127,9 @@ public class WebViewPane extends Pane {
           @Override
           public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
+            // hide progress bar
             binding.progressbar.setVisibility(View.GONE);
+
             if (showConsole) {
               String msg = getString(R.string.msg_console_welcome);
               String initalizeConsole =
@@ -167,7 +171,7 @@ public class WebViewPane extends Pane {
           public void onProgressChanged(WebView view, int progress) {
             if (binding == null) return;
             binding.progressbar.setProgressCompat(progress, true);
-            if (view.getTitle()!= null && view.getTitle() == "about:blank") {
+            if (view.getTitle() != null && view.getTitle() == "about:blank") {
               setTitle(view.getTitle());
             }
           }
@@ -185,16 +189,27 @@ public class WebViewPane extends Pane {
   /** Called before the pane is destroyed */
   @Override
   public void onDestroy() {
+    if (binding.webview != null) {
+      binding.webview.destroy();
+    }
     super.onDestroy();
+    this.onUnselected();
+
+    liveServer = null;
+    consoleServer = null;
+    binding = null;
+  }
+
+  @Override
+  public void onUnselected() {
+    super.onUnselected();
+    // Stop active servers
     if (liveServer != null) {
       liveServer.stop();
     }
     if (consoleServer != null) {
       consoleServer.stop();
     }
-    liveServer = null;
-    consoleServer = null;
-    binding = null;
   }
 
   @Override
@@ -203,31 +218,36 @@ public class WebViewPane extends Pane {
     if (binding == null) {
       return;
     }
+
     if (mFile == null && liveServer != null && liveServer.getFile() != null) {
       mFile = liveServer.getFile();
     }
+
     if (mFile != null) {
       if (Constants.WEB_MARKUP_LANGUAGE.stream().anyMatch(mFile.getName()::endsWith)) {
         consoleServer.setFile(FileUtil.Path.ERUDA_CONSOLE);
         consoleServer.start();
       }
     }
-    AsyncTask.runLaterOnUiThread(
+
+    // fix for overhead ~ 600ms in versions 1.0.0 and 1.0.2
+    AsyncTask.runNonCancelable(
         () -> {
-          // load url after server has started
-          liveServer.start(
-              (successful, throwable) -> {
-                if (successful) {
-                  binding.webview.loadUrl(liveServer.getUrl());
-                }
-                if (throwable != null) {
-                  // TODO: Handle live server error
-                  throwable.printStackTrace();
-                  BaseUtil.showToast(throwable.getMessage(), BaseUtil.LENGTH_SHORT);
-                }
-              });
+          liveServer.launch();
+          return liveServer.getUrl();
         },
-        Constants.AVG_WAIT_MILLS); // workaround for overhead ~ 600ms
+        (result, throwable) -> {
+          if (throwable == null) {
+            if (result != null) {
+              binding.webview.loadUrl(result);
+            } else {
+              logger.e(LOG_TAG, "Failed to load live server");
+            }
+          } else {
+            ToastUtils.showLong(throwable.getMessage());
+            logger.e(LOG_TAG, throwable.getMessage());
+          }
+        });
   }
 
   @Override
@@ -325,18 +345,24 @@ public class WebViewPane extends Pane {
 
   public void enableDeskTopMode(boolean enabled) {
     if (getView() == null) return;
-    WebSettings webSettings = binding.webview.getSettings();
+
+    final WebSettings webSettings = binding.webview.getSettings();
     isDesktopMode = enabled;
+
     if (enabled) {
       webSettings.setUserAgentString(
           "Mozilla/5.0 (Windows NT 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36");
       webSettings.setUseWideViewPort(true);
       webSettings.setLoadWithOverviewMode(true);
+      webSettings.setSupportZoom(true);
+      webSettings.setBuiltInZoomControls(true);
     } else {
       // revert to default user agent when ua is null or empty
       webSettings.setUserAgentString(null);
       webSettings.setUseWideViewPort(false);
       webSettings.setLoadWithOverviewMode(false);
+      webSettings.setSupportZoom(false);
+      webSettings.setBuiltInZoomControls(false);
     }
   }
 

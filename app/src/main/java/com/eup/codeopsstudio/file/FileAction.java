@@ -20,16 +20,32 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.file;
 
+package com.eup.codeopsstudio.file;
+
+/**
+ * Enumeration of actions performed on file
+ *
+ * @author EUP
+ */
 public enum FileAction {
-  CREATE_FILE,
-  CREATE_FOLDER,
-  DELETE_FILE,
-  DELETE_FOLDER,
-  RENAME_FILE,
-  RENAME_FOLDER,
-  OPEN_FOLDER,
-  OPEN_FILE
+  CREATE_FILE("Create File"),
+  CREATE_FOLDER("Create Folder"),
+  DELETE_FILE("Delete File"),
+  DELETE_FOLDER("Delete Folder"),
+  RENAME_FILE("Rename File"),
+  RENAME_FOLDER("Rename Folder"),
+  OPEN_FOLDER("Open Folder"),
+  OPEN_FILE("Open File");
+
+  private final String actionDescription;
+
+  FileAction(String actionDescription) {
+    this.actionDescription = actionDescription;
+  }
+
+  @Override
+  public String toString() {
+    return actionDescription;
+  }
 }

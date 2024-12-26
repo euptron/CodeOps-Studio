@@ -15,6 +15,40 @@ All notable changes to this project will be documented in this file, this projec
 - `Contributors`: Release contributors
 - `FSC-ID`: Firebase Crashlytics Issue ID
 
+Release 1.0.2 beta
+----------------------
+_26-12-2024_(Thursday, Dec 26, 2024)
+
+### Added
+* Extra symbols for the input panel
+* The input action MCR, MCL, MCU, MCD are essentially cursor actions where M (Move), C (Cursor), L(Left), R(Right), U(Up), D(Down)
+
+### Change
+
+* Moved Uri to file conversion from FileUtil to independent class `FileUriMediator.java`
+* Decoupled storage permission handling to `MainActiviy.java` from `MainFragment.java`
+* Slowly migrating code base to more structural format
+
+### Improvements
+
+* Storage permission management
+* Optimised the `ContextLifeCycleObserver.java` class to handle URI related task gracefully
+* Optimised `LiveServer.java` to load files optimally.
+* Optimised case conversion for `ContextualCodeEditor.java`
+* Generally i've made alot of improvements i failed to track.
+
+### Fixed 
+
+* Fix: Workaround for loading files via `LiveServer` in the `WebViewPane.java` to an actual solution
+    - Summary: Prior to this release when you init the `LiveServer` there is Ui lag due to the blocking operation, workaround was to load portion of the result and wait for the UI to settled before loading the blocking code.
+    
+* Fix: Fixed the horrible crash that occurs when you select a file or folder
+    - Summary: Prior to this release crashes were alot to often, i found that it mostly occurs on device with higher APIS 
+    
+* Crash wheh selecting a directory on android devices 11 and above
+* `ArrayOutOfBoundException` that occurs when we split the document id on certain dirs like (emulated root(primary) & document(home)
+* Failure to request storage permission on Android devices 11 and above 
+
 Release 1.0.1 beta
 ----------------------
 

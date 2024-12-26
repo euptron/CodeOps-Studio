@@ -20,10 +20,11 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.settings;
+
+package com.eup.codeopsstudio.ui.settings;
 
 import androidx.preference.Preference;
+import com.eup.codeopsstudio.models.user.DeviceInfo;
 import com.eup.codeopsstudio.res.R;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
@@ -35,6 +36,8 @@ public class PrivacyFragment extends PreferenceFragmentCompat {
 
   public static final String TAG = PrivacyFragment.class.getSimpleName();
 
+  private DeviceInfo deviceInfo;
+
   public static PrivacyFragment newInstance() {
     return new PrivacyFragment();
   }
@@ -42,6 +45,7 @@ public class PrivacyFragment extends PreferenceFragmentCompat {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    deviceInfo = new DeviceInfo(getContext());
 
     setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
     setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
@@ -66,19 +70,19 @@ public class PrivacyFragment extends PreferenceFragmentCompat {
     Preference device_locale = findPreference("pref_locale");
 
     // application summary
-    pkg_name.setSummary(Wizard.getAppPackageName(requireContext()));
-    app_version_code.setSummary(Wizard.getAppVersionCode(requireContext()));
-    app_version_name.setSummary(Wizard.getAppVersionName(requireContext()));
+    pkg_name.setSummary(deviceInfo.getAppPackageName());
+    app_version_code.setSummary(deviceInfo.getAppVersionCode());
+    app_version_name.setSummary(deviceInfo.getAppVersionName());
     // system summary
-    device_model.setSummary(Wizard.getDeviceBuildModel());
-    device_sdk_version.setSummary(Wizard.getDeviceSDKVersion());
-    device_build_id.setSummary(Wizard.getDeviceBuildID());
-    device_release.setSummary(Wizard.getDeviceReleaseVersion());
-    device_board.setSummary(Wizard.getDeviceBoard());
-    device_brand.setSummary(Wizard.getDeviceManuFacturer());
-    device_cpu_arch.setSummary(Wizard.getDeviceArchitecture());
-    device_country.setSummary(Wizard.getDeviceCountry(requireContext()));
+    device_model.setSummary(deviceInfo.getModel());
+    device_sdk_version.setSummary(deviceInfo.getSdkVersion());
+    device_build_id.setSummary(deviceInfo.getBuildID());
+    device_release.setSummary(deviceInfo.getRelease());
+    device_board.setSummary(deviceInfo.getBoard());
+    device_brand.setSummary(deviceInfo.getBrand());
+    device_cpu_arch.setSummary(deviceInfo.getCpuArchitecture());
+    device_country.setSummary(deviceInfo.getCountry());
     device_locale.setSummary(
-        Wizard.getDeviceLocaleLanguage() + Wizard.getLocaleCountry(requireContext()));
+        deviceInfo.getLocale().getLanguage() + deviceInfo.getLocale().getCountry());
   }
 }

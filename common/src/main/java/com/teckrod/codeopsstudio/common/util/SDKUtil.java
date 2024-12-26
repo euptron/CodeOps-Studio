@@ -20,84 +20,47 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.common.util;
+
+package com.eup.codeopsstudio.common.util;
 
 import android.os.Build;
 
 public class SDKUtil {
 
   public enum API {
-    ANDROID_5,
-    ANDROID_6,
-    ANDROID_7,
-    ANDROID_8,
-    ANDROID_9,
-    ANDROID_10,
-    ANDROID_11,
-    ANDROID_12
+    ANDROID_4(Build.VERSION_CODES.KITKAT),   
+    ANDROID_5(Build.VERSION_CODES.LOLLIPOP),
+    ANDROID_6(Build.VERSION_CODES.M),
+    ANDROID_7(Build.VERSION_CODES.N),
+    ANDROID_8(Build.VERSION_CODES.O),
+    ANDROID_9(Build.VERSION_CODES.P),
+    ANDROID_10(Build.VERSION_CODES.Q),
+    ANDROID_11(Build.VERSION_CODES.R),
+    ANDROID_12(Build.VERSION_CODES.S),
+    ANDROID_13(Build.VERSION_CODES.TIRAMISU),
+    ANDROID_14(Build.VERSION_CODES.UPSIDE_DOWN_CAKE);
+   // ANDROID_15(Build.VERSION_CODES.VANILLA_ICE_CREAM);
+
+    private final int versionCode;
+
+    API(int versionCode) {
+      this.versionCode = versionCode;
+    }
+
+    public int getVersionCode() {
+      return versionCode;
+    }
   }
 
   public static boolean isAtLeast(API api) {
-    if (api == API.ANDROID_5) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-    } else if (api == API.ANDROID_6) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-    } else if (api == API.ANDROID_7) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
-    } else if (api == API.ANDROID_8) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-    } else if (api == API.ANDROID_9) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P;
-    } else if (api == API.ANDROID_10) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
-    } else if (api == API.ANDROID_11) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
-    } else if (api == API.ANDROID_12) {
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
-    }
-    return false; // default
+    return Build.VERSION.SDK_INT >= api.getVersionCode();
   }
 
   public static boolean isGreaterThan(API api) {
-    if (api == API.ANDROID_5) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP;
-    } else if (api == API.ANDROID_6) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.M;
-    } else if (api == API.ANDROID_7) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.N;
-    } else if (api == API.ANDROID_8) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.O;
-    } else if (api == API.ANDROID_9) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.P;
-    } else if (api == API.ANDROID_10) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.Q;
-    } else if (api == API.ANDROID_11) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.R;
-    } else if (api == API.ANDROID_12) {
-      return Build.VERSION.SDK_INT > Build.VERSION_CODES.S;
-    }
-    return false; // default
+    return Build.VERSION.SDK_INT > api.getVersionCode();
   }
 
   public static boolean is(API api) {
-    if (api == API.ANDROID_5) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP;
-    } else if (api == API.ANDROID_6) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.M;
-    } else if (api == API.ANDROID_7) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.N;
-    } else if (api == API.ANDROID_8) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.O;
-    } else if (api == API.ANDROID_9) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.P;
-    } else if (api == API.ANDROID_10) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.Q;
-    } else if (api == API.ANDROID_11) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.R;
-    } else if (api == API.ANDROID_12) {
-      return Build.VERSION.SDK_INT == Build.VERSION_CODES.S;
-    }
-    return false; // default
+    return Build.VERSION.SDK_INT == api.getVersionCode();
   }
 }

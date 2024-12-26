@@ -36,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.util.Wizard;
 import java.util.List;
+import java.util.Objects;
 
 public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
 
@@ -51,12 +52,12 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
       new DiffUtil.ItemCallback<Log>() {
         @Override
         public boolean areItemsTheSame(@NonNull Log oldLog, @NonNull Log newLog) {
-          return oldLog.equals(newLog);
+          return Objects.equals(oldLog.getID(), newLog.getID());
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull Log oldLog, @NonNull Log newLog) {
-          return oldLog.getMessage().equals(newLog.getMessage());
+          return Objects.equals(oldLog, newLog);
         }
       };
 

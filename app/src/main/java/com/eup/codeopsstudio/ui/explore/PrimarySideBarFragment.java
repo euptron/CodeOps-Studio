@@ -68,7 +68,6 @@ public class PrimarySideBarFragment extends Fragment {
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
     navigationRail = binding.navigationRail;
     var host = com.eup.codeopsstudio.R.id.nav_host_primary_side_bar_fragment;
     navController = Navigation.findNavController(requireActivity(), host);

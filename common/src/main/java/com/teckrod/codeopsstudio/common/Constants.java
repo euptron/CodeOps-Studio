@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.common;
+
+package com.eup.codeopsstudio.common;
 
 import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.common.util.FileUtil;
@@ -34,8 +34,9 @@ import java.util.Set;
 
 /** Constants class containing common constants used by CodeOps Studio. */
 public final class Constants {
-  
-  public static final long AVG_WAIT_MILLS = 250;// MillSeconds
+
+  public static final String APP_PACKAGE_NAME = ContextManager.getPackageName();
+  public static final long AVG_WAIT_MILLS = 250; // MillSeconds
   public static final long TOGGLE_TREENODE_ANIM_TIME = 500; // MillSeconds
   public static final Set<String> WEB_MARKUP_LANGUAGE =
       Collections.unmodifiableSet(new HashSet<>(Arrays.asList("html", "htm")));
@@ -64,7 +65,7 @@ public final class Constants {
     }
     return false;
   }
- 
+
   /**
    * Checks if a file is preview able
    *
@@ -172,9 +173,12 @@ public final class Constants {
       "https://play.google.com/store/apps/details?id=" + ContextManager.getPackageName();
   public static final String GITHUB_URL = "https://github.com/euptron/CodeOps-Studio";
   public static final String CHECK_UPDATE_URL = GITHUB_URL;
-  public static final String CHECK_UPDATE_GITHUB_URL = "https://github.com/euptron/CodeOps-Studio/releases";
-  public static final String PRIVACY_POLICY_URL = "https://codeopsstudio.blogspot.com/p/privacy-policy.html";
-  public static final String TERMS_OF_SERVICE_URL = "https://codeopsstudio.blogspot.com/p/terms-of-service.html";
+  public static final String CHECK_UPDATE_GITHUB_URL =
+      "https://github.com/euptron/CodeOps-Studio/releases";
+  public static final String PRIVACY_POLICY_URL =
+      "https://codeopsstudio.blogspot.com/p/privacy-policy.html";
+  public static final String TERMS_OF_SERVICE_URL =
+      "https://codeopsstudio.blogspot.com/p/terms-of-service.html";
 
   // Inner class for shared preference keys
   public static class SharedPreferenceKeys {
@@ -227,7 +231,9 @@ public final class Constants {
     public static final String KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD =
         "pref_code_editor_cursor_blnk_period";
     public static final String KEY_OPEN_LAST_OPENED_PROJECT = "pref_open_last_project";
-    public static final String KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES = "pref_code_editor_close_unpinned_project_panes";
+    public static final String KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES =
+        "pref_code_editor_close_unpinned_project_panes";
+
     /**
      * The SharedPreference associate for the default file encoding.
      *
@@ -259,7 +265,7 @@ public final class Constants {
     public static final String KEY_OUTLINE_ICONS = "pref_useoutlined_icons";
     public static final String KEY_GOOGLE_JSON_FORMATTER = "pref_google_jsonformatter";
     public static final String KEY_RECENT_FOLDER = "recent_folder_path";
-    
+
     /** Key for storing the project save path in SharedPreferences. */
     public static final String KEY_PROJECT_SAVE_PATH = "projects_save_path";
   }

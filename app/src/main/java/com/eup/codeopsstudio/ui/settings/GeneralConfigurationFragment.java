@@ -20,8 +20,8 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
-   package com.eup.codeopsstudio.ui.settings;
+
+package com.eup.codeopsstudio.ui.settings;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 import android.os.Bundle;
@@ -36,7 +36,8 @@ import com.eup.codeopsstudio.common.util.SDKUtil.API;
 
 public class GeneralConfigurationFragment extends PreferenceFragmentCompat {
 
-    public static final String TAG = GeneralConfigurationFragment.class.getSimpleName();
+  public static final String TAG = GeneralConfigurationFragment.class.getSimpleName();
+
   @Override
   public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
     setPreferencesFromResource(R.xml.general_configuration_preferences, rootKey);

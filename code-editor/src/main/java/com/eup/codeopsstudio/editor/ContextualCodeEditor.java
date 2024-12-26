@@ -20,7 +20,7 @@
  * If you have more questions, feel free to message EUP if you have any
  * questions or need additional information. Email: etido.up@gmail.com
  *************************************************************************/
- 
+
 package com.eup.codeopsstudio.editor;
 
 import static android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -490,7 +490,7 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
 
     String[] themes = new String[] {"darcula", "quietlight"};
     ThemeRegistry themeRegistry = ThemeRegistry.getInstance();
-        
+
     for (String name : themes) {
       var path = "editor/scheme/" + name + ".json";
       themeRegistry.loadTheme(
@@ -601,24 +601,35 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
   public void convertSelectionToLowerCase() {
     final var cursor = getCursor();
     final var props = getProps();
-        
+
     if (cursor.isSelected()) {
       int left = cursor.getLeft();
       int right = cursor.getRight();
       int length = right - left;
-      
+
       if (length > 0) {
         final var line = cursor.left().line;
         setIndexing(true);
-        AsyncTask.runNonCancelable(
-            () -> toLowerCase(getText().substring(left, right)),
-            (result) -> {
-              setIndexing(false);
-              if (result != null) {
-                commitText(result);
-                setSelectionRegion(line, 0, line, getText().getColumnCount(line)); // reselect line
-              }
-            });
+        AsyncTask.runProvideError(() -> getText().substring(left, right))
+            .thenApply(this::toLowerCase)
+            .thenAccept(
+                result -> {
+                  this.post(
+                      () -> {
+                        setIndexing(false);
+                        if (result != null) {
+                          commitText(result);
+                          setSelectionRegion(
+                              line, 0, line, getText().getColumnCount(line)); // reselect line
+                        } else {
+                          Toast.makeText(
+                                  getContext(),
+                                  getContext().getString(R.string.msg_unable_to_format),
+                                  Toast.LENGTH_SHORT)
+                              .show();
+                        }
+                      });
+                });
       }
     } else {
       Toast.makeText(
@@ -632,24 +643,35 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
   public void convertSelectionToUpperCase() {
     final var cursor = getCursor();
     final var props = getProps();
-    
+
     if (cursor.isSelected()) {
       int left = cursor.getLeft();
       int right = cursor.getRight();
       int length = right - left;
-      
+
       if (length > 0) {
         final var line = cursor.left().line;
         setIndexing(true);
-        AsyncTask.runNonCancelable(
-            () ->  toUpperCase(getText().substring(left, right)),
-            (result) -> {
-              setIndexing(false);
-              if (result != null) {
-                commitText(result);
-                setSelectionRegion(line, 0, line, getText().getColumnCount(line)); // reselect line
-              }
-            });
+        AsyncTask.runProvideError(() -> getText().substring(left, right))
+            .thenApply(this::toUpperCase)
+            .thenAccept(
+                result -> {
+                  this.post(
+                      () -> {
+                        setIndexing(false);
+                        if (result != null) {
+                          commitText(result);
+                          setSelectionRegion(
+                              line, 0, line, getText().getColumnCount(line)); // reselect line
+                        } else {
+                          Toast.makeText(
+                                  getContext(),
+                                  getContext().getString(R.string.msg_unable_to_format),
+                                  Toast.LENGTH_SHORT)
+                              .show();
+                        }
+                      });
+                });
       }
     } else {
       Toast.makeText(
@@ -698,50 +720,50 @@ public class ContextualCodeEditor extends CodeEditor implements OnSharedPreferen
       deleteLine();
     }
   }
-  
+
   public interface ProgressListener {
-     void onProgress(int progress);
+    void onProgress(int progress);
   }
-  
+
   private String toUpperCase(String input) {
     return toUpperCase(input, null);
   }
-  
+
   private String toUpperCase(String input, ProgressListener listener) {
     var result = new StringBuilder();
-    
+
     for (int i = 0; i < input.length(); i++) {
       var current = input.charAt(i);
       result.append(Character.toUpperCase(current));
-      
+
       if (listener != null) {
-         // Update progress
-         int progress = (i + 1) * 100 / input.length();
-         listener.onProgress(progress);
+        // Update progress
+        int progress = (i + 1) * 100 / input.length();
+        listener.onProgress(progress);
       }
     }
-    
+
     return result.toString();
   }
-  
+
   private String toLowerCase(String input) {
     return toLowerCase(input, null);
   }
-  
+
   private String toLowerCase(String input, ProgressListener listener) {
     var result = new StringBuilder();
-    
+
     for (int i = 0; i < input.length(); i++) {
       var current = input.charAt(i);
       result.append(Character.toLowerCase(current));
-      
+
       if (listener != null) {
-         // Update progress
-         int progress = (i + 1) * 100 / input.length();
-         listener.onProgress(progress);
+        // Update progress
+        int progress = (i + 1) * 100 / input.length();
+        listener.onProgress(progress);
       }
     }
-    
+
     return result.toString();
   }
 

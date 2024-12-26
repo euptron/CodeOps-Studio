@@ -23,7 +23,10 @@
 
 package com.eup.codeopsstudio.logging;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class Log {
 
@@ -32,6 +35,10 @@ public class Log {
   private CharSequence mMessage;
   private CharSequence mDateFormat;
   private CharSequence mLogLevel;
+
+  // unique ID for this class
+  private UUID id;
+  private static final List<UUID> generatedIds = new ArrayList<>();
 
   /**
    * Basic log
@@ -91,6 +98,7 @@ public class Log {
     mTag = tag;
     mLogLevel = level;
     mMessage = message;
+    this.id = generateUUID();
   }
 
   public int getIcon() {
@@ -113,16 +121,37 @@ public class Log {
     return mLogLevel;
   }
 
+  public UUID getID() {
+    return this.id;
+  }
+
+  protected UUID generateUUID() {
+    UUID generatedId = UUID.randomUUID();
+    if (isUniqueId(generatedId)) {
+      generatedIds.add(generatedId);
+      return generatedId;
+    } else {
+      return generateUUID();
+    }
+  }
+
+  private boolean isUniqueId(UUID id) {
+    return !generatedIds.contains(id);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Log log = (Log) o;
-    return mMessage.equals(log.mMessage) && mTag.equals(log.mTag);
+    return Objects.equals(mMessage, log.getMessage())
+        && Objects.equals(mTag, log.getTag())
+        && Objects.equals(mDateFormat, log.getDateFormat())
+        && Objects.equals(mLogLevel, log.getLevel());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mMessage);
+    return Objects.hash(new Object[] {mMessage, mTag, mDateFormat, mLogLevel});
   }
 }

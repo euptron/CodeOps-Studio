@@ -32,13 +32,13 @@ import com.eup.codeops.ast.core.visitors.NodeVisitor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -110,10 +110,10 @@ public abstract class AbstractNode<T> implements Node<T> {
    * the {@link #generateID()} method, which synchronizes access to prevent concurrent
    * modifications.
    */
-  private static final Set<UUID> generatedIds = new HashSet<>();
+  private static final List<UUID> generatedIds = new ArrayList<>();
 
   /** The unique identifier for this node */
-  public UUID mUUID;
+  public UUID id;
 
   /**
    * The level of a node is the number of edges along the unique path between it and the root node.
@@ -174,7 +174,7 @@ public abstract class AbstractNode<T> implements Node<T> {
     this.children = new LinkedList<>();
     this.level = level;
     if (genID) {
-      generateID();
+      this.id = generateID();
     }
   }
 
@@ -487,12 +487,12 @@ public abstract class AbstractNode<T> implements Node<T> {
   @Nullable
   @Override
   public UUID getID() {
-    return mUUID;
+    return id;
   }
 
   @Override
   public void setID(UUID id) {
-    this.mUUID = id;
+    this.id = id;
   }
 
   @Override
@@ -535,13 +535,13 @@ public abstract class AbstractNode<T> implements Node<T> {
   }
 
   /** Generates a unique UUID for the node */
-  protected synchronized void generateID() {
-    UUID id;
+  protected synchronized UUID generateID() {
+    UUID generatedId;
     do {
-      id = UUID.randomUUID();
-    } while (generatedIds.contains(id));
-    generatedIds.add(id);
-    mUUID = id;
+      generatedId = UUID.randomUUID();
+    } while (generatedIds.contains(generatedId));
+    generatedIds.add(generatedId);
+    return generatedId;
   }
 
   public boolean isSameNode(Node<T> other) {
@@ -597,7 +597,7 @@ public abstract class AbstractNode<T> implements Node<T> {
 
       Node<T> other = (Node<T>) object;
 
-      if (!Objects.equals(mUUID, other.getID())) return false;
+      if (!Objects.equals(id, other.getID())) return false;
       if (childrenSize() != other.childrenSize()) return false;
       if (!Objects.equals(value, other.getValue())) return false;
       if (!Objects.equals(parent, other.getParent())) return false;
@@ -671,7 +671,7 @@ public abstract class AbstractNode<T> implements Node<T> {
       Object object = it.next();
       result = (31 * result) + (object == null ? 0 : object.hashCode());
     }
-    result = getHash(result, mUUID, value, parent);
+    result = getHash(result, id, value, parent);
     return result;
   }
 
@@ -682,7 +682,7 @@ public abstract class AbstractNode<T> implements Node<T> {
         getClass().getSimpleName(),
         Integer.toHexString(System.identityHashCode(this)),
         hashCode(),
-        mUUID.toString(),
+        id.toString(),
         value,
         level,
         index,
