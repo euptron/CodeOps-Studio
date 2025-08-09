@@ -7,18 +7,22 @@ env:
   KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+
 on:
+
   push:
     branches: [ "main", "dev" ]
   pull_request:
     branches: [ "dev" ]
+
+  # Allows this workflow run manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     name: Release Artifacts
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Cancel Previous Workflow Runs
         uses: styfle/cancel-workflow-action@0.12.1
@@ -30,9 +34,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Set Current Date As Env Variable
       - name: Set current date as env variable
         run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
+      # Set Repository Name As Env Variable
       - name: Set repository name as env variable
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
@@ -41,14 +47,15 @@ jobs:
           openssl aes-256-cbc -d -salt -pbkdf2 \
             -in app/google-services.json.enc \
             -out app/google-services.json \
-            -pass pass:"${{ secrets.GOOGLE_SERVICES_JSON_KEY }}"
+            -k ${{ secrets.GOOGLE_SERVICES_JSON_KEY }}
 
       - name: Decrypt keystore
         run: |
           openssl aes-256-cbc -d -pbkdf2 -salt \
             -in app/codeopsstudio.keystore.enc \
             -out app/codeopsstudio.keystore \
-            -pass pass:"${{ secrets.KEYSTORE_ENC_PASSWORD }}"
+            -k ${{ secrets.KEYSTORE_ENC_PASSWORD }}
+
 
       - name: Set Up JDK 17
         uses: actions/setup-java@v4
@@ -63,32 +70,50 @@ jobs:
       - name: Grant Permissions for Gradle
         run: chmod +x ./gradlew
 
+        # Run Tests Build
+        # - name: Run gradle tests
+        # run: ./gradlew test
+
+        # Run Build Project
+        # - name: Build gradle project
+        # run: ./gradlew build
+
+      # Extract versionName from Gradle
       - name: Extract versionName from Gradle
         run: |
           VERSION_NAME=$(./gradlew printVersion --quiet | grep VERSION_NAME | cut -d '=' -f2)
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
 
+
+      # Create APK Debug
       - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
         run: ./gradlew assembleDebug
 
+      # Create APK Release
       - name: Build apk release project (APK) - ${{ env.main_project_module }} module
         run: ./gradlew assemble
 
+      # Create Bundle AAB Release
+      # Noted for main module build [main_project_module]:bundleRelease
       - name: Build app bundle release (AAB) - ${{ env.main_project_module }} module
         run: ./gradlew ${{ env.main_project_module }}:bundleRelease
 
+      # Upload Artifact Build
+      # Noted For Output [main_project_module]/build/outputs/apk/debug/
       - name: Upload APK Debug - ${{ env.repository_name }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) debug - ${{ env.VERSION_NAME }}
           path: ${{ env.main_project_module }}/build/outputs/apk/debug/
 
+      # Noted For Output [main_project_module]/build/outputs/apk/release/
       - name: Upload APK Release - ${{ env.repository_name }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release - ${{ env.VERSION_NAME }}
           path: ${{ env.main_project_module }}/build/outputs/apk/release/
 
+      # Noted For Output [main_project_module]/build/outputs/bundle/release/
       - name: Upload AAB (App Bundle) Release - ${{ env.repository_name }}
         uses: actions/upload-artifact@v4
         with:
