@@ -47,14 +47,14 @@ jobs:
           openssl aes-256-cbc -d -salt -pbkdf2 \
             -in app/google-services.json.enc \
             -out app/google-services.json \
-            -k ${{ secrets.GOOGLE_SERVICES_JSON_KEY }}
+            -k "${{ secrets.GOOGLE_SERVICES_JSON_KEY }}"
 
       - name: Decrypt keystore
         run: |
           openssl aes-256-cbc -d -pbkdf2 -salt \
             -in app/codeopsstudio.keystore.enc \
             -out app/codeopsstudio.keystore \
-            -k ${{ secrets.KEYSTORE_ENC_PASSWORD }}
+            -k "${{ secrets.KEYSTORE_ENC_PASSWORD }}"
 
 
       - name: Set Up JDK 17
