@@ -1,0 +1,161 @@
+/*
+ * This file is part of CodeOps Studio.
+ * CodeOps Studio - Code anywhere anytime
+ * https://github.com/euptron/CodeOps-Studio
+ * Copyright (C) 2024-2025 Etido Peter
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see https://www.gnu.org/licenses/
+ *
+ * If you have more questions, feel free to message Etido Peter if you have any
+ * questions or need additional information. Email: euptron@gmail.com
+ */
+
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+    id "com.google.android.gms.oss-licenses-plugin"
+
+}
+
+def secretsPropertiesFile = rootProject.file("secrets.properties")
+def secretsProperties = new Properties()
+def signingEnabled = false
+
+android {
+    namespace project.ext.appNameSpace
+    compileSdk project.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId project.ext.applicationId
+        minSdk project.ext.minSdkVersion
+        targetSdk project.ext.targetSdkVersion
+        versionCode project.ext.appVersionCode
+        versionName project.ext.appVersionName
+        // Flag to enable support for the new language APIs
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    if (secretsPropertiesFile.exists() && secretsPropertiesFile.text.trim()) {
+        signingEnabled = true
+        secretsProperties.load(new FileInputStream(secretsPropertiesFile))
+    } else if (System.getenv("KEYSTORE_PASSWORD") != null) {
+        signingEnabled = true
+    }
+
+    signingConfigs {
+        global {
+            storeFile file("codeopsstudio.keystore")
+            keyAlias "CodeOps-Studio"
+            keyPassword secretsProperties['KEY_PASSWORD']
+            storePassword secretsProperties['STORE_PASSWORD']
+        }
+
+        global {
+            storeFile file("codeopsstudio.keystore")
+            keyAlias System.getenv("KEY_ALIAS") ?: secretsProperties['KEY_ALIAS']
+            keyPassword System.getenv("KEY_PASSWORD") ?: secretsProperties['KEY_PASSWORD']
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: secretsProperties['STORE_PASSWORD']
+        }
+    }
+
+    buildTypes {
+        release {
+            // Enables code shrinking, obfuscation, and optimization
+            minifyEnabled false
+            // Enables resource shrinking
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingEnabled) {
+                signingConfig signingConfigs.global
+            }
+        }
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingEnabled) {
+                signingConfig signingConfigs.global
+            }
+        }
+    }
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility project.ext.javaSourceVersion
+        targetCompatibility project.ext.javaTargetVersion
+    }
+
+    lint {
+        abortOnError false // continue build even if lint error is detected
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    packagingOptions {
+        pickFirst "license/README.dom.txt"
+        exclude "license/LICENSE.dom-documentation.txt"
+        exclude "license/LICENSE.dom-software.txt"
+
+        exclude 'license/NOTICE'
+        exclude 'license/LICENSE'
+        exclude 'META-INF/eclipse.inf'
+        exclude 'about_files/LICENSE-2.0.txt'
+        exclude 'plugin.xml'
+        exclude 'plugin.properties'
+    }
+}
+
+dependencies {
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.preference)
+    implementation(libs.androidx.splashscreen)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.data.store)
+    implementation(libs.androidx.navigation.ui)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.navigation.fragment)
+
+    implementation(libs.other.commonmark)
+    implementation(libs.google.material)
+    implementation(libs.google.play.services.oss.licenses)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.inappmessaging)
+    debugImplementation(libs.other.leakcanary.android)
+    coreLibraryDesugaring(libs.other.desugar)
+
+    implementation project(path: ":pane")
+    implementation project(path: ":common")
+    implementation project(path: ":server")
+    implementation project(path: ":treeview")
+    implementation project(path: ":shared-res")
+    implementation project(path: ":code-editor")
+    implementation project(path: ":share-layout")
+}
+
+
+tasks.register('printVersion') {
+    doLast {
+        println "VERSION_NAME=${project.ext.appVersionName}"
+        println "VERSION_CODE=${project.ext.appVersionCode}"
+    }
+}

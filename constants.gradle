@@ -1,0 +1,66 @@
+/*
+ * This file is part of CodeOps Studio.
+ * CodeOps Studio - Code anywhere anytime
+ * https://github.com/euptron/CodeOps-Studio
+ * Copyright (C) 2024-2025 Etido Peter
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see https://www.gnu.org/licenses/
+ *
+ * If you have more questions, feel free to message Etido Peter if you have any
+ * questions or need additional information. Email: etido.up@gmail.com
+ */
+
+/**
+ * This file defines various constants used throughout the Gradle build process.
+ * For dependency versions, please refer to the version catalog.
+ *
+ * Semantic versioning: X.Y.Z (hash); X = Major, Y = minor, Z = Patch level
+ *
+ * @see /gradle/libs.versions.toml
+ */
+static def getGitCommitHashSafe() {
+    try {
+        return 'git rev-parse --short HEAD'.execute().text.trim()
+    } catch (Exception ignored) {
+        return "unknown"
+    }
+}
+
+static def getGitCommitCountSafe() {
+    try {
+        return 'git rev-list --count HEAD'.execute().text.trim().toInteger()
+    } catch (Exception ignored) {
+        return (System.currentTimeMillis() / 1000).intValue()
+    }
+}
+
+project.ext {
+    // Versions
+    compileSdkVersion = 35
+    buildToolsVersion = '34.0.0'
+    targetSdkVersion = 35
+    minSdkVersion = 26
+    javaSourceVersion = JavaVersion.VERSION_17
+    javaTargetVersion = JavaVersion.VERSION_17
+
+    // App Constants
+    appNameSpace = "com.eup.codeopsstudio"
+    applicationId = "com.eup.codeopsstudio"
+
+    def gitHash = getGitCommitHashSafe()
+    def gitCommitCount = getGitCommitCountSafe()
+
+    appVersionName = "1.0.3 beta (${gitHash})"
+    appVersionCode = gitCommitCount
+}

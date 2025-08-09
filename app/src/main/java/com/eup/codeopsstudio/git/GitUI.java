@@ -1,0 +1,335 @@
+package com.eup.codeopsstudio.git;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.text.Editable;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.util.Pair;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.eup.codeopsstudio.MainActivity;
+import com.eup.codeopsstudio.adapters.logger.LogAdapter;
+import com.eup.codeopsstudio.common.AsyncTask;
+import com.eup.codeopsstudio.common.ILog;
+import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
+import com.eup.codeopsstudio.databinding.LayoutLoggingSheetBinding;
+import com.eup.codeopsstudio.git.listeners.CloneListener;
+import com.eup.codeopsstudio.git.task.CloneTask;
+import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
+import com.eup.codeopsstudio.util.Wizard;
+import com.eup.codeopsstudio.viewmodel.FileViewModel;
+import com.eup.codeopsstudio.viewmodel.MainViewModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
+
+import org.eclipse.jgit.lib.Repository;
+
+import java.io.File;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Represents the user interface for interacting with Git commands.
+ * This class provides methods to display information to the user
+ * and potentially gather input, although its current implementation
+ * is basic.
+ *
+ * @author Etido Peter
+ */
+public class GitUI {
+    public static final String TAG = "GitUI";
+    private final Context context;
+    private final Logger logger;
+    private final LogAdapter logAdapter;
+    private final MainViewModel model;
+    private final FileViewModel fileViewModel;
+    private final LifecycleOwner lifecycleOwner;
+    private final FragmentActivity activity;
+    private final LayoutLoggingSheetBinding layoutLoggingSheetBinding;
+    private LayoutDialogTextInputBinding inputBinding;
+    private CloneCompleteListener cloneCompleteListener;
+
+    public GitUI(@NonNull Context context) {
+        Objects.requireNonNull(context, "Context is null cannot init UI");
+        this.context  = context;
+        this.activity = inFragmentActivity(context);
+        Objects.requireNonNull(activity, "Context is not instance of activity");
+
+        this.lifecycleOwner = activity;
+        this.logAdapter     = new LogAdapter();
+        this.logger         = new Logger(Logger.LogClass.IDE);
+        if (context instanceof ViewModelStoreOwner currentVMScope) {
+            this.logger.attach(currentVMScope);
+        }
+        this.model                     = new ViewModelProvider(activity).get(MainViewModel.class);
+        this.fileViewModel             = new ViewModelProvider(activity).get(FileViewModel.class);
+        this.layoutLoggingSheetBinding =
+            LayoutLoggingSheetBinding.inflate(LayoutInflater.from(context));
+    }
+
+    private FragmentActivity inFragmentActivity(@NonNull Context c) {
+        if (c instanceof FragmentActivity act) {
+            return act;
+        } else {
+            return null;
+        }
+    }
+
+    public void showCloneDialog(CloneCompleteListener listener) {
+        this.cloneCompleteListener = listener;
+
+        logger.d(TAG, context.getString(R.string.initializing));
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
+        builder.setTitle(R.string.clone_git_repo);
+        inputBinding = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(context));
+
+        setupInputFields();
+        setupValidation(builder);
+
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(d -> configurePositiveButton(dialog));
+        dialog.show();
+        fileViewModel.monitorMessages(lifecycleOwner, this::logFileSelectionError);
+        fileViewModel.observePickedFolders(lifecycleOwner, this::handlePickedFolder);
+    }
+
+    private void configurePositiveButton(@NonNull AlertDialog dialog) {
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        positiveButton.setEnabled(false);
+
+        if (inputBinding.tilOther.getEditText() != null) {
+            inputBinding.tilOther
+                .getEditText()
+                .addTextChangedListener(new TextWatcherAdapter() {
+                    @Override
+                    public void afterTextChanged(@NonNull Editable editable) {
+                        validateInputs(positiveButton, editable);
+                    }
+                });
+        }
+        positiveButton.setOnClickListener(v -> startCloneOperation());
+    }
+
+    private void validateInputs(Button positiveButton, Editable editable) {
+        String url = getUrl();
+        String path = getPath();
+
+        if (Wizard.isEmpty(url) || Wizard.isEmpty(path)) {
+            positiveButton.setEnabled(false);
+            return;
+        }
+
+        File output = new File(path, RepoConfig.extractRepoNameFromUri(url));
+        positiveButton.setEnabled(!output.exists());
+        inputBinding.tilOther.setEnabled(!output.exists());
+        if (output.exists()) {
+            inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_already_exists));
+        } else {
+            if (inputBinding.tilOther.isErrorEnabled()) {
+                inputBinding.tilOther.setErrorEnabled(false);
+            }
+        }
+    }
+
+    @Nullable
+    private String getUrl() {
+        return inputBinding.tilName.getEditText() != null ? inputBinding.tilName
+            .getEditText()
+            .getText()
+            .toString() : null;
+    }
+
+    @Nullable
+    private String getPath() {
+        return inputBinding.tilOther.getEditText() != null ? inputBinding.tilOther
+            .getEditText()
+            .getText()
+            .toString() : null;
+    }
+
+    private void startCloneOperation() {
+        String url = getUrl();
+
+        String directory = getPath();
+
+        if (Wizard.isEmpty(url) || Wizard.isEmpty(directory)) {
+            ILog.warning(TAG, "Failed to start clone operation, url or path is null");
+            return;
+        }
+
+        if (!url.endsWith(".git")) {
+            url += ".git";
+        }
+
+        var bottomSheetView = layoutLoggingSheetBinding.getRoot();
+        var sheetDialog = new BottomSheetDialog(context);
+        final var output = new File(directory, RepoConfig.extractRepoNameFromUri(url));
+        sheetDialog.setContentView(layoutLoggingSheetBinding.getRoot());
+        sheetDialog.setCancelable(false);
+        layoutLoggingSheetBinding.title.setText(context.getString(R.string.cloning_repo));
+        layoutLoggingSheetBinding.progressbar.setProgress(100);
+        layoutLoggingSheetBinding.loggingList.setLayoutManager(new LinearLayoutManager(context));
+        layoutLoggingSheetBinding.loggingList.setAdapter(logAdapter);
+
+        // Expand bottom sheet fully
+        BottomSheetBehavior<View> behavior =
+            BottomSheetBehavior.from((View) bottomSheetView.getParent());
+        behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+        model
+            .getIDELogs()
+            .observe(lifecycleOwner, data -> {
+                logAdapter.submitList(data);
+                scrollToLastItem();
+            });
+        CloneListener listener = new CloneListener() {
+            @Override
+            public void onCloneComplete(File file) {
+                if (file != null && file.exists()) {
+                    cloneCompleteListener.onCloneCompleted(file);
+                }
+            }
+
+            @Override
+            public void onCloneFailed(String e) {
+                AsyncTask.runOnUiThread(() -> {
+                    new MaterialAlertDialogBuilder(context)
+                        .setTitle(context.getString(R.string.msg_failed_to_clone_git_repo))
+                        .setMessage(e)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .setCancelable(false)
+                        .show();
+                    logger.e(TAG, context.getString(R.string.msg_failed_to_clone_git_repo) + " ["
+                        + context.getString(R.string.cause) + "] " + e);
+                });
+            }
+
+            @Override
+            public void onUpdateMessage(String message) {
+                AsyncTask.runOnUiThread(() -> logger.d(TAG, message));
+            }
+
+            @Override
+            public void onProgress(int progress) {
+                AsyncTask.runOnUiThread(() -> layoutLoggingSheetBinding.progressbar.setProgressCompat(progress, true));
+            }
+        };
+
+        // TODO: Handle Authentication
+
+        logger.d(TAG, context.getString(R.string.cloning_into) + output + " ...");
+
+        // start clone
+        String userName = "";
+        String userEmail = "";
+        char[] userPassword = new char[0];
+        boolean isUserAdmin = true;
+        UserConfig userConfig = new UserConfig(userName, userEmail, userPassword, isUserAdmin);
+        RepoConfig repoConfig = new RepoConfig(userConfig);
+        repoConfig.setRemoteURI(url);
+        repoConfig.setLocalURI(output.getAbsolutePath());
+        repoConfig.setName(RepoConfig.extractRepoNameFromUri(url));
+
+        CloneTask cloneTask = new CloneTask(repoConfig, listener);
+        CompletableFuture<Repository> task = AsyncTask.runProvideError(cloneTask);
+
+        task.whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
+            clearLogs();
+            if (sheetDialog.isShowing()) sheetDialog.dismiss();
+            if (throwable != null) {
+                listener.onCloneFailed(throwable.getMessage());
+            } else if (result != null) {
+                var repoName = cloneTask
+                    .getRepoConfig()
+                    .getName();
+                var repoLocalPath = output.getAbsolutePath();
+                var msg = context.getString(R.string.msg_git_clone_success, repoName,
+                    repoLocalPath);
+                logger.d(TAG, msg);
+            }
+        }));
+
+        layoutLoggingSheetBinding.btnClose.setOnClickListener(v -> {
+            cloneTask.cancel();
+            task.cancel(true);
+            clearLogs();
+            sheetDialog.dismiss();
+        });
+
+        if (!sheetDialog.isShowing()) {
+            sheetDialog.show();
+        }
+    }
+
+    private void scrollToLastItem() {
+        int itemCount = logAdapter.getItemCount();
+        if (itemCount > 0) {
+            layoutLoggingSheetBinding.loggingList.scrollToPosition(itemCount - 1);
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void clearLogs() {
+        logger.clear();
+        logAdapter.notifyDataSetChanged();
+    }
+
+    private void setupInputFields() {
+        inputBinding.tilOther.setVisibility(View.VISIBLE);
+        inputBinding.tilName.setHint(context.getString(R.string.repository_url));
+        inputBinding.tilOther.setHint(context.getString(R.string.save_location));
+        inputBinding.tilOther.setEndIconOnClickListener(v -> openFolderPicker());
+        inputBinding.tilOther.setVisibility(View.VISIBLE);
+        inputBinding.tilName.setHint(context.getString(R.string.repository_url));
+        inputBinding.tilOther.setHint(context.getString(R.string.save_location));
+        inputBinding.tilOther.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
+        inputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
+        inputBinding.tilOther.setEndIconOnClickListener(v -> openFolderPicker());
+    }
+
+    private void openFolderPicker() {
+        MainActivity mainActivity = (MainActivity) activity;
+        mainActivity
+            .getLifecycleObserver()
+            .pickFolder();
+    }
+
+    private void setupValidation(@NonNull MaterialAlertDialogBuilder builder) {
+        builder.setView(inputBinding.getRoot());
+        builder.setPositiveButton(R.string.clone, null);
+        builder.setNegativeButton(android.R.string.cancel, null);
+    }
+
+    private void logFileSelectionError(@NonNull Pair<Exception, String> pair) {
+        String message = pair.second;
+        if (message == null) return;
+        logger.e(TAG, context.getString(R.string.folder_selection_error) + " ["
+            + context.getString(R.string.cause) + "] " + message);
+    }
+
+    private void handlePickedFolder(@NonNull File file) {
+        String folderPath = file.getAbsolutePath();
+        Objects
+            .requireNonNull(inputBinding.tilOther.getEditText())
+            .setText(folderPath);
+        logger.d(TAG, context.getString(R.string.folder_selection_success));
+    }
+
+    public interface CloneCompleteListener {
+        void onCloneCompleted(File file);
+    }
+}

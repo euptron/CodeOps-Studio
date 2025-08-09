@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of CodeOps Studio.
+  ~ CodeOps Studio - Code anywhere anytime
+  ~ https://github.com/euptron/CodeOps-Studio
+  ~ Copyright (C) 2024-2025 Etido Peter
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program. If not, see https://www.gnu.org/licenses/
+  ~
+  ~ If you have more questions, feel free to message Etido Peter if you have any
+  ~ questions or need additional information. Email: euptron@gmail.com
+  -->
+
+<paths>
+    <!-- Base directory for all storage volumes (e.g., internal, mounted storage e.t.c) -->
+    <root-path
+        name="root"
+        path="/" />
+
+    <!-- Internal app-specific files directory (accessible only by CodeOps Studio) -->
+    <files-path
+        name="app_internal_files"
+        path="." />
+    <!-- Internal app-specific cache directory (accessible only by CodeOps Studio) -->
+    <cache-path
+        name="app_internal_cache"
+        path="." />
+
+    <!-- Primary external storage root directory -->
+    <external-path
+        name="primary_external"
+        path="." />
+    <!-- External files directory for app-specific files (within external storage) -->
+    <external-files-path
+        name="external_app_files"
+        path="." />
+    <!-- External cache directory for app-specific cache files (within external storage) -->
+    <external-cache-path
+        name="external_app_cache"
+        path="." />
+    <!-- External media directory for storing app-specific media files (within external storage) -->
+    <external-media-path
+        name="external_media"
+        path="." />
+</paths>
+
