@@ -78,7 +78,7 @@ jobs:
         # - name: Build gradle project
         # run: ./gradlew build
 
-      # Extract versionName from Gradle
+      # Extract versionName from Gradle.
       - name: Extract versionName from Gradle
         run: |
           VERSION_NAME=$(./gradlew printVersion --quiet | grep VERSION_NAME | cut -d '=' -f2)
