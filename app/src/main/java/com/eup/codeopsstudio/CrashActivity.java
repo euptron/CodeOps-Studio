@@ -70,7 +70,7 @@ public class CrashActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(Intent.makeRestartActivityTask(intent.getComponent()));
             finish();
-            // Ensure complete restart
+            // Ensure complete restart.
             Process.killProcess(Process.myPid());
             System.exit(0);
         }
