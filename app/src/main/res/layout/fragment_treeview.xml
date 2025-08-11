@@ -67,7 +67,7 @@
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="gone"
-        app:indicatorDirectionLinear="leftToRight"
+        app:indicatorDirectionLinear="startToEnd"
         app:trackThickness="4dp" />
 
     <LinearLayout

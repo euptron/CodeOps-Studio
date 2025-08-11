@@ -163,7 +163,6 @@ public class GitUI {
 
     private void startCloneOperation() {
         String url = getUrl();
-
         String directory = getPath();
 
         if (Wizard.isEmpty(url) || Wizard.isEmpty(directory)) {
@@ -187,7 +186,7 @@ public class GitUI {
 
         // Expand bottom sheet fully
         BottomSheetBehavior<View> behavior =
-            BottomSheetBehavior.from((View) bottomSheetView.getParent());
+            BottomSheetBehavior.from((View) bottomSheetView);
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
         model
@@ -245,6 +244,8 @@ public class GitUI {
         repoConfig.setName(RepoConfig.extractRepoNameFromUri(url));
 
         CloneTask cloneTask = new CloneTask(repoConfig, listener);
+        cloneTask.setCloneType(CloneTask.CloneType.PUBLIC);
+        
         CompletableFuture<Repository> task = AsyncTask.runProvideError(cloneTask);
 
         task.whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
