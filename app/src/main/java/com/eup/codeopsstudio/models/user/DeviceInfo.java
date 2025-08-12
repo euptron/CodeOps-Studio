@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 import com.eup.codeopsstudio.util.Wizard;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Model representing the device info required for analytical purposes
@@ -75,7 +76,9 @@ public class DeviceInfo {
     private final Locale locale;
 
     public DeviceInfo(@NonNull Context context) {
-        this.appPackageName    = definite(Wizard.getAppVersionName(context));
+        Objects.requireNonNull(context, "Context must not be null");
+        
+        this.appPackageName    = definite(context.getPackageName());
         this.appVersionCode    = definite(Wizard.getAppVersionCode(context));
         this.appVersionCodeInt = Wizard.getAppVersionCodeInteger(context);
         this.appVersionName    = definite(Wizard.getAppVersionName(context));
