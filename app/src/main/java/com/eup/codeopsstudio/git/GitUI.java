@@ -239,7 +239,7 @@ public class GitUI {
             public void onCloneComplete(File file) {
                 if (file != null && file.exists()) {
                    AsyncTask.runOnUiThread(() -> {
-                    cloneCompleteListener.onCloneCompleted(file)
+                    cloneCompleteListener.onCloneCompleted(file);
                    });
                 }
             }
