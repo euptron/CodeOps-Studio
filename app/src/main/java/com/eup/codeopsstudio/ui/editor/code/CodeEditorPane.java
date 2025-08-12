@@ -331,14 +331,14 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         if (isAlert) {
             openSearchPanel(false);
             binding.editor.setVisibility(View.GONE);
-            binding.editorAlertLayout.root.setVisibility(View.VISIBLE);
+            binding.editorAlertLayout.rootContainer.setVisibility(View.VISIBLE);
             binding.breadCrumbBar.setVisibility(View.GONE);
             binding.editorAlertLayout.actionButton.setText(getString(R.string.open_anyway));
             binding.editorAlertLayout.alertMessage.setText(getString(R.string.alrt_unsupported_txt_encoding));
             binding.editorAlertLayout.actionButton.setOnClickListener(v -> updateAlertVisibility(false));
         } else {
             binding.editor.setVisibility(View.VISIBLE);
-            binding.editorAlertLayout.root.setVisibility(View.GONE);
+            binding.editorAlertLayout.rootContainer.setVisibility(View.GONE);
             binding.breadCrumbBar.setVisibility(View.VISIBLE);
         }
     }

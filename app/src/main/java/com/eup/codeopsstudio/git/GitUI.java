@@ -60,7 +60,7 @@ public class GitUI {
     private final FileViewModel fileViewModel;
     private final LifecycleOwner lifecycleOwner;
     private final FragmentActivity activity;
-    private final LayoutLoggingSheetBinding layoutLoggingSheetBinding;
+    private LayoutLoggingSheetBinding logSheetBinding;
     private LayoutDialogTextInputBinding inputBinding;
     private CloneCompleteListener cloneCompleteListener;
 
@@ -78,8 +78,6 @@ public class GitUI {
         }
         this.model                     = new ViewModelProvider(activity).get(MainViewModel.class);
         this.fileViewModel             = new ViewModelProvider(activity).get(FileViewModel.class);
-        this.layoutLoggingSheetBinding =
-            LayoutLoggingSheetBinding.inflate(LayoutInflater.from(context));
     }
 
     private FragmentActivity inFragmentActivity(@NonNull Context c) {
@@ -97,7 +95,7 @@ public class GitUI {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
         builder.setTitle(R.string.clone_git_repo);
         inputBinding = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(context));
-
+        logSheetBinding = LayoutLoggingSheetBinding.inflate(LayoutInflater.from(context));
         setupInputFields();
         setupValidation(builder);
 
@@ -210,15 +208,15 @@ public class GitUI {
         if (!url.endsWith(".git")) {
             url += ".git";
         }
-
+        
         var sheetDialog = new BottomSheetDialog(context);
         final var output = new File(directory, RepoConfig.extractRepoNameFromUri(url));
-        sheetDialog.setContentView(layoutLoggingSheetBinding.getRoot());
+        sheetDialog.setContentView(logSheetBinding.getRoot());
         sheetDialog.setCancelable(false);
-        layoutLoggingSheetBinding.title.setText(context.getString(R.string.cloning_repo));
-        layoutLoggingSheetBinding.progressbar.setProgress(100);
-        layoutLoggingSheetBinding.loggingList.setLayoutManager(new LinearLayoutManager(context));
-        layoutLoggingSheetBinding.loggingList.setAdapter(logAdapter);
+        logSheetBinding.title.setText(context.getString(R.string.cloning_repo));
+        logSheetBinding.progressbar.setProgress(100);
+        logSheetBinding.loggingList.setLayoutManager(new LinearLayoutManager(context));
+        logSheetBinding.loggingList.setAdapter(logAdapter);
         sheetDialog.show();
         
         model
@@ -259,12 +257,11 @@ public class GitUI {
 
             @Override
             public void onProgress(int progress) {
-                AsyncTask.runOnUiThread(() -> layoutLoggingSheetBinding.progressbar.setProgressCompat(progress, true));
+                AsyncTask.runOnUiThread(() -> logSheetBinding.progressbar.setProgressCompat(progress, true));
             }
         };
 
         // TODO: Handle Authentication
-
         logger.d(TAG, context.getString(R.string.cloning_into) + output + " ...");
 
         // start clone
@@ -285,6 +282,7 @@ public class GitUI {
         task.whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
             clearLogs();
             if (dialog.isShowing()) dialog.dismiss();
+            
             if (throwable != null) {
                 listener.onCloneFailed(throwable.getMessage());
             } else if (result != null) {
@@ -298,7 +296,7 @@ public class GitUI {
             }
         }));
 
-        layoutLoggingSheetBinding.btnClose.setOnClickListener(v -> {
+        logSheetBinding.btnClose.setOnClickListener(v -> {
             cloneTask.cancel();
             task.cancel(true);
             clearLogs();
@@ -309,7 +307,7 @@ public class GitUI {
     private void scrollToLastItem() {
         int itemCount = logAdapter.getItemCount();
         if (itemCount > 0) {
-            layoutLoggingSheetBinding.loggingList.scrollToPosition(itemCount - 1);
+            logSheetBinding.loggingList.scrollToPosition(itemCount - 1);
         }
     }
 

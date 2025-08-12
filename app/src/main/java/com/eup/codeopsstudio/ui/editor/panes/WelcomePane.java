@@ -102,7 +102,6 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
         .lastModified()));
     private MainViewModel mainViewModel;
     private LayoutPaneWelcomeBinding binding;
-    private GitUI gitUI;
     private Logger logger;
     private LogAdapter logAdapter;
     private AlertDialog alertDialog;
@@ -151,8 +150,6 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             .observe(requireActivity(), this::openFile);
         fileViewModel.observePickedFolders(requireActivity(), this::handlePickedFolder);
 
-        gitUI = new GitUI(requireContext());
-
         dialogTextInputBinding =
             LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
 
@@ -163,7 +160,10 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             "openFileFromManager"));
         binding.openFolder.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
             "openFolderFromManager"));
-        binding.gitVcs.setOnClickListener(v -> gitUI.showCloneDialog(project -> mainViewModel.setTreeViewFragmentTreeDir(project)));
+        binding.gitVcs.setOnClickListener(v -> {
+          var gitUI = new GitUI(requireContext());
+          gitUI.showCloneDialog(project -> mainViewModel.setTreeViewFragmentTreeDir(project));
+        });
         binding.importZipBtn.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
             "openZipFileFromManager"));
         binding.recentProjectBtn.setOnClickListener(v -> createRecentSheet());
