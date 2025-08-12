@@ -365,10 +365,4 @@ public class GitUI {
     public interface CloneCompleteListener {
         void onCloneCompleted(File file);
     }
-    
-    public void clearReferences() {
-      context = null;
-      activity = null;
-      lifecycleOwner = null;
-    }
 }
