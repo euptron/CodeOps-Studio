@@ -31,6 +31,7 @@ import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
+import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -117,34 +118,50 @@ public class GitUI {
                 .addTextChangedListener(new TextWatcherAdapter() {
                     @Override
                     public void afterTextChanged(@NonNull Editable editable) {
-                        validateInputs(positiveButton, editable);
+                        validatePathExistence(positiveButton, editable);
                     }
                 });
         }
-        positiveButton.setOnClickListener(v -> startCloneOperation());
+        positiveButton.setOnClickListener(v -> startCloneOperation(dialog));
     }
+    
+    private boolean validatePathExistence(Button positiveButton, Editable editable) {
+       String path = editable.toString();
+       String url = getUrl();
 
-    private void validateInputs(Button positiveButton, Editable editable) {
-        String url = getUrl();
-        String path = getPath();
-
-        if (Wizard.isEmpty(url) || Wizard.isEmpty(path)) {
-            positiveButton.setEnabled(false);
-            return;
-        }
-
-        File output = new File(path, RepoConfig.extractRepoNameFromUri(url));
-        positiveButton.setEnabled(!output.exists());
-        inputBinding.tilOther.setEnabled(!output.exists());
-        if (output.exists()) {
-            inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_already_exists));
-        } else {
-            if (inputBinding.tilOther.isErrorEnabled()) {
-                inputBinding.tilOther.setErrorEnabled(false);
-            }
-        }
+       if (Wizard.isEmpty(url) || Wizard.isEmpty(path)) {
+          return false;
+       }
+       
+       File output = new File(path, RepoConfig.extractRepoNameFromUri(getUrl()));
+       
+       if (output.exists()) {
+           positiveButton.setEnabled(false);
+           inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_already_exists));
+           // invoked after error message is set so layout resize 
+           inputBinding.tilOther.setErrorEnabled(true);
+           inputBinding.tilOther.getEditText().requestFocus();
+           BaseUtil.toastLong(R.string.msg_repo_dir_already_exists);
+           return true;
+       } else {
+           positiveButton.setEnabled(true);
+           inputBinding.tilOther.setErrorEnabled(false);
+           return false;
+       }
     }
-
+    
+    private boolean isValidPath() {
+       String path = getPath();
+       if (Wizard.isEmpty(path)) return false;
+       return true;
+    }
+    
+    private boolean isValidUrl() {
+       String url = getUrl();
+       if (Wizard.isEmpty(url)) return false;
+       return true;
+    }
+    
     @Nullable
     private String getUrl() {
         return inputBinding.tilName.getEditText() != null ? inputBinding.tilName
@@ -161,15 +178,35 @@ public class GitUI {
             .toString() : null;
     }
 
-    private void startCloneOperation() {
+    private void startCloneOperation(@NonNull AlertDialog dialog) {
+        if (!isValidUrl()) {
+          ILog.warning(TAG, "Failed to start clone operation, url is null");
+          inputBinding.tilName.setError(context.getString(R.string.msg_repo_url_required));
+          // invoked after error message is set so layout resize 
+          inputBinding.tilName.setErrorEnabled(true);
+          inputBinding.tilName.getEditText().requestFocus();
+          BaseUtil.toastLong(R.string.msg_repo_url_required);
+          return;
+        }
+        
+        if (!isValidPath()) {
+          ILog.warning(TAG, "Failed to start clone operation, path is null");
+          inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_required));
+          // invoked after error message is set so layout resize 
+          inputBinding.tilOther.setErrorEnabled(true);
+          inputBinding.tilOther.getEditText().requestFocus();
+          BaseUtil.toastLong(R.string.msg_repo_dir_required);
+          return;
+        }
+        
         String url = getUrl();
         String directory = getPath();
-
-        if (Wizard.isEmpty(url) || Wizard.isEmpty(directory)) {
-            ILog.warning(TAG, "Failed to start clone operation, url or path is null");
-            return;
-        }
-
+        
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Editable editable = inputBinding.tilOther.getEditText().getText();
+           
+        if (validatePathExistence(positiveButton, editable)) return;
+        
         if (!url.endsWith(".git")) {
             url += ".git";
         }
@@ -188,18 +225,22 @@ public class GitUI {
         BottomSheetBehavior<View> behavior =
             BottomSheetBehavior.from((View) bottomSheetView);
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-
+        sheetDialog.show();
+        
         model
             .getIDELogs()
             .observe(lifecycleOwner, data -> {
                 logAdapter.submitList(data);
                 scrollToLastItem();
             });
+            
         CloneListener listener = new CloneListener() {
             @Override
             public void onCloneComplete(File file) {
                 if (file != null && file.exists()) {
-                    cloneCompleteListener.onCloneCompleted(file);
+                   AsyncTask.runOnUiThread(() -> {
+                    cloneCompleteListener.onCloneCompleted(file)
+                   });
                 }
             }
 
@@ -245,12 +286,11 @@ public class GitUI {
 
         CloneTask cloneTask = new CloneTask(repoConfig, listener);
         cloneTask.setCloneType(CloneTask.CloneType.PUBLIC);
-        
         CompletableFuture<Repository> task = AsyncTask.runProvideError(cloneTask);
 
         task.whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
             clearLogs();
-            if (sheetDialog.isShowing()) sheetDialog.dismiss();
+            if (dialog.isShowing()) dialog.dismiss();
             if (throwable != null) {
                 listener.onCloneFailed(throwable.getMessage());
             } else if (result != null) {
@@ -270,10 +310,6 @@ public class GitUI {
             clearLogs();
             sheetDialog.dismiss();
         });
-
-        if (!sheetDialog.isShowing()) {
-            sheetDialog.show();
-        }
     }
 
     private void scrollToLastItem() {
@@ -290,12 +326,8 @@ public class GitUI {
     }
 
     private void setupInputFields() {
-        inputBinding.tilOther.setVisibility(View.VISIBLE);
         inputBinding.tilName.setHint(context.getString(R.string.repository_url));
-        inputBinding.tilOther.setHint(context.getString(R.string.save_location));
-        inputBinding.tilOther.setEndIconOnClickListener(v -> openFolderPicker());
         inputBinding.tilOther.setVisibility(View.VISIBLE);
-        inputBinding.tilName.setHint(context.getString(R.string.repository_url));
         inputBinding.tilOther.setHint(context.getString(R.string.save_location));
         inputBinding.tilOther.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         inputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
@@ -332,5 +364,11 @@ public class GitUI {
 
     public interface CloneCompleteListener {
         void onCloneCompleted(File file);
+    }
+    
+    public void clearReferences() {
+      context = null;
+      activity = null;
+      lifecycleOwner = null;
     }
 }

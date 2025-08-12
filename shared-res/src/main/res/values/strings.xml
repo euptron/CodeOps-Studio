@@ -291,6 +291,8 @@
     <string name="msg_failed_creating_destination_dir">Failed to create destination directory</string>
     <string name="msg_creating_destination_dir">Creating destination directory</string>
     <string name="msg_repo_dir_already_exists">Save location for repository already exists</string>
+    <string name="msg_repo_dir_required">Save location for repository cannot be empty</string>
+    <string name="msg_repo_url_required">Repository Url cannot be empty</string>
     <string name="msg_confirm_delete">Are you sure you want to delete: %s?</string>
     <string name="msg_rename">Enter new name for %s.</string>
     <string name="msg_out_of_memory">Out of memory</string>
