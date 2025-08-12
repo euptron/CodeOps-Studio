@@ -211,7 +211,6 @@ public class GitUI {
             url += ".git";
         }
 
-        var bottomSheetView = layoutLoggingSheetBinding.getRoot();
         var sheetDialog = new BottomSheetDialog(context);
         final var output = new File(directory, RepoConfig.extractRepoNameFromUri(url));
         sheetDialog.setContentView(layoutLoggingSheetBinding.getRoot());
@@ -220,11 +219,6 @@ public class GitUI {
         layoutLoggingSheetBinding.progressbar.setProgress(100);
         layoutLoggingSheetBinding.loggingList.setLayoutManager(new LinearLayoutManager(context));
         layoutLoggingSheetBinding.loggingList.setAdapter(logAdapter);
-
-        // Expand bottom sheet fully
-        BottomSheetBehavior<View> behavior =
-            BottomSheetBehavior.from((View) bottomSheetView);
-        behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         sheetDialog.show();
         
         model
