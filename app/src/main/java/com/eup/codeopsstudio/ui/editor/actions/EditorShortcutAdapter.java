@@ -30,6 +30,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
@@ -40,7 +41,7 @@ import com.eup.codeopsstudio.util.BaseUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EditorShortcutAdapter extends EditorShortcutView.Adapter<EditorShortcutAdapter.ViewHolder> {
+public class EditorShortcutAdapter extends RecyclerView.Adapter<EditorShortcutAdapter.ViewHolder> {
 
     private final List<EditorAction> actionList = new ArrayList<>();
     private ContextualCodeEditor editor;
@@ -113,7 +114,7 @@ public class EditorShortcutAdapter extends EditorShortcutView.Adapter<EditorShor
     /**
      * Sets the data to be displayed by the mAdapter.
      *
-     * @param data The list of data.
+     * @param actions The list of data.
      */
     @SuppressLint("NotifyDataSetChanged")
     public void submitList(List<EditorAction> actions) {
@@ -126,15 +127,15 @@ public class EditorShortcutAdapter extends EditorShortcutView.Adapter<EditorShor
         this.editor = editor;
     }
 
-    public static class ViewHolder extends EditorShortcutView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView name;
 
-        public ViewHolder(LayoutEditorShortcutItemBinding binding) {
+        public ViewHolder(@NonNull LayoutEditorShortcutItemBinding binding) {
             super(binding.getRoot());
             name = binding.shortcutLabel;
         }
 
-        public void bind(EditorAction item) {
+        public void bind(@NonNull EditorAction item) {
             name.setText(item.getName());
         }
     }

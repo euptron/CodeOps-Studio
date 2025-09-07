@@ -31,7 +31,6 @@ import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
@@ -77,7 +76,7 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
         mDiffer.submitList(newData);
     }
 
-    private static void animateLayoutChanges(LinearLayout view) {
+    private static void animateLayoutChanges(ViewGroup view) {
         AutoTransition autoTransition = new AutoTransition();
         autoTransition.setDuration((short) 300);
         TransitionManager.beginDelayedTransition(view, autoTransition);

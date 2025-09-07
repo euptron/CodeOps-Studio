@@ -32,41 +32,28 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <HorizontalScrollView
-                android:id="@+id/output_logs_horizontal_scroll"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/build_output_recyclerview"
-                    style="@style/LogListStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:keyboardNavigationCluster="true"
-                    android:nestedScrollingEnabled="false" />
-
-            </HorizontalScrollView>
-
-        </LinearLayout>
-
-        <LinearLayout
+        <HorizontalScrollView
+            android:id="@+id/output_logs_horizontal_scroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center">
+            android:fillViewport="true">
 
-            <TextView
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/build_output_recyclerview"
+                style="@style/LogListStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="@string/msg_build_output" />
+                android:keyboardNavigationCluster="true"
+                android:nestedScrollingEnabled="false" />
 
-        </LinearLayout>
+        </HorizontalScrollView>
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/msg_build_output" />
 
     </ViewFlipper>
 

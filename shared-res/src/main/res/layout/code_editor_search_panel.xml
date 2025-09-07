@@ -29,6 +29,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?colorSurface"
+    android:paddingHorizontal="@dimen/dimen2dp"
+    android:paddingStart="0dp"
     tools:theme="@style/AppTheme">
 
     <com.google.android.material.divider.MaterialDivider
@@ -51,7 +53,6 @@
         android:inputType="text"
         android:maxLines="1"
         android:minHeight="@dimen/dimen48dp"
-        android:paddingHorizontal="@dimen/dimen16dp"
         app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toStartOf="@id/more_options"
         app:layout_constraintStart_toStartOf="parent"
@@ -114,8 +115,8 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/search_result"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:minWidth="@dimen/dimen48dp"
             android:textAppearance="?textAppearanceLabelLarge"
@@ -123,7 +124,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/replace"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="1/15" />
+            tools:text="1/15 matches" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

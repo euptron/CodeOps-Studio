@@ -31,4 +31,5 @@
     <string name="items_left_computing">Items Left: computing…</string>
     <string name="speed_computing">Speed: computing…</string>
     <string name="cannot_open_invalid_zip_file">Cannot open invalid zip file</string>
+    <string name="editor_tab_desc">Editor TabLayout</string>
 </resources>

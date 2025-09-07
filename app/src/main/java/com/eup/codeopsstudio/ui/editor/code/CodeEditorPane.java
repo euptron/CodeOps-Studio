@@ -35,6 +35,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Pair;
 
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.AsyncTask;
@@ -223,9 +224,15 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public void refreshEditorLanguageSyntax(boolean enableAutoCompleteWindow,
         boolean enableBracketAutoClosing) {
         try {
-            String langScope = getEditorLanguageScope(getFile());
-            binding.editor.refreshEditorLanguageSyntax(langScope, enableAutoCompleteWindow,
-                enableBracketAutoClosing);
+            Pair<String, String> languageInfo = getEditorLanguageInfo(mEditorFile);
+            if (languageInfo == null) {
+                ILog.debug(TAG, "Failed to refresh editor language configurations");
+                return;
+            }
+            String langExt = languageInfo.first;
+            String langScope = languageInfo.second;
+            binding.editor.refreshEditorLanguageSyntax(langExt, langScope,
+                enableAutoCompleteWindow, enableBracketAutoClosing);
         } catch (Exception e) {
             var err = "Failed to refresh editor language configurations";
             logger.e(TAG, err);
@@ -233,23 +240,17 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         }
     }
 
-    public File getFile() {
-        return mEditorFile;
-    }
-
-    public void setFile(File file) {
-        this.mEditorFile = file;
-    }
-
     @Nullable
-    private String getEditorLanguageScope(File file) throws IOException {
+    private Pair<String, String> getEditorLanguageInfo(File file) throws IOException {
         if (isInvalidContext()) return null;
 
         InputStream is = requireContext()
             .getAssets()
             .open(LANG_SCOPE_PATH);
         var provider = new JsonLanguageInfoProvider(is);
-        return provider.getScope(FileUtil.getFileExtension(file));
+        String scope = provider.getScope(FileUtil.getFileExtension(file));
+        String extension = provider.getLanguageExtension(scope);
+        return new Pair<>(extension, scope);
     }
 
     private boolean isInvalidContext() {
@@ -265,6 +266,14 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         if (binding != null) {
             binding.breadCrumbBar.setVisible(PreferencesUtils.displayNavigationPanel());
         }
+    }
+
+    public File getFile() {
+        return mEditorFile;
+    }
+
+    public void setFile(File file) {
+        this.mEditorFile = file;
     }
 
     private void readFile(@NonNull File file) {
@@ -311,7 +320,11 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
     private void loadEditorLanguage(File file) {
         try {
-            binding.editor.setEditorLanguage(getEditorLanguageScope(file),
+            Pair<String, String> languageInfo = getEditorLanguageInfo(file);
+            if (languageInfo == null) return;
+            String extension = languageInfo.first;
+            String scope = languageInfo.second;
+            binding.editor.setEditorLanguage(extension, scope,
                 PreferencesUtils.enableAutoComplete(),
                 PreferencesUtils.enableBracketAutoClosing(), false);
         } catch (Exception e) {

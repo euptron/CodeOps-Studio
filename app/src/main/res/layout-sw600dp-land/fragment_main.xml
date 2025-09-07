@@ -22,41 +22,55 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
-    android:fitsSystemWindows="true"
-    android:orientation="horizontal"
-    android:weightSum="100">
+    android:fitsSystemWindows="true">
+
+    <!-- A vertical line at 20% of the screen width -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/vertical_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.20" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_first_pane"
         android:name="com.eup.codeopsstudio.ui.explore.PrimarySideBarFragment"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="20" />
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/vertical_guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/divider"
         android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:alpha="0.7" />
+        android:layout_height="0dp"
+        android:alpha="0.7"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/fragment_first_pane"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/main_Layout"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="80"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/divider"
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:elevation="0dp"
-            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$Behavior">
+            android:layout_height="wrap_content">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
@@ -76,7 +90,8 @@
             android:name="com.eup.codeopsstudio.ui.editor.BaseFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
             tools:layout="@layout/fragment_base" />
-    </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

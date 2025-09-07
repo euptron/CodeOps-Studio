@@ -23,40 +23,53 @@
 
 package com.eup.codeopsstudio.ui.editor;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.eup.codeopsstudio.adapters.BuildActionPagerAdapter;
+import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentBuildActionBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
+import com.eup.codeopsstudio.editor.ContextualCodeEditor;
+import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.ui.editor.actions.EditorAction;
+import com.eup.codeopsstudio.ui.editor.actions.EditorShortcutAdapter;
+import com.eup.codeopsstudio.ui.editor.actions.EditorShortcutWizard;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.util.BaseUtil;
-import com.eup.codeopsstudio.viewmodel.MainViewModel;
-import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Objects;
+
 public class BuildActionFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String OFFSET_KEY = "offsetKey";
+    private final String TAG = "BuildActionFragment";
     private FragmentBuildActionBinding binding;
-    private BuildActionPagerAdapter adapter;
-    private MainViewModel mMainViewModel;
+    private EditorShortcutAdapter shortcutAdapter;
+    private int numberOfTabs;
+    private boolean useTabs;
+    private EditorShortcutWizard shortcutWizard;
+    private String shortcutsJsonString;
 
     public static BuildActionFragment newInstance() {
         return new BuildActionFragment();
@@ -64,22 +77,21 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
         binding = FragmentBuildActionBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mMainViewModel =
-            new ViewModelProvider(requireActivity() /*shared activity scope*/).get(MainViewModel.class);
         PreferencesUtils
             .getDefaultPreferences()
             .registerOnSharedPreferenceChangeListener(this);
-        adapter = new BuildActionPagerAdapter(getChildFragmentManager(), getLifecycle());
-
+        shortcutAdapter = new EditorShortcutAdapter();
+        var adapter = new BuildActionPagerAdapter(getChildFragmentManager(), getLifecycle());
+        loadShortcutsJson();
         adapter.addFragment(OutPutFragment.newInstance());
         adapter.addFragment(IdeLogsFragment.newInstance());
         // mAdapter.addFragment(DiagnosticsFragment.newInstance());
@@ -88,25 +100,24 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
         binding.actionPager.setUserInputEnabled(false);
         binding.actionPager.setAdapter(adapter);
 
-        new TabLayoutMediator(binding.tabLayout, binding.actionPager,
-            new TabLayoutMediator.TabConfigurationStrategy() {
-            @Override
-            public void onConfigureTab(TabLayout.Tab tab, int position) {
-                if (position == 0) {
-                    tab.setText(R.string.build_output);
-                } else if (position == 1) {
-                    tab.setText(R.string.ide_logs);
-                }
-                // else if (position == 2) {
-                // tab.setText(R.string.diagnostics);
-                // }
+        new TabLayoutMediator(binding.tabLayout, binding.actionPager, (tab, position) -> {
+            if (position == 0) {
+                tab.setText(R.string.build_output);
+            } else if (position == 1) {
+                tab.setText(R.string.ide_logs);
             }
+            // else if (position == 2) {
+            // tab.setText(R.string.diagnostics);
+            // }
         }).attach();
 
         getParentFragmentManager().setFragmentResultListener(OFFSET_KEY, getViewLifecycleOwner(),
-            ((requestKey, result) -> {
-            setOffset(result.getFloat("offset", 0f));
-        }));
+            ((requestKey, result) -> setOffset(result.getFloat("offset", 0f))));
+
+        binding.recyclerviewShortcuts.setLayoutManager(new LinearLayoutManager(getContext(),
+            LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerviewShortcuts.setHasFixedSize(true);
+        binding.recyclerviewShortcuts.setAdapter(shortcutAdapter);
     }
 
     @Override
@@ -143,10 +154,6 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     }
 
     private void setOffset(float offset) {
-        if (binding.rowLayout == null) {
-            return;
-        }
-
         if (offset >= 0.50f) {
             float invertedOffset = 0.5f - offset;
             setRowOffset(((invertedOffset + 0.5f) * 2f));
@@ -162,28 +169,61 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
         binding.rowLayout.requestLayout();
     }
 
+    private void loadShortcutsJson() {
+        if (shortcutsJsonString == null) {
+            try {
+                InputStream is = requireContext()
+                    .getAssets()
+                    .open("editor/shortcuts.json");
+                shortcutsJsonString = JsonLanguageInfoProvider.readInputStream(is);
+            } catch (IOException e) {
+                ILog.error(TAG, "Failed to load shortcuts JSON file.", e);
+                shortcutsJsonString = "{}";// empty json
+            }
+        }
+    }
+
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
-        switch (key) {
-            case SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE:
-                binding.recyclerviewShortcuts.updateTabSize(PreferencesUtils.getCodeEditorTabSize());
-                binding.recyclerviewShortcuts.refreshList();
+    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
+        switch (Objects.requireNonNull(key)) {
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE:
+                numberOfTabs = PreferencesUtils.getCodeEditorTabSize();
+                refreshShortcuts();
                 break;
-            case SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT:
-                binding.recyclerviewShortcuts.useTabIndentation(PreferencesUtils.useTabIndentation());
-                binding.recyclerviewShortcuts.refreshList();
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT:
+                useTabs = PreferencesUtils.useTabIndentation();
+                refreshShortcuts();
                 break;
         }
     }
 
+    private void refreshShortcuts() {
+        if (shortcutWizard == null) {
+            ILog.debug(TAG, "ShortcutWizard is null");
+            return;
+        }
+        shortcutWizard.invalidateCache();
+        List<EditorAction> baseActions = shortcutWizard.getActions();
+        List<EditorAction> configuredActions =
+            EditorShortcutWizard.configureTabAction(baseActions, useTabs, numberOfTabs);
+        shortcutAdapter.submitList(configuredActions);
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onCurrentPaneChangeEvent(CurrentPaneEvent event) {
+    public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
         int position = event.index;
         Pane currentPane = event.pane;
 
         if (position != -1 || currentPane != null) {
             if (currentPane instanceof CodeEditorPane editorPane) {
-                binding.recyclerviewShortcuts.bindEditor(editorPane.getEditor());
+                ContextualCodeEditor editor = editorPane.getEditor();
+                shortcutAdapter.bindEditor(editor);
+                if (shortcutWizard == null) {
+                    shortcutWizard = new EditorShortcutWizard(editor, shortcutsJsonString);
+                } else {
+                    shortcutWizard.setEditorContext(editor);
+                }
+                refreshShortcuts();
                 binding.rowLayout.setDisplayedChild(1);
             } else {
                 binding.rowLayout.setDisplayedChild(0);

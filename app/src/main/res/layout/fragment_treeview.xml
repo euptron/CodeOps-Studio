@@ -24,6 +24,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -35,7 +36,8 @@
         android:layout_marginTop="6dp"
         android:gravity="center_vertical|start"
         android:orientation="horizontal"
-        android:padding="4dp">
+        android:padding="4dp"
+        tools:ignore="UseCompoundDrawables">
 
         <TextView
             android:id="@+id/folder_name"
@@ -90,7 +92,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tree_open_folder"
             style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/button_max_width"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:text="@string/open_folder" />
@@ -106,7 +108,7 @@
         <Button
             android:id="@+id/choose_template"
             style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/button_max_width"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:text="@string/choose_template" />

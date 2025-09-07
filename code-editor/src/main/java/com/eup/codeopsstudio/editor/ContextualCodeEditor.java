@@ -71,6 +71,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     private boolean isIndexing = false;
     private Context context;
     private File mFile;
+    private String languageExtension;
 
     public ContextualCodeEditor(Context context) {
         this(context, null);
@@ -311,6 +312,10 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         GrammarRegistry
             .getInstance()
             .loadGrammars(defaultGrammarPath);
+    }
+
+    public String getLanguageExtension() {
+        return languageExtension;
     }
 
     public boolean isUIDarkMode() {
@@ -778,10 +783,11 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         return mFile.getAbsolutePath();
     }
 
-    public void refreshEditorLanguageSyntax(String langScope, boolean autoCompleteWindowEnabled,
+    public void refreshEditorLanguageSyntax(String languageExtension, String langScope, boolean autoCompleteWindowEnabled,
         boolean enableBracketAutoClosing) {
         try {
-            setEditorLanguage(langScope, autoCompleteWindowEnabled, enableBracketAutoClosing, true);
+            this.languageExtension = languageExtension;
+            setEditorLanguage(languageExtension, langScope, autoCompleteWindowEnabled, enableBracketAutoClosing, true);
         } catch (Exception e) {
             toast(e.getLocalizedMessage());
         }
@@ -790,11 +796,11 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     /**
      * Updates and sets an editor language
      */
-    public void setEditorLanguage(String langScope, boolean autoCompleteWindowEnabled,
+    public void setEditorLanguage(String languageExtension, String langScope, boolean autoCompleteWindowEnabled,
         boolean isAutoCompleteSymbols, boolean isRefreshing) throws Exception {
+        this.languageExtension = languageExtension;
         var lang = getEditorLanguage();
         TextMateLanguage language;
-
         if (isRefreshing) {
             ensureTextmateTheme();
             language = (TextMateLanguage) lang;

@@ -23,14 +23,17 @@
 
 package com.eup.codeopsstudio.editor.langs.textmate.provider;
 
+import androidx.annotation.NonNull;
+
 import com.eup.codeopsstudio.common.ILog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,17 +73,23 @@ public class JsonLanguageInfoProvider implements LanguageInfoProvider {
         return Collections.emptyMap();
     }
 
-    public String readInputStream(InputStream inputStream) throws IOException {
-        StringBuilder data = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        String dataRow;
-        while ((dataRow = reader.readLine()) != null) {
-            data
-                .append(dataRow)
-                .append("\n");
+    @NonNull
+    public static String readInputStream(InputStream inputStream) throws IOException {
+        return readInputStream(inputStream, 4096);
+    }
+
+    @NonNull
+    public static String readInputStream(InputStream inputStream,
+        int bufferSize) throws IOException {
+        final char[] buffer = new char[bufferSize];
+        final StringBuilder out = new StringBuilder();
+        try (Reader in = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+            int charsRead;
+            while ((charsRead = in.read(buffer, 0, buffer.length)) > 0) {
+                out.append(buffer, 0, charsRead);
+            }
         }
-        reader.close();
-        return data.toString();
+        return out.toString();
     }
 
     @Override

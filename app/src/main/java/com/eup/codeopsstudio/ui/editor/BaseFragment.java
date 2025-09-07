@@ -1102,7 +1102,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
      * @param isEmpty True if no panes are added
      */
     private void showEmptyPaneWindow(boolean isEmpty) {
-        binding.viewFlipper.setDisplayedChild(isEmpty ? 1 : 0);
+        binding.paneContainer.setVisibility(isEmpty ? 1 : 0);
     }
 
     private void createEmptyPaneWindow() {

@@ -22,7 +22,9 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/log_base"
     android:layout_width="match_parent"
@@ -32,76 +34,72 @@
     android:layout_marginEnd="8dp"
     android:layout_marginBottom="4dp"
     android:animateLayoutChanges="true"
-    android:fillViewport="true"
-    android:gravity="center_vertical"
-    android:orientation="vertical">
+    android:background="?android:attr/selectableItemBackground"
+    android:paddingVertical="8dp">
 
-    <!-- Collapsible Header -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <View
+        android:id="@+id/version_indicator"
+        android:layout_width="4dp"
+        android:layout_height="0dp"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="@+id/summary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/title" />
+
+    <ImageView
+        android:id="@+id/chevron"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_chevron_down"
+        app:layout_constraintBottom_toBottomOf="@+id/expandable_pane"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?android:attr/selectableItemBackground"
-        android:orientation="horizontal"
-        android:paddingVertical="8dp">
+        android:layout_marginStart="16dp"
+        android:fadingEdgeLength="20dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:requiresFadingEdge="horizontal"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/chevron"
+        app:layout_constraintStart_toEndOf="@+id/version_indicator"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Release 0.0.1-alpha" />
 
-        <!-- Version Indicator -->
-        <View
-            android:id="@+id/version_indicator"
-            android:layout_width="4dp"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="16dp"
-            android:background="?attr/colorPrimary" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:fadingEdgeLength="20dp"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:gravity="center_vertical"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:requiresFadingEdge="horizontal"
-                android:scrollHorizontally="true"
-                android:singleLine="true"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                tools:text="Release 0.0.1-alpha" />
-
-            <TextView
-                android:id="@+id/summary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:alpha="0.7"
-                android:focusable="false"
-                android:gravity="center_vertical"
-                android:textSize="14sp"
-                tools:text="Released on Tue,2024-05-04" />
-        </LinearLayout>
-
-        <!-- Chevron -->
-        <ImageView
-            android:id="@+id/chevron"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:padding="12dp"
-            android:src="@drawable/ic_chevron_down" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/summary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:alpha="0.7"
+        android:focusable="false"
+        android:gravity="center_vertical"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="@+id/title"
+        app:layout_constraintStart_toStartOf="@+id/title"
+        app:layout_constraintTop_toBottomOf="@+id/title"
+        tools:text="Released on Tue,2024-05-04" />
 
     <!-- Expandable Content -->
     <LinearLayout
         android:id="@+id/expandable_pane"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/summary">
 
         <!-- Top Divider -->
         <com.google.android.material.divider.MaterialDivider
@@ -135,4 +133,4 @@
             android:alpha="0.7"
             android:visibility="visible" />
     </LinearLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

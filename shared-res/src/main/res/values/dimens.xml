@@ -128,7 +128,7 @@
     <!-- TextInput width -->
     <dimen name="textinput_default_width">245dp</dimen>
     <!-- Max button width, used in place of match_parent-->
-    <dimen name="button_default_width">320dp</dimen>
+    <dimen name="button_max_width">320dp</dimen>
     <dimen name="edit_text_max_width">488dp</dimen>
     <!-- Alpha dimensions for ripple overlays. -->
     <dimen name="ripple_pressed_alpha">0.12</dimen>
@@ -151,5 +151,6 @@
     <dimen name="primary_side_bar_item_active_indicator_width">@dimen/dimen48dp</dimen>
     <dimen name="primary_side_bar_item_active_indicator_height">@dimen/dimen24dp</dimen>
     <dimen name="primary_side_bar_item_active_indicator_margin_horizontal">@dimen/dimen4dp</dimen>
+    <dimen name="dimen45dp">45dp</dimen>
 </resources>
 

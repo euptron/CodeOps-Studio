@@ -69,13 +69,15 @@
             tools:layout="@layout/fragment_base" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
+    <!--     android:layout_width="300dp" -->
+    <!--     android:background="?attr/colorSurface" -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
-        android:layout_width="300dp"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="?attr/colorSurface"
-        android:fitsSystemWindows="false">
+        android:fitsSystemWindows="false"
+        app:drawerLayoutCornerSize="0dp">
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nav_primary_side_bar"

@@ -1,0 +1,264 @@
+{
+  "default": [
+    { "name": "TAB" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "[", "value": "[" },
+    { "name": "]", "value": "]" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "=", "value": "=" }, { "name": ".", "value": "." }, { "name": ",", "value": "," },
+    { "name": ";", "value": ";" }, { "name": ":", "value": ":" }, { "name": "+", "value": "+" },
+    { "name": "-", "value": "-" }, { "name": "*", "value": "*" }, { "name": "/", "value": "/" },
+    { "name": "_", "value": "_" }, { "name": "<", "value": "<" }, { "name": ">", "value": ">" },
+    { "name": "&", "value": "&" }, { "name": "|", "value": "|" }, { "name": "?", "value": "?" },
+    { "name": "!", "value": "!" }, { "name": "%", "value": "%" }, { "name": "#", "value": "#" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "java": [
+    { "name": ";", "value": ";" }, { "name": ".", "value": "." }, { "name": "(", "value": "(" },
+    { "name": ")", "value": ")" }, { "name": "{", "value": "{" }, { "name": "}", "value": "}" },
+    { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" }, { "name": "+", "value": "+" },
+    { "name": "TAB" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": "<", "value": "<" }, { "name": ">", "value": ">" }, { "name": ",", "value": "," },
+    { "name": "!", "value": "!" }, { "name": "@", "value": "@" }, { "name": "_", "value": "_" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "python": [
+    { "name": ":", "value": ":" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "=", "value": "=" }, { "name": ".", "value": "." }, { "name": "\"", "value": "\"" },
+    { "name": "'", "value": "'" }, { "name": "TAB" }, { "name": "[", "value": "[" },
+    { "name": "]", "value": "]" }, { "name": ",", "value": "," }, { "name": "_", "value": "_" },
+    { "name": "+", "value": "+" }, { "name": "-", "value": "-" }, { "name": "#", "value": "#" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "javascript": [
+    { "name": ".", "value": "." }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": ";", "value": ";" }, { "name": "=", "value": "=" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "=>", "value": "=>" }, { "name": "TAB" }, { "name": "[", "value": "[" },
+    { "name": "]", "value": "]" }, { "name": ",", "value": "," }, { "name": "!", "value": "!" },
+    { "name": "+", "value": "+" }, { "name": "`", "value": "`" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "typescript": [
+    { "name": ":", "value": ":" }, { "name": ".", "value": "." }, { "name": ";", "value": ";" },
+    { "name": "(", "value": "(" }, { "name": ")", "value": ")" }, { "name": "=", "value": "=" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "\"", "value": "\"" },
+    { "name": "=>", "value": "=>" }, { "name": "<", "value": "<" }, { "name": ">", "value": ">" },
+    { "name": "TAB" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": ",", "value": "," }, { "name": "|", "value": "|" }, { "name": "`", "value": "`" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "jsx": [
+    { "name": "<", "value": "<" }, { "name": ">", "value": ">" }, { "name": "/", "value": "/" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": ".", "value": "." },
+    { "name": "(", "value": "(" }, { "name": ")", "value": ")" }, { "name": "=>", "value": "=>" },
+    { "name": "=", "value": "=" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "TAB" }, { "name": ";", "value": ";" }, { "name": "`", "value": "`" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "tsx": [
+    { "name": "<", "value": "<" }, { "name": ">", "value": ">" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": "/", "value": "/" }, { "name": ":", "value": ":" },
+    { "name": ".", "value": "." }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "=>", "value": "=>" }, { "name": "=", "value": "=" }, { "name": "\"", "value": "\"" },
+    { "name": "TAB" }, { "name": ";", "value": ";" }, { "name": "'", "value": "'" },
+    { "name": "|", "value": "|" }, { "name": "`", "value": "`" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "html": [
+    { "name": "<", "value": "<" }, { "name": ">", "value": ">" }, { "name": "/", "value": "/" },
+    { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" }, { "name": "'", "value": "'" },
+    { "name": "TAB" }, { "name": "{", "value": "{" }, { "name": "}", "value": "}" },
+    { "name": "!", "value": "!" }, { "name": "-", "value": "-" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "css": [
+    { "name": ":", "value": ":" }, { "name": ";", "value": ";" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": ".", "value": "." }, { "name": "#", "value": "#" },
+    { "name": "TAB" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "-", "value": "-" }, { "name": ",", "value": "," }, { "name": "*", "value": "*" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "csharp": [
+    { "name": ";", "value": ";" }, { "name": ".", "value": "." }, { "name": "(", "value": "(" },
+    { "name": ")", "value": ")" }, { "name": "{", "value": "{" }, { "name": "}", "value": "}" },
+    { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" }, { "name": "=>", "value": "=>" },
+    { "name": "TAB" }, { "name": "<", "value": "<" }, { "name": ">", "value": ">" },
+    { "name": "[", "value": "[" }, { "name": "]", "value": "]" }, { "name": ",", "value": "," },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "c": [
+    { "name": ";", "value": ";" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": ".", "value": "." },
+    { "name": "->", "value": "->" }, { "name": "&", "value": "&" }, { "name": "*", "value": "*" },
+    { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" }, { "name": "#", "value": "#" },
+    { "name": "TAB" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": ",", "value": "," }, { "name": "<", "value": "<" }, { "name": ">", "value": ">" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "cpp": [
+    { "name": ";", "value": ";" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": ":", "value": ":" },
+    { "name": ".", "value": "." }, { "name": "->", "value": "->" }, { "name": "<", "value": "<" },
+    { "name": ">", "value": ">" }, { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" },
+    { "name": "#", "value": "#" }, { "name": "&", "value": "&" }, { "name": "*", "value": "*" },
+    { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "php": [
+    { "name": ";", "value": ";" }, { "name": "$", "value": "$" }, { "name": "(", "value": "(" },
+    { "name": ")", "value": ")" }, { "name": "->", "value": "->" }, { "name": "'", "value": "'" },
+    { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": "=>", "value": "=>" }, { "name": "TAB" },
+    { "name": "[", "value": "[" }, { "name": "]", "value": "]" }, { "name": ",", "value": "," },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "sql": [
+    { "name": ";", "value": ";" }, { "name": "'", "value": "'" }, { "name": ",", "value": "," },
+    { "name": "*", "value": "*" }, { "name": "=", "value": "=" }, { "name": "(", "value": "(" },
+    { "name": ")", "value": ")" }, { "name": ".", "value": "." }, { "name": "\"", "value": "\"" },
+    { "name": "<", "value": "<" }, { "name": ">", "value": ">" }, { "name": "%", "value": "%" },
+    { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "go": [
+    { "name": ".", "value": "." }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": ":=", "value": ":=" }, { "name": "{", "value": "{" }, { "name": "}", "value": "}" },
+    { "name": "\"", "value": "\"" }, { "name": ",", "value": "," }, { "name": "TAB" },
+    { "name": ";", "value": ";" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "rust": [
+    { "name": ";", "value": ";" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "::", "value": "::" },
+    { "name": ".", "value": "." }, { "name": "\"", "value": "\"" }, { "name": "<", "value": "<" },
+    { "name": ">", "value": ">" }, { "name": "&", "value": "&" }, { "name": "->", "value": "->" },
+    { "name": "#", "value": "#" }, { "name": "!", "value": "!" }, { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "kotlin": [
+    { "name": ".", "value": "." }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": ":", "value": ":" }, { "name": "?", "value": "?" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": "\"", "value": "\"" }, { "name": "->", "value": "->" },
+    { "name": "!", "value": "!" }, { "name": "TAB" }, { "name": ";", "value": ";" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "ruby": [
+    { "name": ".", "value": "." }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "=", "value": "=" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": ":", "value": ":" }, { "name": "#", "value": "#" }, { "name": "TAB" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "[", "value": "[" },
+    { "name": "]", "value": "]" }, { "name": ",", "value": "," },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "shell": [
+    { "name": "$", "value": "$" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "|", "value": "|" }, { "name": ">", "value": ">" }, { "name": "<", "value": "<" },
+    { "name": "TAB" }, { "name": "{", "value": "{" }, { "name": "}", "value": "}" },
+    { "name": ";", "value": ";" }, { "name": "=", "value": "=" }, { "name": "#", "value": "#" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "powershell": [
+    { "name": "$", "value": "$" }, { "name": "-", "value": "-" }, { "name": "(", "value": "(" },
+    { "name": ")", "value": ")" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "|", "value": "|" },
+    { "name": "TAB" }, { "name": ";", "value": ";" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "xml": [
+    { "name": "<", "value": "<" }, { "name": ">", "value": ">" }, { "name": "/", "value": "/" },
+    { "name": "\"", "value": "\"" }, { "name": "=", "value": "=" }, { "name": "'", "value": "'" },
+    { "name": "TAB" }, { "name": "!", "value": "!" }, { "name": "-", "value": "-" },
+    { "name": "?", "value": "?" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "json": [
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "[", "value": "[" },
+    { "name": "]", "value": "]" }, { "name": "\"", "value": "\"" }, { "name": ":", "value": ":" },
+    { "name": ",", "value": "," }, { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "yaml": [
+    { "name": ":", "value": ":" }, { "name": "-", "value": "-" }, { "name": "TAB" },
+    { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" }, { "name": "|", "value": "|" },
+    { "name": ">", "value": ">" }, { "name": "#", "value": "#" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "markdown": [
+    { "name": "#", "value": "#" }, { "name": "*", "value": "*" }, { "name": "_", "value": "_" },
+    { "name": "`", "value": "`" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": "(", "value": "(" }, { "name": ")", "value": ")" }, { "name": "TAB" },
+    { "name": "-", "value": "-" }, { "name": ">", "value": ">" }, { "name": "!", "value": "!" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "swift": [
+    { "name": "(", "value": "(" }, { "name": ")", "value": ")" }, { "name": ".", "value": "." },
+    { "name": "\"", "value": "\"" }, { "name": ":", "value": ":" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": ",", "value": "," }, { "name": "?", "value": "?" },
+    { "name": "!", "value": "!" }, { "name": "->", "value": "->" }, { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "dart": [
+    { "name": ";", "value": ";" }, { "name": ".", "value": "." }, { "name": "(", "value": "(" },
+    { "name": ")", "value": ")" }, { "name": ",", "value": "," }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": "=>", "value": "=>" }, { "name": "TAB" },
+    { "name": "?", "value": "?" }, { "name": "!", "value": "!" }, { "name": ":", "value": ":" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "lua": [
+    { "name": "(", "value": "(" }, { "name": ")", "value": ")" }, { "name": "=", "value": "=" },
+    { "name": ".", "value": "." }, { "name": ",", "value": "," }, { "name": "\"", "value": "\"" },
+    { "name": "'", "value": "'" }, { "name": "TAB" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "perl": [
+    { "name": ";", "value": ";" }, { "name": "$", "value": "$" }, { "name": "@", "value": "@" },
+    { "name": "%", "value": "%" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "->", "value": "->" },
+    { "name": "=>", "value": "=>" }, { "name": "::", "value": "::" }, { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "r": [
+    { "name": "<-", "value": "<-" }, { "name": "(", "value": "(" }, { "name": ")", "value": ")" },
+    { "name": "$", "value": "$" }, { "name": "\"", "value": "\"" }, { "name": "'", "value": "'" },
+    { "name": "c", "value": "c" }, { "name": "[", "value": "[" }, { "name": "]", "value": "]" },
+    { "name": "{", "value": "{" }, { "name": "}", "value": "}" }, { "name": "#", "value": "#" },
+    { "name": "TAB" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ],
+  "dockerfile": [
+    { "name": "TAB" }, { "name": "=", "value": "=" }, { "name": "\"", "value": "\"" },
+    { "name": "'", "value": "'" }, { "name": "$", "value": "$" }, { "name": "{", "value": "{" },
+    { "name": "}", "value": "}" }, { "name": ":", "value": ":" }, { "name": "#", "value": "#" },
+    { "name": "MCL" }, { "name": "MCR" }, { "name": "MCU" }, { "name": "MCD" },
+    { "name": "home" }, { "name": "end" }
+  ]
+}
