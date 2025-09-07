@@ -26,26 +26,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:padding="@dimen/dimen8dp">
 
     <ViewFlipper
         android:id="@+id/viewFlipper"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="@dimen/dimen24dp"
+        android:layout_height="@dimen/dimen24dp"
         android:layout_centerVertical="true">
 
         <ImageView
             android:id="@+id/icon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_centerVertical="true"
+            android:layout_width="@dimen/dimen24dp"
+            android:layout_height="@dimen/dimen24dp"
+            android:contentDescription="@string/file_tree_item_icon_desc"
             android:src="@drawable/ic_chevron_right" />
 
         <ProgressBar
             android:id="@+id/progress_indicator"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_centerVertical="true"
+            android:layout_width="@dimen/dimen24dp"
+            android:layout_height="@dimen/dimen24dp"
             android:indeterminate="true" />
     </ViewFlipper>
 
@@ -54,11 +53,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
+        android:layout_marginLeft="@dimen/dimen6dp"
+        android:layout_marginRight="@dimen/dimen6dp"
         android:layout_toEndOf="@id/viewFlipper"
-        android:padding="2dp"
-        android:textSize="14sp"
+        android:padding="@dimen/dimen2dp"
+        android:textSize="@dimen/dimen14sp"
         tools:text="Directory" />
 
 </RelativeLayout>

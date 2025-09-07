@@ -715,7 +715,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
                 } else if (webview != null) {
                     tabIcon.setImageResource(R.drawable.ic_access_point);
                 } else if (welcome != null) {
-                    tabIcon.setImageResource(R.drawable.ic_westudio);
+                    tabIcon.setImageResource(R.drawable.ic_codeopsstudio);
                 } else if (settings != null) {
                     tabIcon.setImageResource(R.drawable.ic_cog_outline);
                 }

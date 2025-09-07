@@ -28,6 +28,7 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.DocumentsContract;
@@ -37,13 +38,16 @@ import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -64,12 +68,12 @@ import java.util.Set;
  */
 public class FileUriMediator {
 
+    private static final String TAG = "FileUriMediator";
     private final Uri uri;
     private final Context context;
     private final DocumentFile documentFile;
     private final boolean isDirectory;
-    private final boolean isVirtual;
-    private boolean isTreeUri = false;
+    private final boolean isTreeUri;
 
     public FileUriMediator(@NonNull Uri uri, @NonNull Context context) {
         this.uri     = uri;
@@ -85,15 +89,17 @@ public class FileUriMediator {
 
         if (documentFile != null) {
             isDirectory = documentFile.isDirectory();
-            isVirtual   = documentFile.isVirtual();
+            boolean isVirtual = documentFile.isVirtual();
+            ILog.debug(TAG, "Document is virtual: " + isVirtual);
         } else {
             throw new IllegalArgumentException("Invalid URI");
         }
     }
 
-    public static FileUriMediator resolveTree(Uri uri, Context context) {
-        Uri treeUri = DocumentFile
-            .fromTreeUri(context, uri)
+    @NonNull
+    public static FileUriMediator resolveTree(@NonNull Uri uri, @NonNull Context context) {
+        Uri treeUri = Objects
+            .requireNonNull(DocumentFile.fromTreeUri(context, uri))
             .getUri();
         return new FileUriMediator(treeUri, context);
     }
@@ -131,8 +137,21 @@ public class FileUriMediator {
          */
         ArrayList<File> files = new ArrayList<>();
         files.add(Environment.getExternalStorageDirectory());
-        files.add(Environment.getStorageDirectory());
+        files.add(getStorageDirectory());
         return files;
+    }
+
+    /**
+     * Adopted from {@link Environment#getStorageDirectory()}
+     *
+     * @return the storage directory
+     */
+    @NonNull
+    private static File getStorageDirectory() {
+        final String ENV_EXTERNAL_STORAGE = "EXTERNAL_STORAGE";
+        final String storagePath = "/storage";
+        String path = System.getenv(ENV_EXTERNAL_STORAGE);
+        return path == null ? new File(storagePath) : new File(path);
     }
 
     /**
@@ -147,72 +166,47 @@ public class FileUriMediator {
         if (isDirectory) {
             return handleExternalStorageAuth();
         } else {
-            switch (authority) {
-                case StorageVolumeAuthority.EXTERNAL:
-                    return handleExternalStorageAuth();
-                case StorageVolumeAuthority.DOWNLOAD:
-                    return handleDownloadStorageAuth();
-                case StorageVolumeAuthority.MEDIA:
-                    return handleMediaStorageAuth();
-                // case StorageVolumeAuthority.GOOGLE_DRIVE:
-                //  case StorageVolumeAuthority.GOOGLE_DRIVE_LEGACY:
-                // case StorageVolumeAuthority.WHATSAPP:
-                case StorageVolumeAuthority.CONTENT:
-                    return handleContentStorageAuth();
-                case StorageVolumeAuthority.FILE:
-                    return handleFileStorageAuth();
-                default:
-                    throw new UnsupportedOperationException(
-                        "Unsupported URI authority: " + authority);
-            }
+            return switch (authority) {
+                case StorageVolumeAuthority.EXTERNAL -> handleExternalStorageAuth();
+                case StorageVolumeAuthority.DOWNLOAD -> handleDownloadStorageAuth();
+                case StorageVolumeAuthority.MEDIA -> handleMediaStorageAuth();
+                case StorageVolumeAuthority.GOOGLE_DRIVE,
+                     StorageVolumeAuthority.GOOGLE_DRIVE_LEGACY, StorageVolumeAuthority.WHATSAPP,
+                     StorageVolumeAuthority.CONTENT -> handleContentStorageAuth();
+                case StorageVolumeAuthority.FILE -> handleFileStorageAuth();
+                default -> throw new UnsupportedOperationException(
+                    "Unsupported URI authority: " + authority);
+            };
         }
     }
 
-    /**
-     * Handles the resolution of the {@code Uri} to a file whose authority {@link
-     * StorageVolumeAuthority.EXTERNAL}
-     *
-     * @return The File from the resolved {@code Uri}
-     * @see StorageVolumeAuthority.EXTERNAL
-     */
     private File handleExternalStorageAuth() {
         String storageType = getStorageType();
         String relativePath = getAbsoluteRelativePath();
 
         if (getDocumentId().contains(":")) {
-            if (!hasColonSuffix(getSplit())) {
-                switch (storageType.toLowerCase()) {
-                    case "primary":
-                        return Environment.getExternalStorageDirectory();
-                    case "home":
-                        return new File(Environment.getExternalStorageDirectory(),
-                            Environment.DIRECTORY_DOCUMENTS);
-                    default:
-                        return new File(Environment.getStorageDirectory(), storageType);
-                }
-            } else {
-                switch (storageType.toLowerCase()) {
-                    case "primary":
-                        return new File(Environment.getExternalStorageDirectory() + relativePath);
-                    case "home":
-                        return new File(Environment.getExternalStorageDirectory() + File.separator
+            if (hasColonSuffix(getSplit())) {
+                return switch (storageType.toLowerCase()) {
+                    case "primary" -> new File(
+                        Environment.getExternalStorageDirectory() + relativePath);
+                    case "home" -> new File(
+                        Environment.getExternalStorageDirectory() + File.separator
                             + Environment.DIRECTORY_DOCUMENTS + relativePath);
-                    default:
-                        return new File(Environment.getStorageDirectory(),
-                            storageType + relativePath);
-                }
+                    default -> new File(getStorageDirectory(), storageType + relativePath);
+                };
+            } else {
+                return switch (storageType.toLowerCase()) {
+                    case "primary" -> Environment.getExternalStorageDirectory();
+                    case
+                        "home" -> new File(Environment.getExternalStorageDirectory(),
+                        Environment.DIRECTORY_DOCUMENTS);
+                    default -> new File(getStorageDirectory(), storageType);
+                };
             }
         }
         return new File(Environment.getExternalStorageDirectory(), getDocumentId());
     }
 
-    /**
-     * Handles the resolution of the {@code Uri} to a file whose authority {@link
-     * StorageVolumeAuthority.DOWNLOAD}
-     *
-     * @return The File from the resolved {@code Uri}
-     * @see StorageVolumeAuthority.DOWNLOAD
-     */
     private File handleDownloadStorageAuth() {
         String id = getDocumentId();
 
@@ -225,25 +219,25 @@ public class FileUriMediator {
                 id = getStorageType();
             }
 
-            String[] segements = new String[]{
+            String[] segments = new String[]{
                 "content://downloads/public_downloads",
                 "content://downloads/my_downloads",
                 "content://downloads/all_downloads"
             };
 
-            for (String segement : segements) {
+            for (String segment : segments) {
                 try {
-                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse(segement),
-                        Long.valueOf(id));
+                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse(segment),
+                        Long.parseLong(id));
                     File file = new File(getDataColumn(contentUri));
-                    if (file != null && file.exists()) return file;
+                    if (file.exists()) return file;
                 } catch (Exception e) {
+                    String path = Objects.requireNonNull(uri.getPath());
                     // Ignore because in Android 8 and 9 the id is not a number
-                    File file = new File(uri
-                        .getPath()
+                    File file = new File(path
                         .replaceFirst("^/document/raw:", "")
                         .replaceFirst("^raw:", ""));
-                    if (file != null && file.exists()) return file;
+                    if (file.exists()) return file;
                 }
             }
         }
@@ -254,7 +248,6 @@ public class FileUriMediator {
     }
 
     private File handleMediaStorageAuth() {
-        final String docId = getDocumentId();
         final String type = getStorageType();
 
         Uri contentUri = null;
@@ -266,7 +259,9 @@ public class FileUriMediator {
         } else if ("audio".equals(type)) {
             contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         } else if ("document".equals(type)) {
-            contentUri = MediaStore.Files.getContentUri(MediaStore.getVolumeName(uri));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentUri = MediaStore.Files.getContentUri(MediaStore.getVolumeName(uri));
+            }
         } else {
             // Catch the case for pdfs and other "document" files.
             contentUri = MediaStore.Files.getContentUri("external");
@@ -275,15 +270,19 @@ public class FileUriMediator {
         final String selection = BaseColumns._ID + "=?";
         final String[] selectionArgs = new String[]{getRelativePath()};
 
-        return new File(getDataColumn(contentUri, selection, selectionArgs));
+        return new File(Objects.requireNonNull(getDataColumn(contentUri, selection,
+            selectionArgs)));
     }
 
+    @NonNull
     private File handleFileStorageAuth() {
-        return new File(uri.getPath());
+        String path = Objects.requireNonNull(uri.getPath());
+        return new File(path);
     }
 
+    @Nullable
     private File handleContentStorageAuth() {
-        return SDKUtil.isAtLeast(SDKUtil.API.ANDROID_10) ? null : new File(getDataColumn(uri));
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? null : new File(getDataColumn(uri));
     }
 
     public boolean isTreeUri() {
@@ -339,7 +338,7 @@ public class FileUriMediator {
                         return new File(Environment.getExternalStorageDirectory() + File.separator
                             + Environment.DIRECTORY_DOCUMENTS).getPath();
                     } else {
-                        return new File(Environment.getStorageDirectory(), getStorageType()).getPath();
+                        return new File(getStorageDirectory(), getStorageType()).getPath();
                     }
                 }
             } else {
@@ -382,7 +381,7 @@ public class FileUriMediator {
         String name = isContentUri() ? getDisplayName() : null;
         if (name != null) return name;
 
-        String path = uri.getPath();
+        String path = Objects.requireNonNull(uri.getPath());
         int lastSlash = path.lastIndexOf('/');
         return lastSlash != -1 ? path.substring(lastSlash + 1) : path;
     }
@@ -426,8 +425,9 @@ public class FileUriMediator {
                 .getType(uri);
         }
 
+        String path = Objects.requireNonNull(uri.getPath());
         String extension = MimeTypeMap.getFileExtensionFromUrl(Uri
-            .fromFile(new File(uri.getPath()))
+            .fromFile(new File(path))
             .toString());
         return MimeTypeMap
             .getSingleton()
@@ -475,6 +475,7 @@ public class FileUriMediator {
      *                      Strings.
      * @return The value of the _data column, which is typically a file path.
      */
+    @Nullable
     private String getDataColumn(Uri uri, String selection, String[] selectionArgs) {
         final String column = MediaStore.MediaColumns.DATA;
 
@@ -514,10 +515,10 @@ public class FileUriMediator {
             authorities.add(EXTERNAL);
             authorities.add(DOWNLOAD);
             authorities.add(MEDIA);
-            // authorities.add(WHATSAPP);
-            // authorities.add(GOOGLE_PHOTOS);
-            // authorities.add(GOOGLE_DRIVE);
-            // authorities.add(GOOGLE_DRIVE_LEGACY);
+            authorities.add(WHATSAPP);
+            authorities.add(GOOGLE_PHOTOS);
+            authorities.add(GOOGLE_DRIVE);
+            authorities.add(GOOGLE_DRIVE_LEGACY);
             authorities.add(CONTENT);
             authorities.add(FILE);
             authorities.add(Constants.APP_PACKAGE_NAME);

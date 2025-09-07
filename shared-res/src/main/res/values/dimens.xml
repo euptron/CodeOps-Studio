@@ -23,14 +23,113 @@
   -->
 
 <resources>
-    <!-- Text -->
-    <dimen name="alertIconDimen">8dp</dimen>
+    <!-- SP -->
+    <dimen name="dimen11sp">11sp</dimen>
+    <dimen name="dimen12sp">12sp</dimen>
     <dimen name="dimen14sp">14sp</dimen>
-    <dimen name="dimen24dp">24dp</dimen>
-    <dimen name="dimen22dp">22dp</dimen>
-    <dimen name="dimen25dp">25dp</dimen>
+    <dimen name="dimen16sp">16sp</dimen>
+    <dimen name="dimen18sp">18sp</dimen>
+    <dimen name="dimen20sp">20sp</dimen>
+    <dimen name="dimen22sp">22sp</dimen>
+    <dimen name="dimen24sp">24sp</dimen>
+    <dimen name="dimen26sp">26sp</dimen>
+    <dimen name="dimen28sp">28sp</dimen>
+    <dimen name="dimen30sp">30sp</dimen>
+    <dimen name="dimen32sp">32sp</dimen>
+    <dimen name="dimen34sp">34sp</dimen>
+    <dimen name="dimen36sp">36sp</dimen>
+    <dimen name="dimen38sp">38sp</dimen>
+    <dimen name="dimen40sp">40sp</dimen>
+    <dimen name="dimen42sp">42sp</dimen>
+    <dimen name="dimen44sp">44sp</dimen>
+    <dimen name="dimen46sp">46sp</dimen>
+    <dimen name="dimen48sp">48sp</dimen>
+    <dimen name="dimen50sp">50sp</dimen>
+    <dimen name="dimen52sp">52sp</dimen>
+    <dimen name="dimen54sp">54sp</dimen>
+    <dimen name="dimen56sp">56sp</dimen>
+    <dimen name="dimen58sp">58sp</dimen>
+    <dimen name="dimen60sp">60sp</dimen>
+    <dimen name="dimen62sp">62sp</dimen>
+    <dimen name="dimen64sp">64sp</dimen>
+    <dimen name="dimen66sp">66sp</dimen>
+    <dimen name="dimen68sp">68sp</dimen>
+    <dimen name="dimen70sp">70sp</dimen>
+    <dimen name="dimen72sp">72sp</dimen>
+    <dimen name="dimen74sp">74sp</dimen>
+    <dimen name="dimen76sp">76sp</dimen>
+    <dimen name="dimen78sp">78sp</dimen>
+    <dimen name="dimen80sp">80sp</dimen>
+    <dimen name="dimen82sp">82sp</dimen>
+    <dimen name="dimen84sp">84sp</dimen>
+    <dimen name="dimen86sp">86sp</dimen>
+    <dimen name="dimen88sp">88sp</dimen>
+    <dimen name="dimen90sp">90sp</dimen>
+    <dimen name="dimen92sp">92sp</dimen>
+    <dimen name="dimen94sp">94sp</dimen>
+    <dimen name="dimen96sp">96sp</dimen>
+    <dimen name="dimen98sp">98sp</dimen>
+    <dimen name="dimen100sp">100sp</dimen>
+    <!-- Display Pixel -->
+    <dimen name="alertIconDimen">@dimen/dimen8dp</dimen>
+    <dimen name="dimen1dp">1dp</dimen>
+    <dimen name="dimen2dp">2dp</dimen>
+    <dimen name="dimen4dp">4dp</dimen>
     <dimen name="dimen5dp">5dp</dimen>
+    <dimen name="dimen6dp">6dp</dimen>
+    <dimen name="dimen8dp">8dp</dimen>
+    <dimen name="dimen10dp">10dp</dimen>
+    <dimen name="dimen12dp">12dp</dimen>
+    <dimen name="dimen14dp">14dp</dimen>
+    <dimen name="dimen16dp">16dp</dimen>
+    <dimen name="dimen18dp">18dp</dimen>
+    <dimen name="dimen20dp">20dp</dimen>
+    <dimen name="dimen22dp">22dp</dimen>
+    <dimen name="dimen24dp">24dp</dimen>
+    <dimen name="dimen25dp">25dp</dimen>
+    <dimen name="dimen26dp">26dp</dimen>
+    <dimen name="dimen28dp">28dp</dimen>
+    <dimen name="dimen30dp">30dp</dimen>
+    <dimen name="dimen32dp">32dp</dimen>
+    <dimen name="dimen34dp">34dp</dimen>
+    <dimen name="dimen36dp">36dp</dimen>
+    <dimen name="dimen38dp">38dp</dimen>
+    <dimen name="dimen40dp">40dp</dimen>
+    <dimen name="dimen42dp">42dp</dimen>
+    <dimen name="dimen44dp">44dp</dimen>
+    <dimen name="dimen46dp">46dp</dimen>
+    <dimen name="dimen48dp">48dp</dimen>
     <dimen name="dimen50dp">50dp</dimen>
+    <dimen name="dimen52dp">52dp</dimen>
+    <dimen name="dimen54dp">54dp</dimen>
+    <dimen name="dimen56dp">56dp</dimen>
+    <dimen name="dimen58dp">58dp</dimen>
+    <dimen name="dimen60dp">60dp</dimen>
+    <dimen name="dimen62dp">62dp</dimen>
+    <dimen name="dimen64dp">64dp</dimen>
+    <dimen name="dimen66dp">66dp</dimen>
+    <dimen name="dimen68dp">68dp</dimen>
+    <dimen name="dimen70dp">70dp</dimen>
+    <dimen name="dimen72dp">72dp</dimen>
+    <dimen name="dimen74dp">74dp</dimen>
+    <dimen name="dimen76dp">76dp</dimen>
+    <dimen name="dimen78dp">78dp</dimen>
+    <dimen name="dimen80dp">80dp</dimen>
+    <dimen name="dimen82dp">82dp</dimen>
+    <dimen name="dimen84dp">84dp</dimen>
+    <dimen name="dimen86dp">86dp</dimen>
+    <dimen name="dimen88dp">88dp</dimen>
+    <dimen name="dimen90dp">90dp</dimen>
+    <dimen name="dimen92dp">92dp</dimen>
+    <dimen name="dimen94dp">94dp</dimen>
+    <dimen name="dimen96dp">96dp</dimen>
+    <dimen name="dimen98dp">98dp</dimen>
+    <dimen name="dimen100dp">100dp</dimen>
+    <!-- TextInput width -->
+    <dimen name="textinput_default_width">245dp</dimen>
+    <!-- Max button width, used in place of match_parent-->
+    <dimen name="button_default_width">320dp</dimen>
+    <dimen name="edit_text_max_width">488dp</dimen>
     <!-- Alpha dimensions for ripple overlays. -->
     <dimen name="ripple_pressed_alpha">0.12</dimen>
     <dimen name="ripple_focused_alpha">0.12</dimen>
@@ -38,19 +137,19 @@
     <dimen name="ripple_default_alpha">0.16</dimen>
     <dimen name="ripple_selectable_pressed_alpha">0.12</dimen>
     <!-- Change Log -->
-    <dimen name="alert_log_label_height">56dp</dimen>
-    <dimen name="alert_log_label_padding">8dp</dimen>
+    <dimen name="alert_log_label_height">@dimen/dimen56dp</dimen>
+    <dimen name="alert_log_label_padding">@dimen/dimen8dp</dimen>
     <!-- Log RecyclerView -->
-    <dimen name="log_recyclerview_left_padding">4dp</dimen>
-    <dimen name="log_recyclerview_right_padding">4dp</dimen>
-    <dimen name="log_recyclerview_top_padding">6dp</dimen>
-    <dimen name="log_recyclerview_bottom_padding">72dp</dimen>
+    <dimen name="log_recyclerview_left_padding">@dimen/dimen4dp</dimen>
+    <dimen name="log_recyclerview_right_padding">@dimen/dimen4dp</dimen>
+    <dimen name="log_recyclerview_top_padding">@dimen/dimen6dp</dimen>
+    <dimen name="log_recyclerview_bottom_padding">@dimen/dimen72dp</dimen>
     <!-- Primary SideBar Navigation Rail -->
-    <dimen name="primary_sidebar_item_min_height">60dp</dimen>
-    <dimen name="primary_sidebar_icon_size">22dp</dimen>
-    <dimen name="primary_sidebar_navigation_rail_width">60dp</dimen>
-    <dimen name="primary_side_bar_item_active_indicator_width">48dp</dimen>
-    <dimen name="primary_side_bar_item_active_indicator_height">24dp</dimen>
-    <dimen name="primary_side_bar_item_active_indicator_margin_horizontal">4dp</dimen>
+    <dimen name="primary_sidebar_item_min_height">@dimen/dimen60dp</dimen>
+    <dimen name="primary_sidebar_icon_size">@dimen/dimen22dp</dimen>
+    <dimen name="primary_sidebar_navigation_rail_width">@dimen/dimen60dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_width">@dimen/dimen48dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_height">@dimen/dimen24dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_margin_horizontal">@dimen/dimen4dp</dimen>
 </resources>
 

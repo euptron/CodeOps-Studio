@@ -38,8 +38,6 @@ import androidx.core.app.NotificationCompat;
 
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.common.util.SDKUtil;
-import com.eup.codeopsstudio.common.util.SDKUtil.API;
 import com.eup.codeopsstudio.observers.FileWatcher;
 import com.eup.codeopsstudio.observers.FileWatcher.OnFileChangeListener;
 import com.eup.codeopsstudio.res.R;
@@ -206,7 +204,7 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
 
         public void startMonitoring(File file) {
             if (!isMonitoring && file != null) {
-                if (SDKUtil.isAtLeast(API.ANDROID_10)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     fileWatcher = new FileWatcher(file, FileWatcherService.this);
                 } else {
                     fileWatcher = new FileWatcher(file.getAbsolutePath(), FileWatcherService.this);

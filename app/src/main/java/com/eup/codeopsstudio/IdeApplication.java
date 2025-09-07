@@ -35,12 +35,11 @@ import android.os.Process;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.common.util.SDKUtil;
-import com.eup.codeopsstudio.common.util.SDKUtil.API;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.ThrowableUtils;
 import com.eup.codeopsstudio.util.Wizard;
@@ -56,12 +55,14 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class IdeApplication extends Application implements Thread.UncaughtExceptionHandler {
 
     public static final String DEVICE_ARCHITECTURE_NOT_SUPPORTED = "Device Not Supported";
     public static final String TAG = IdeApplication.class.getSimpleName();
-
     private static final String ARM = "armeabi-v7a";
     private static final String AARCH64 = "arm64-v8a";
     private static final String I686 = "x86";
@@ -69,7 +70,9 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     private static final long SLEEP_DURATION = 2000; // milliseconds
     private static IdeApplication applicationInstance;
     private final StringBuilder errorMessage = new StringBuilder();
+    private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     private FirebaseCrashlytics crashlytics;
+    private CompletableFuture<Void> editorConfigFuture;
 
     public static IdeApplication getInstance() {
         return applicationInstance;
@@ -114,10 +117,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         return getGlobalContext().getSystemService(name);
     }
 
-    public static boolean isAppInDebugMode() {
-        return BuildConfig.DEBUG;
-    }
-
+    @NonNull
     public static FirebaseAnalytics getAnalytics() {
         return FirebaseAnalytics.getInstance(getGlobalContext());
     }
@@ -151,9 +151,13 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
             .contains(X86_64);
     }
 
+    public CompletableFuture<Void> getEditorConfigFuture() {
+        return editorConfigFuture;
+    }
+
     @Override
     public void onCreate() {
-        ILog.mode(BuildConfig.DEBUG);
+        ILog.mode(isAppInDebugMode());
         super.onCreate();
         applicationInstance = this;
         ContextManager.initialize(getGlobalContext());
@@ -168,12 +172,11 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         validateExpirationDate();
         changeTheme(PreferencesUtils.getCurrentTheme());
         applyDynamicColor();
-        try {
-            ContextualCodeEditor.loadConfigurations(this);
-        } catch (Exception e) {
-            crashlytics.recordException(e);
-            ILog.error(TAG, "Failed to code editor configurations", e);
-        }
+        editorConfigFuture = initializeEditorConfigurationsInBackground();
+    }
+
+    public static boolean isAppInDebugMode() {
+        return BuildConfig.DEBUG;
     }
 
     public void changeTheme(int themeMode) {
@@ -181,7 +184,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     }
 
     private void applyDynamicColor() {
-        if (!SDKUtil.isAtLeast(API.ANDROID_12)) return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
 
         final Precondition precondition = (activity, theme) -> PreferencesUtils.useDynamicColors();
         DynamicColors.applyToActivitiesIfAvailable(this, new DynamicColorsOptions.Builder()
@@ -210,6 +213,27 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
 
     private boolean userHasConsentedToDataSharing() {
         return PreferencesUtils.canShareAnynomousStatistics();
+    }
+
+    @NonNull
+    private CompletableFuture<Void> initializeEditorConfigurationsInBackground() {
+        return CompletableFuture
+            .runAsync(() -> {
+                try {
+                    ContextualCodeEditor.loadConfigurations(IdeApplication.this);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }, backgroundExecutor)
+            .whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
+                if (throwable != null) {
+                    crashlytics.recordException(throwable);
+                    ILog.error(TAG, "Failed to load code editor configurations in background",
+                        throwable);
+                } else {
+                    ILog.info(TAG, "Code editor configurations loaded successfully.");
+                }
+            }));
     }
 
     @Override

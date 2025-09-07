@@ -34,7 +34,9 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.content.ContextCompat;
 
+import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
@@ -67,6 +69,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.PatternSyntaxException;
 
 import io.github.rosemoe.sora.event.ContentChangeEvent;
@@ -129,6 +132,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
         logger.attach(requireActivity() /*shared activity scope*/);
+
         PreferencesUtils
             .getDefaultPreferences()
             .registerOnSharedPreferenceChangeListener(this);
@@ -159,7 +163,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         }
 
         readFile(mEditorFile);
-        configureEditor();
+        checkEditorConfigurations();
     }
 
     @Override
@@ -511,7 +515,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         };
     }
 
-    private void configureEditor() {
+    private void enableEditorFeatures() {
         binding.searchPanel.searchInput.addTextChangedListener(new TextWatcherAdapter() {
             @Override
             public void afterTextChanged(@NonNull Editable s) {
@@ -710,5 +714,23 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         Charset encoding = EncodingDetector.getEncoding(PreferencesUtils.getDefaultFileEncoding());
         FileUtils.writeStringToFile(file, content, encoding);
         setModified(false);
+    }
+
+    private void checkEditorConfigurations() {
+        IdeApplication app = IdeApplication.getInstance();
+        CompletableFuture<Void> configFuture = app.getEditorConfigFuture();
+
+        getEditor().setIndexing(true);
+
+        configFuture.thenAcceptAsync(aVoid -> {
+            getEditor().setIndexing(false);
+            enableEditorFeatures();
+        }, ContextCompat.getMainExecutor(requireContext()));
+
+        configFuture.exceptionally(throwable -> {
+            getEditor().setIndexing(false);
+            logger.e(TAG, getString(R.string.failed_to_init_editor));
+            return null;
+        });
     }
 }

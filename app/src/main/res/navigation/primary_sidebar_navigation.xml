@@ -36,8 +36,8 @@
     <!-- Implement Plugins & Version source control -->
     <fragment
         android:id="@+id/nav_vscFragment"
-        android:name="com.eup.codeopsstudio.ui.explore.Vscfragment"
-        android:label="Vscfragment"
+        android:name="com.eup.codeopsstudio.ui.explore.VersionSourceControlFragment"
+        android:label="VersionSourceControlFragment"
         tools:layout="@layout/fragment_vsc" />
     <fragment
         android:id="@+id/nav_pluginFragment"

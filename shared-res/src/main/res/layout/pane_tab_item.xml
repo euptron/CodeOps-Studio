@@ -26,42 +26,43 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:padding="@dimen/dimen8dp">
 
     <ImageView
         android:id="@+id/tab_icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="@dimen/dimen24dp"
+        android:layout_height="@dimen/dimen24dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
-        android:contentDescription="@null"
+        android:layout_marginLeft="@dimen/dimen2dp"
+        android:layout_marginRight="@dimen/dimen2dp"
         android:scaleType="centerInside"
-        android:src="@drawable/ic_westudio"
-        android:visibility="gone" />
+        android:src="@drawable/ic_codeopsstudio"
+        android:visibility="gone"
+        android:contentDescription="@string/tab_icon_desc" />
 
     <TextView
         android:id="@+id/tab_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="1dp"
-        android:layout_marginRight="1dp"
+        android:layout_marginLeft="@dimen/dimen1dp"
+        android:layout_marginRight="@dimen/dimen1dp"
         android:layout_weight="1"
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="2"
-        android:textSize="12sp" />
+        android:textSize="@dimen/dimen12sp" />
 
     <ImageButton
         android:id="@+id/pane_action_button"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
+        android:layout_width="@dimen/dimen18dp"
+        android:layout_height="@dimen/dimen18dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
+        android:layout_marginLeft="@dimen/dimen2dp"
+        android:layout_marginRight="@dimen/dimen2dp"
         android:background="@android:color/transparent"
         android:scaleType="centerInside"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:contentDescription="@string/pane_action_button_desc" />
 
 </LinearLayout>

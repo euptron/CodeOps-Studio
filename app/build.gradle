@@ -122,6 +122,10 @@ android {
 }
 
 dependencies {
+    // Override Glide version used by 'firebase-inappmessaging-display' to fix startup warnings.
+    implementation (libs.other.glide)
+    annotationProcessor(libs.other.glide.compiler)
+
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.preference)
     implementation(libs.androidx.splashscreen)

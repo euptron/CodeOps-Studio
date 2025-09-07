@@ -30,12 +30,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
@@ -45,14 +44,11 @@ import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.common.util.SDKUtil;
-import com.eup.codeopsstudio.common.util.SDKUtil.API;
 import com.eup.codeopsstudio.databinding.ActivityMainBinding;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.firebase.analytics.FirebaseAnalytics;
 
 /**
  * Main UI host
@@ -63,22 +59,19 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String MANAGE_EXTERNAL_STORAGE_PERMISSION =
         "android" + ":manage_external_storage";
-    public static final String NOT_APPLICABLE = "N/A";
     public static final String TAG = MainActivity.class.getSimpleName();
     private static final String KEY_REQUEST_STORAGE_PERMISSION_API_30 = "0xf2ee";
     private static final String KEY_REQUEST_STORAGE_PERMISSION_API_19 = "0xf11e";
-    private static final String KEY_REQUEST_NOTIFICATION_PERMISSION_API_30 = "0xf23e";
+    private static final String KEY_REQUEST_NOTIFICATION_PERMISSION_API_33 = "0xf23e";
 
-    private ActivityMainBinding binding;
     private ContextualLifecycleObserver lifecycleObserver;
     private ActivityResultLauncher<Intent> requestStoragePermissionLauncherApi30;
     private ActivityResultLauncher<String[]> requestStoragePermissionLauncherApi19;
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private ActivityResultLauncher<String> requestNotificationPermissionLauncherApi33;
 
-    private FirebaseAnalytics mFirebaseAnalytics;
-
     public static String getStoragePermissionName() {
-        return (SDKUtil.isAtLeast(API.ANDROID_11)) ? MANAGE_EXTERNAL_STORAGE_PERMISSION
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? MANAGE_EXTERNAL_STORAGE_PERMISSION
             : Manifest.permission.READ_EXTERNAL_STORAGE.concat(", ")
                 + Manifest.permission.WRITE_EXTERNAL_STORAGE;
     }
@@ -87,29 +80,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         lifecycleObserver = new ContextualLifecycleObserver(this, getActivityResultRegistry(),
             this);
         getLifecycle().addObserver(lifecycleObserver);
-        // Obtain the FirebaseAnalytics instance.
-        // The SDK can now launchWithLocalHost automatically logging some events and user
-        // properties; you don't
-        // have to add any additional code to enable this logging.
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         requestStoragePermissionLauncherApi30 =
             getActivityResultRegistry().register(KEY_REQUEST_STORAGE_PERMISSION_API_30, this,
-                new ActivityResultContracts.StartActivityForResult(),
-                new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult result) {
-                if (result != null) {
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     if (!isStoragePermissionGrantedApi30()) {
-                        showStoragePermissionDeniedDialog(() -> {
-                            requestStoragePermissionApi30();
-                        }, () -> {
+                        showStoragePermissionDeniedDialog(this::requestStoragePermissionApi30,
+                            () -> {
                             finishAffinity();
                             System.exit(0);
                         });
@@ -122,28 +107,29 @@ public class MainActivity extends AppCompatActivity {
             getActivityResultRegistry().register(KEY_REQUEST_STORAGE_PERMISSION_API_19, this,
                 new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
             if (isGranted.containsValue(false)) {
-                showStoragePermissionDeniedDialog(() -> {
-                    requestStoragePermissionApi19();
-                }, () -> {
+                showStoragePermissionDeniedDialog(this::requestStoragePermissionApi19, () -> {
                     finishAffinity();
                     System.exit(0);
                 });
             }
         });
 
-        requestNotificationPermissionLauncherApi33 =
-            getActivityResultRegistry().register(KEY_REQUEST_NOTIFICATION_PERMISSION_API_30, this
-                , new ActivityResultContracts.RequestPermission(), isGranted -> {
-            if (Boolean.TRUE.equals(isGranted)) {
-                BaseUtil.toastLong(R.string.msg_notification_permission_granted);
-            } else {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                    showNotificationPermissionRationale();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermissionLauncherApi33 =
+                getActivityResultRegistry().register(KEY_REQUEST_NOTIFICATION_PERMISSION_API_33,
+                    this, new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (Boolean.TRUE.equals(isGranted)) {
+                    BaseUtil.toastLong(R.string.msg_notification_permission_granted);
                 } else {
-                    showNotificationSettingsRationale();
+                    if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                        showNotificationPermissionRationale();
+                    } else {
+                        showNotificationSettingsRationale();
+                    }
                 }
-            }
-        });
+            });
+        }
+
         showMainFragment();
     }
 
@@ -157,52 +143,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(30)
-    private boolean isStoragePermissionGrantedApi30() {
-        return
-            (ActivityCompat.checkSelfPermission(this,
-                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                == PackageManager.PERMISSION_GRANTED) || (
-                ActivityCompat.checkSelfPermission(this,
-                    Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    == PackageManager.PERMISSION_GRANTED) || Environment.isExternalStorageManager();
-    }
-
-    @RequiresApi(30)
-    private void requestStoragePermissionApi30() {
-        try {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-            Uri uri = Uri.fromParts("package", getPackageName(), null);
-            intent.setData(uri);
-            requestStoragePermissionLauncherApi30.launch(intent);
-        } catch (ActivityNotFoundException anfe) {
-            try {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                Uri uri = Uri.fromParts("package", getPackageName(), null);
-                intent.setData(uri);
-                requestStoragePermissionLauncherApi30.launch(intent);
-            } catch (Exception e) {
-                BaseUtil.toastLong(R.string.storage_permission_denied);
-            }
-        } catch (Exception e) {
-            ILog.error(TAG, "Failed to request permission to grant access to all files", e);
-            BaseUtil.toastLong(R.string.storage_permission_denied);
-        }
-    }
-
-    @RequiresApi(19)
-    private void requestStoragePermissionApi19() {
-        final String[] permissions = new String[]{
-            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
-        };
-        requestStoragePermissionLauncherApi19.launch(permissions);
-    }
-
     private void showStoragePermissionDeniedDialog(Runnable positiveAction,
         Runnable negativeAction) {
         new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.storage_permission_denied)
-            .setMessage(getString(R.string.storage_permission_denial_prompt, R.string.app_name))
+            .setMessage(getString(R.string.storage_permission_denial_prompt,
+                getString(R.string.app_name)))
             .setPositiveButton(R.string.storage_permission_request_again, (d, which) -> {
                 if (positiveAction != null) {
                     positiveAction.run();
@@ -221,25 +167,41 @@ public class MainActivity extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.msg_grant_notification_permission)
             .setMessage(R.string.msg_request_notification_rationale)
-            .setPositiveButton(R.string.ok_turn_on, (d, which) -> {
-                launchDeviceSettingsActivity(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-            })
+            .setPositiveButton(R.string.ok_turn_on,
+                (d, which) -> launchDeviceSettingsActivity(Settings.ACTION_APP_NOTIFICATION_SETTINGS))
             .setNegativeButton(R.string.cancel, null)
             .setCancelable(false)
             .show();
     }
 
     private void launchDeviceSettingsActivity(String section) {
-        startActivity(new Intent(section, Uri.fromParts("package", getPackageName(), null)));
+        String packageName = getPackageName();
+        ILog.debug(TAG, "Package Name for settings: " + packageName);
+        if (packageName == null || packageName.isEmpty()) {
+            ILog.error(TAG, "Package name is null or empty. Cannot launch settings.");
+            BaseUtil.toastLong("Error: Could not determine package name.");
+            return;
+        }
+
+        try {
+            startActivity(new Intent(section, Uri.fromParts("package", getPackageName(), null)));
+        } catch (ActivityNotFoundException e) {
+            var msg = "Could not open " + section;
+            ILog.error(TAG, msg);
+            BaseUtil.toastLong("Error: " + msg);
+
+            if (!section.equals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)) {
+                launchDeviceSettingsActivity();
+            }
+        }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void showNotificationPermissionRationale() {
         new MaterialAlertDialogBuilder(this)
             .setTitle(R.string.msg_grant_notification_permission)
             .setMessage(R.string.msg_request_notification_rationale)
-            .setPositiveButton(R.string.ok, (d, which) -> {
-                requestNotificationPermissionLauncherApi33.launch(Manifest.permission.POST_NOTIFICATIONS);
-            })
+            .setPositiveButton(R.string.ok, (d, which) -> requestNotificationPermission())
             .setNegativeButton(R.string.cancel, null)
             .setCancelable(false)
             .show();
@@ -263,11 +225,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean isStoragePermissionGranted() {
-        return (SDKUtil.isAtLeast(API.ANDROID_11)) ? isStoragePermissionGrantedApi30()
+        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ? isStoragePermissionGrantedApi30()
             : isStoragePermissionGrantedApi19();
     }
 
-    @RequiresApi(19)
+    @RequiresApi(30)
+    private boolean isStoragePermissionGrantedApi30() {
+        return
+            (ActivityCompat.checkSelfPermission(this,
+                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                == PackageManager.PERMISSION_GRANTED) || (
+                ActivityCompat.checkSelfPermission(this,
+                    Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    == PackageManager.PERMISSION_GRANTED) || Environment.isExternalStorageManager();
+    }
+
     private boolean isStoragePermissionGrantedApi19() {
         int readStatus = ContextCompat.checkSelfPermission(this,
             Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -279,15 +251,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void requestStoragePermission() {
-        if (SDKUtil.isAtLeast(API.ANDROID_11)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             requestStoragePermissionApi30();
         } else {
             requestStoragePermissionApi19();
         }
     }
 
-    public void openPermissionSettings() {
-        if (SDKUtil.isAtLeast(API.ANDROID_11)) {
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    private void requestStoragePermissionApi30() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            Uri uri = Uri.fromParts("package", getPackageName(), null);
+            intent.setData(uri);
+            requestStoragePermissionLauncherApi30.launch(intent);
+        } catch (ActivityNotFoundException anfe) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                requestStoragePermissionLauncherApi30.launch(intent);
+            } catch (Exception e) {
+                BaseUtil.toastLong(R.string.storage_permission_denied);
+            }
+        } catch (Exception e) {
+            ILog.error(TAG, "Failed to request permission to grant access to all files", e);
+            BaseUtil.toastLong(R.string.storage_permission_denied);
+        }
+    }
+
+    private void requestStoragePermissionApi19() {
+        final String[] permissions = new String[]{
+            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
+        };
+        requestStoragePermissionLauncherApi19.launch(permissions);
+    }
+
+    public void openStoragePermissionSettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             requestStoragePermissionApi30();
         } else {
             launchDeviceSettingsActivity();
@@ -299,47 +300,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void ensureNotificationPermissionGranted() {
-        if (SDKUtil.isAtLeast(API.ANDROID_13)) {
-            if (!isNotificationPermissionGranted()) {
-                requestNotificationPermission();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (isNotificationPermissionGranted()) {
+                showNotificationSettingsRationaleIfAllowed();
             } else {
-                if (!areNotificationsAllowed()) {
-                    showNotificationSettingsRationale();
-                }
+                requestNotificationPermission();
             }
         } else {
-            if (!areNotificationsAllowed()) {
-                showNotificationSettingsRationale();
-            }
+            showNotificationSettingsRationaleIfAllowed();
         }
     }
 
-    @RequiresApi(33)
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private boolean isNotificationPermissionGranted() {
         int grantStatus = ContextCompat.checkSelfPermission(this,
             Manifest.permission.POST_NOTIFICATIONS);
         return grantStatus == PackageManager.PERMISSION_GRANTED;
     }
 
-    private boolean areNotificationsAllowed() {
-        NotificationManager notificationManager =
-            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (SDKUtil.isAtLeast(API.ANDROID_7)) {
-            return notificationManager.areNotificationsEnabled();
-        } else {
-            return true;
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void requestNotificationPermission() {
+        try {
+            requestNotificationPermissionLauncherApi33.launch(Manifest.permission.POST_NOTIFICATIONS);
+        } catch (ActivityNotFoundException e) {
+            BaseUtil.toastLong(R.string.msg_no_handle_activity_found);
         }
     }
 
-    @RequiresApi(33)
-    private void requestNotificationPermission() {
-        if (SDKUtil.isAtLeast(API.ANDROID_13)) {
-            try {
-                requestNotificationPermissionLauncherApi33.launch(Manifest.permission.POST_NOTIFICATIONS);
-            } catch (ActivityNotFoundException e) {
-                BaseUtil.toastLong(R.string.msg_no_handle_activity_found);
-            }
+    private void showNotificationSettingsRationaleIfAllowed() {
+        if (areNotificationsAllowed()) {
+            ILog.debug(TAG, "Notifications allowed");
+        } else {
+            showNotificationSettingsRationale();
         }
+    }
+
+    private boolean areNotificationsAllowed() {
+        NotificationManager notificationManager =
+            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        return notificationManager.areNotificationsEnabled();
     }
 }

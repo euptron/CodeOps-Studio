@@ -48,7 +48,7 @@ public class User {
     }
 
     public User(String uniqueID, String firstLaunchTimeID, DeviceInfo deviceInfo,
-                Locale preferredLocale, String preferredDateFormat) {
+        Locale preferredLocale, String preferredDateFormat) {
         this.uniqueID            = uniqueID;
         this.firstLaunchTimeID   = firstLaunchTimeID;
         this.deviceInfo          = deviceInfo;
@@ -118,9 +118,10 @@ public class User {
         return this.deviceInfo;
     }
 
-    /*
+    /**
      * TODO: implement multi-language functionality.
-     *<p> This locale should be initialized with the selected human language
+     * <p> This locale should be initialized with the selected human language
+     *
      * @return the preferred locale of the e.g new Locale("en", "NG")
      */
     public Locale getPreferredLocale() {

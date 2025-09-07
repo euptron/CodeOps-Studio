@@ -25,6 +25,7 @@ package com.eup.codeopsstudio.ui.settings;
 
 import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -34,8 +35,6 @@ import androidx.preference.SwitchPreferenceCompat;
 
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.common.util.SDKUtil;
-import com.eup.codeopsstudio.common.util.SDKUtil.API;
 import com.eup.codeopsstudio.res.R;
 import com.google.android.material.transition.MaterialSharedAxis;
 
@@ -57,7 +56,7 @@ public class GeneralConfigurationFragment extends PreferenceFragmentCompat {
         SwitchPreferenceCompat switchPreferenceCompat =
             findPreference(SharedPreferenceKeys.KEY_DYNAMIC_COLOURS);
 
-        if (!SDKUtil.isAtLeast(API.ANDROID_12)) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             switchPreferenceCompat.setEnabled(false);
             switchPreferenceCompat.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
         }

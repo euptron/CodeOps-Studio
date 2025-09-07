@@ -235,11 +235,11 @@ public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
     }
 
     private boolean isInValidUriAuthority(String authority) {
-        if (!FileUriMediator.isAllowedAuthority(authority)) {
+        if (FileUriMediator.isAllowedAuthority(authority)) {
+            return false;
+        } else {
             toast(context.getString(R.string.msg_unsupported_authority_generic));
             return true;
-        } else {
-            return false;
         }
     }
 

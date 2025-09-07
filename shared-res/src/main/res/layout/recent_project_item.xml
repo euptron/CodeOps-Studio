@@ -27,13 +27,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/base_ripple"
-    android:padding="8dp">
+    android:padding="@dimen/dimen8dp">
 
     <ImageView
         android:id="@+id/file_icon"
         android:layout_width="@dimen/dimen24dp"
         android:layout_height="@dimen/dimen24dp"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true"
+        android:contentDescription="@string/project_icon_desc" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -49,8 +50,7 @@
             android:id="@+id/file_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:textSize="13sp"
+            android:textSize="@dimen/dimen12sp"
             android:textStyle="bold"
             tools:text="CodeOps Studio Projects" />
 
@@ -58,11 +58,10 @@
             android:id="@+id/file_path"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
             android:ellipsize="marquee"
-            android:textSize="10sp"
+            android:maxLines="1"
+            android:textSize="@dimen/dimen11sp"
             android:textStyle="italic"
             tools:text="/storage/emulated/0/CodeOps Studio Projects/" />
     </LinearLayout>
-
 </RelativeLayout>

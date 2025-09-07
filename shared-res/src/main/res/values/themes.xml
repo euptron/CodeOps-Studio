@@ -57,7 +57,7 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowLightStatusBar" >true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <!-- Custom Styling -->
         <item name="android:fontFamily">@font/westudio_font</item>
@@ -66,6 +66,7 @@
         <!--item name="alertDialogTheme">@style/AppTheme.MaterialAlertDialog</item-->
         <!--item name="dialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item-->
         <item name="dialogCornerRadius">28dp</item>
+        <item name="preferenceTheme">@style/AppTheme.Preference.ThemeOverlay</item>
     </style>
 
     <style name="AppTheme.NightBased.Splash" parent="Theme.SplashScreen">

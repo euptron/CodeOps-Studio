@@ -278,15 +278,15 @@ public class LiveServer {
         private static final int DEFAULT_PORT = 2005;
 
         public Server() {
-            this(LOCAL_HOST, DEFAULT_PORT);
-        }
-
-        public Server(String hostName, int port) {
-            super(hostName, port);
+            this(DEFAULT_PORT);
         }
 
         public Server(int port) {
             this(LOCAL_HOST, port);
+        }
+
+        public Server(String hostName, int port) {
+            super(hostName, port);
         }
 
         @Override

@@ -68,6 +68,14 @@ public class Project {
         return this.file.getName();
     }
 
+    public boolean isDirectory() {
+        return this.file.isDirectory();
+    }
+
+    public boolean isFile() {
+        return this.file.isFile();
+    }
+
     @NonNull
     public File getFile() {
         return this.file;
@@ -84,6 +92,10 @@ public class Project {
     @Nullable
     public ProjectHistory getHistory() {
         return this.history;
+    }
+
+    public long getLastModified() {
+        return file.lastModified();
     }
 
     public boolean exists() {

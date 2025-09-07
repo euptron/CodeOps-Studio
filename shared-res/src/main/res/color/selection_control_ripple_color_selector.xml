@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of CodeOps Studio.
+  ~ CodeOps Studio - Code anywhere anytime
+  ~ https://github.com/euptron/CodeOps-Studio
+  ~ Copyright (C) 2024-2025 Etido Peter
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program. If not, see https://www.gnu.org/licenses/
+  ~
+  ~ If you have more questions, feel free to message Etido Peter if you have any
+  ~ questions or need additional information. Email: etido.up@gmail.com
+  -->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Checked. -->
+    <!-- Uses the on surface state layer since tapping a checked selection control
+        will turn it to the unchecked color. -->
+    <item android:alpha="@dimen/ripple_pressed_alpha"
+        android:color="?attr/colorOnSurface"
+        android:state_pressed="true" android:state_checked="true"/>
+    <item android:alpha="@dimen/ripple_focused_alpha"
+        android:color="?attr/colorPrimary"
+        android:state_focused="true" android:state_checked="true"/>
+    <item android:alpha="@dimen/ripple_hovered_alpha"
+        android:color="?attr/colorPrimary"
+        android:state_hovered="true" android:state_checked="true"/>
+    <item android:alpha="@dimen/ripple_default_alpha"
+        android:color="?attr/colorPrimary"
+        android:state_checked="true"/>
+
+    <!-- Unchecked. -->
+    <!-- Uses the primary state layer since tapping an unchecked selection
+        control will turn it to the checked color. -->
+    <item android:alpha="@dimen/ripple_pressed_alpha"
+        android:color="?attr/colorPrimary"
+        android:state_pressed="true"/>
+    <item android:alpha="@dimen/ripple_focused_alpha"
+        android:color="?attr/colorOnSurface"
+        android:state_focused="true"/>
+    <item android:alpha="@dimen/ripple_hovered_alpha"
+        android:color="?attr/colorOnSurface"
+        android:state_hovered="true"/>
+    <item android:alpha="@dimen/ripple_default_alpha"
+        android:color="?attr/colorOnSurface"/>
+</selector>

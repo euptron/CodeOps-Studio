@@ -41,7 +41,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -55,11 +54,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.common.util.Archive;
+import com.eup.codeopsstudio.common.archive.ZIPArchive;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.common.util.SDKUtil;
-import com.eup.codeopsstudio.common.util.SDKUtil.API;
 import com.eup.codeopsstudio.databinding.FragmentMainBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
@@ -150,7 +147,6 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     private OnBackPressedCallback onBackPressedCallback;
     private FileViewModel fileViewModel;
 
-    @VisibleForTesting
     public static MainFragment newInstance() {
         return new MainFragment();
     }
@@ -202,6 +198,9 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         mainViewModel
             .getToolbarSubTitle()
             .observe(getViewLifecycleOwner(), binding.toolbar::setSubtitle);
+        mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(),
+            file -> invalidateMenu());
+        mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
 
         FirebaseApp.initializeApp(requireContext());
 
@@ -453,8 +452,11 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         try {
             logger.i(LOG_TAG, getString(R.string.msg_installing_js_console_plugins));
             int bufferSize = PreferencesUtils.getCurrentBufferSize();
-            Archive.unzipFromAssets(requireContext(), bufferSize, "plugins/eruda.min.zip",
-                FileUtil.Path.PLUGINS_FOLDER);
+            String asset = "plugins/eruda.min.zip";
+
+            File destDir = FileUtil.Path.PLUGINS_FOLDER;
+            var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize);
+            archive.unzip();
         } catch (IOException e) {
             logger.e(LOG_TAG, "Plugin installation failed: " + e.getMessage());
         }
@@ -495,10 +497,8 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             for (MenuItem item : menuBuilder.getVisibleItems()) {
                 int iconMarginPx = BaseUtil.dp(MENU_ICON_MARGIN);
                 if (item.getIcon() != null) {
-                    if (SDKUtil.isGreaterThan(API.ANDROID_5)) {
-                        item.setIcon(new InsetDrawable(item.getIcon(), iconMarginPx, 0,
-                            iconMarginPx, 0));
-                    }
+                    item.setIcon(new InsetDrawable(item.getIcon(), iconMarginPx, 0, iconMarginPx,
+                        0));
                 }
             }
         }

@@ -65,6 +65,8 @@
     <string name="relative_close_all">All</string>
     <string name="untitled">Untitled</string>
     <string name="share">Share</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
     <string name="sdk_version">SDK version</string>
     <string name="about">About</string>
     <string name="about_template">About template</string>
@@ -72,6 +74,7 @@
     <string name="redo">Redo</string>
     <string name="failed">Failed</string>
     <string name="next">Next</string>
+    <string name="speed">Speed</string>
     <string name="welcome">Welcome</string>
     <string name="empty_editor">Empty Editor</string>
     <string name="explorer">explorer</string>
@@ -107,7 +110,13 @@
     <string name="folder">Folder</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="processed">Processed</string>
+    <string name="unzip_canceled">Unzip canceled</string>
+    <string name="unzip_dialog_fragment_title">Unzipping Files</string>
+    <string name="extracting">Extracting</string>
     <string name="reset">Reset</string>
     <string name="file">File</string>
     <string name="files">Files</string>
@@ -151,9 +160,10 @@
     <string name="copy_file_path">Copy file path</string>
     <string name="no_folder_opened_prompt"> You have not yet opened a folder.</string>
     <string name="no_folder_opened_aux_prompt">You can also create a new project from the in-built templates.</string>
-    <string name="build_actions_prompt">Swipe up for buid output, terminal and more.</string>
+    <string name="build_actions_prompt">Swipe up for build output, terminal and more.</string>
     <string name="navigation_drawer_open">Open Navigation Drawer</string>
     <string name="navigation_drawer_close">Close Navigation Drawer</string>
+    <string name="cannot_open_invalid_document">Cannot open invalid document</string>
     <!-- Menus -->
     <string name="menu_copy_line">Copy line</string>
     <string name="menu_cut_line">Cut line</string>
@@ -177,7 +187,7 @@
     <string name="storage_permission_cancel">@string/cancel</string>
     <string name="storage_permission_denied">Storage permission denied!</string>
     <string name="storage_permission_request_again">@string/request_again</string>
-    <string name="storage_permission_denial_prompt">This application needs storage premission to save files and projects that wouldn\'t be deleted when you uninstall the app.</string>
+    <string name="storage_permission_denial_prompt">This application needs storage permission to save files and projects that wouldn\'t be deleted when you uninstall %s.</string>
     <string name="delete_file_title">@string/delete</string>
     <string name="delete_file_message">Do you want to delete\n `%s?`</string>
     <string name="delete_folder_message">Do you want to delete\n `%s` and it\'s contents?</string>
@@ -277,6 +287,9 @@
     <string name="history">History</string>
     <string name="drag_up_for_logs">Drag up for logs</string>
     <!-- Message and prompt -->
+    <string name="msg_speed">Speed: %s</string>
+    <string name="msg_items_progress">Items: %1$d / %2$d</string>
+    <string name="msg_items_left">Items Left: %1$d</string>
     <string name="msg_error_occurred">Oops! an error occurred</string>
     <string name="msg_storage_permission_request">%1$s needs to access your device storage in order to manage project files.</string>
     <string name="msg_folder_exists">Folder already exists</string>
@@ -296,7 +309,7 @@
     <string name="msg_confirm_delete">Are you sure you want to delete: %s?</string>
     <string name="msg_rename">Enter new name for %s.</string>
     <string name="msg_out_of_memory">Out of memory</string>
-    <string name="msg_unzip_project_into_dir_based_on_project_name">If the project name is empty the file would be unzipped into the selected directory otherwise a directory based on the project name would be created for which the file would ne unzipped into.</string>
+    <string name="msg_unzip_project_into_dir_based_on_project_name">If the project name is empty, the file would be unzipped into the selected directory otherwise a directory based on the project name would be created for which the file would be unzipped into.</string>
     <string name="msg_git_task_clone">Git Clone</string>
     <string name="msg_git_invalid_remote_error">Invalid remote used for Git %s</string>
     <string name="msg_git_transport_error">Git %s transport error</string>
@@ -324,6 +337,7 @@
     <string name="msg_invalid_jump_line">Line to jump to is out of range</string>
     <string name="msg_crash_report">Crash Report</string>
     <string name="msg_restart_app">Restart app</string>
+    <string name="msg_file_does_not_exist">File %s does not exist</string>
     <string name="msg_app_crashed">Apologies for the inconvenience.\n\n The app has encountered an unexpected error and needs to close.\n Please restart the app to continue your session.\n A detailed crash report will be automatically sent for review.\n Thank you for your patience and understanding.</string>
     <string name="msg_no_directory_selected">No directory selected</string>
     <string name="msg_unsupported_authority_generic">Resource access denied (unsupported authority).</string>
@@ -507,6 +521,14 @@
     <string name="pref_general_config_buffer_size_title">Buffer size</string>
     <string name="pref_general_config_buffer_size_summ">Number KiloBytes allocated to IO operations.</string>
     <!-- Content descriptions. -->
+    <string name="project_icon_desc">Project icon</string>
+    <string name="tab_icon_desc">Tab icon</string>
+    <string name="pane_action_button_desc">Pane action button</string>
+    <string name="file_tree_item_icon_desc">File tree item icon</string>
+    <string name="material_slider_desc">Material slider</string>
+    <string name="alert_icon_desc">Alert icon</string>
+    <string name="text_input_name_desc">Text input for name</string>
+    <string name="text_input_other_desc">Text input for other information</string>
     <string name="act_sheet_extended_fab_content_desc" translatable="false">Extended FAB</string>
     <!-- Code Editor -->
     <string name="editor_clip_text_length_too_large">Text is too large to copy</string>
@@ -522,4 +544,13 @@
     <string name="file_watcher_desc">Monitoring file system for changes</string>
     <string name="ok_turn_on">OK Turn on</string>
     <string name="completion_result_item_icon">completion result item icon</string>
+    <string name="failed_to_init_editor">Failed to initialize the code editor</string>
+    <string name="name">Name\n</string>
+    <string name="breadcrumb_icon_desc">Bread Crumb</string>
+    <string name="expand_selection">Expand selection</string>
+    <string name="select_all">Select all</string>
+    <string name="copy_text">Copy text</string>
+    <string name="paste_text">Paste text</string>
+    <string name="long_select">Long select</string>
+    <string name="cut_text">Cut text</string>
 </resources>

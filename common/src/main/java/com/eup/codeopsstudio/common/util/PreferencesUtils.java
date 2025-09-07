@@ -23,10 +23,9 @@
 
 package com.eup.codeopsstudio.common.util;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
@@ -91,8 +90,8 @@ public class PreferencesUtils {
      * @return The selected theme.
      */
     public static int getCurrentTheme() {
-        var selectedTheme = getDefaultPreferences().getString(SharedPreferenceKeys.KEY_APP_THEME,
-            "3");
+        var selectedTheme =
+            getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_APP_THEME, "3");
         return getCurrentTheme(selectedTheme);
     }
 
@@ -118,7 +117,7 @@ public class PreferencesUtils {
             case "1":
                 return AppCompatDelegate.MODE_NIGHT_NO;
             default:
-                if (SDKUtil.isAtLeast(SDKUtil.API.ANDROID_11)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     return AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
                 } else {
                     return AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY;
@@ -132,12 +131,11 @@ public class PreferencesUtils {
      * @return true if dynamic colors should be used, otherwise false.
      */
     public static boolean useDynamicColors() {
-        if (SDKUtil.isAtLeast(SDKUtil.API.ANDROID_12) && DynamicColors.isDynamicColorAvailable()) {
-            return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_DYNAMIC_COLOURS,
-                false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            && DynamicColors.isDynamicColorAvailable()) {
+            return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS, false);
         } else {
-            return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_DYNAMIC_COLOURS,
-                false);
+            return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS, false);
         }
     }
 
@@ -145,7 +143,7 @@ public class PreferencesUtils {
     // Editor Preferences
     // =======================
     public static float getCodeEditorFontSize() {
-        return getDefaultPreferences().getFloat(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, 14);
+        return getDefaultPreferences().getFloat(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, 14);
     }
 
     /**
@@ -155,8 +153,7 @@ public class PreferencesUtils {
      * @return The specified font size.
      */
     public static float getCodeEditorFontSize(float fontSize) {
-        return getDefaultPreferences().getFloat(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE,
-            fontSize);
+        return getDefaultPreferences().getFloat(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, fontSize);
     }
 
     /**
@@ -166,8 +163,8 @@ public class PreferencesUtils {
      */
     public static int getCurrentEditorFont() {
         var selectedFont =
-            getDefaultPreferences().getString(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT,
-                "jetbrains_mono_regular");
+            getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT
+                , "jetbrains_mono_regular");
         return getEditorFont(selectedFont);
     }
 
@@ -204,7 +201,7 @@ public class PreferencesUtils {
     }
 
     public static int getCodeEditorTabSize(int size) {
-        return getDefaultPreferences().getInt(SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size);
+        return getDefaultPreferences().getInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size);
     }
 
     /**
@@ -214,7 +211,7 @@ public class PreferencesUtils {
      */
     public static boolean flagInner() {
         Set<String> selectedValues =
-            getDefaultPreferences().getStringSet(SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
+            getDefaultPreferences().getStringSet(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
         return selectedValues.contains("1");
     }
 
@@ -225,7 +222,7 @@ public class PreferencesUtils {
      */
     public static boolean flagLeading() {
         Set<String> selectedValues =
-            getDefaultPreferences().getStringSet(SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
+            getDefaultPreferences().getStringSet(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
         return selectedValues.contains("2");
     }
 
@@ -236,7 +233,7 @@ public class PreferencesUtils {
      */
     public static boolean flagTrailing() {
         Set<String> selectedValues =
-            getDefaultPreferences().getStringSet(SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
+            getDefaultPreferences().getStringSet(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
         return selectedValues.contains("3");
     }
 
@@ -247,7 +244,7 @@ public class PreferencesUtils {
      */
     public static boolean flagEmptyLine() {
         Set<String> selectedValues =
-            getDefaultPreferences().getStringSet(SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
+            getDefaultPreferences().getStringSet(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
         return selectedValues.contains("4");
     }
 
@@ -258,7 +255,7 @@ public class PreferencesUtils {
      */
     public static boolean flagLineBreaks() {
         Set<String> selectedValues =
-            getDefaultPreferences().getStringSet(SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
+            getDefaultPreferences().getStringSet(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NP_PAINT_FLAGS, new HashSet<>());
         return selectedValues.contains("5");
     }
 
@@ -269,8 +266,7 @@ public class PreferencesUtils {
      */
     public static float getCurrentEditorLineHeight() {
         var selectedLineHeight =
-            getDefaultPreferences().getString(SharedPreferenceKeys.KEY_CODE_EDITOR_LINE_HEIGHT,
-                "2");
+            getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_LINE_HEIGHT, "2");
         return getEditorLineHeight(selectedLineHeight);
     }
 
@@ -301,8 +297,7 @@ public class PreferencesUtils {
      * @return true if word wrap is enabled, otherwise false.
      */
     public static boolean useWordWrap() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_WORD_WRAP,
-            false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_WORD_WRAP, false);
     }
 
     /**
@@ -311,8 +306,7 @@ public class PreferencesUtils {
      * @return true if tabs are used, otherwise false.
      */
     public static boolean useTabIndentation() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT
-            , false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT, false);
     }
 
     /**
@@ -321,7 +315,7 @@ public class PreferencesUtils {
      * @return true if the ICU library is used, otherwise false.
      */
     public static boolean useICULibrary() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_ICU, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_ICU, false);
     }
 
     /**
@@ -330,8 +324,7 @@ public class PreferencesUtils {
      * @return true if files are automatically saved, otherwise false.
      */
     public static boolean autoSaveFiles() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_SAVE,
-            false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_SAVE, false);
     }
 
     /**
@@ -340,7 +333,7 @@ public class PreferencesUtils {
      * @return true if the line number is pinned, otherwise false.
      */
     public static boolean pinLineNumber() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_PIN_LINE_NUM, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_PIN_LINE_NUM, true);
     }
 
     /**
@@ -349,8 +342,7 @@ public class PreferencesUtils {
      * @return true if the symbol input panel is displayed, otherwise false.
      */
     public static boolean displaySIPanel() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_SI_PANEL,
-            false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_SI_PANEL, false);
     }
 
     /**
@@ -359,8 +351,7 @@ public class PreferencesUtils {
      * @return true if the function panel is displayed, otherwise false.
      */
     public static boolean displayFunctionPanel() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_FUN_PANEL,
-            false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FUN_PANEL, false);
     }
 
     /**
@@ -369,8 +360,7 @@ public class PreferencesUtils {
      * @return true if the navigation panel is displayed, otherwise false.
      */
     public static boolean displayNavigationPanel() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL,
-            true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL, true);
     }
 
     /**
@@ -379,8 +369,7 @@ public class PreferencesUtils {
      * @return true if the magnifier is enabled, otherwise false.
      */
     public static boolean enableMagnifier() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_MAGNIFIER,
-            true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_MAGNIFIER, true);
     }
 
     /**
@@ -389,7 +378,7 @@ public class PreferencesUtils {
      * @return true if sticky scroll is enabled, otherwise false.
      */
     public static boolean enableStickyScroll() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_STICKY_SCROLL, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_STICKY_SCROLL, true);
     }
 
     /**
@@ -398,7 +387,7 @@ public class PreferencesUtils {
      * @return true if bracket auto-closing is enabled, otherwise false.
      */
     public static boolean enableBracketAutoClosing() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET, false);
     }
 
     /**
@@ -407,8 +396,7 @@ public class PreferencesUtils {
      * @return true if the scroll bar is enabled, otherwise false.
      */
     public static boolean enableScrollBar() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_SCROLL_BAR
-            , false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_SCROLL_BAR, false);
     }
 
     /**
@@ -417,7 +405,7 @@ public class PreferencesUtils {
      * @return true if hardware acceleration is enabled, otherwise false.
      */
     public static boolean enableHardWareAcceleration() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_HARDWARE_ACCELERATION, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_HARDWARE_ACCELERATION, false);
     }
 
     /**
@@ -426,7 +414,7 @@ public class PreferencesUtils {
      * @return true if line numbers are enabled, otherwise false.
      */
     public static boolean enableLineNumbers() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_LINE_NUMBERS, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_LINE_NUMBERS, true);
     }
 
     /**
@@ -435,7 +423,7 @@ public class PreferencesUtils {
      * @return true if deleting empty lines is enabled, otherwise false.
      */
     public static boolean enableDeleteEmptyLine() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_DELETE_EMPTY_LINE, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DELETE_EMPTY_LINE, false);
     }
 
     /**
@@ -444,8 +432,7 @@ public class PreferencesUtils {
      * @return true if deleting tabs is enabled, otherwise false.
      */
     public static boolean enableDeleteTab() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_DELETE_TAB
-            , false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DELETE_TAB, false);
     }
 
     /**
@@ -454,7 +441,7 @@ public class PreferencesUtils {
      * @return true if auto-complete window animation is enabled, otherwise false.
      */
     public static boolean enableAutoCompleteWindowAnimation() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_ANIMATE_AUTO_COMP_WINDOW, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_ANIMATE_AUTO_COMP_WINDOW, false);
     }
 
     /**
@@ -463,7 +450,7 @@ public class PreferencesUtils {
      * @return true if bracket highlighting is enabled, otherwise false.
      */
     public static boolean enableBracketHighlight() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_HIGHLIGHT_BRACKET, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_HIGHLIGHT_BRACKET, true);
     }
 
     /**
@@ -472,11 +459,11 @@ public class PreferencesUtils {
      * @return true if auto complete is enabled, otherwise false.
      */
     public static boolean enableAutoComplete() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_COMPLETE, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_COMPLETE, false);
     }
 
     public static int getCursorBlinkPeriod() {
-        return getDefaultPreferences().getInt(SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, 500);
+        return getDefaultPreferences().getInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, 500);
     }
 
     /**
@@ -485,7 +472,7 @@ public class PreferencesUtils {
      * @return the cursor blink period.
      */
     public static int getCursorBlinkPeriod(int defaultBlinkPeriod) {
-        return getDefaultPreferences().getInt(SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, defaultBlinkPeriod);
+        return getDefaultPreferences().getInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, defaultBlinkPeriod);
     }
 
     public static String getDefaultFileEncoding() {
@@ -499,7 +486,7 @@ public class PreferencesUtils {
      * @return A string based file encoding
      */
     public static String getDefaultFileEncoding(String encoding) {
-        return getDefaultPreferences().getString(SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding);
+        return getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding);
     }
 
     /**
@@ -510,19 +497,19 @@ public class PreferencesUtils {
     public static void setDefaultFileEncoding(String encoding) {
         getDefaultPreferences()
             .edit()
-            .putString(SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding)
+            .putString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING,
+                encoding)
             .apply();
     }
 
     public static boolean canCloseUnPinnedProjectPanes() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, true);
     }
 
     public static void setCloseUnPinnedProjectPanes(boolean closeUnPinned) {
         getDefaultPreferences()
             .edit()
-            .putBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES,
-                closeUnPinned)
+            .putBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, closeUnPinned)
             .apply();
     }
 
@@ -536,15 +523,14 @@ public class PreferencesUtils {
      * @return true if the user wants to use the Google JSON formatter, otherwise false.
      */
     public static boolean useGoogleJsonFormatter() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_GOOGLE_JSON_FORMATTER,
-            false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_GOOGLE_JSON_FORMATTER, false);
     }
 
     /**
      * @return true if the user wants to open the last project, otherwise false.
      */
     public static boolean openLastOpenedProject() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_OPEN_LAST_OPENED_PROJECT, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_OPEN_LAST_OPENED_PROJECT, false);
     }
 
     /**
@@ -553,7 +539,7 @@ public class PreferencesUtils {
      * @return true if the user wants to use outlined icons, otherwise false.
      */
     public static boolean useOutLinedIcons() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_OUTLINE_ICONS, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_OUTLINE_ICONS, true);
     }
 
     /**
@@ -573,7 +559,7 @@ public class PreferencesUtils {
 
     public static boolean canCloseRelativeToFirstDepth() {
         var depth =
-            getDefaultPreferences().getString(SharedPreferenceKeys.KEY_CODE_EDITOR_RELATIVE_CLOSE_DEPTH, "First");
+            getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_RELATIVE_CLOSE_DEPTH, "First");
         if (depth.equalsIgnoreCase("All")) {
             return false;
         } else if (depth.equalsIgnoreCase("First")) {
@@ -583,24 +569,24 @@ public class PreferencesUtils {
     }
 
     public static boolean canShowWelcomePanel() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE, true);
     }
 
     public static void setCanShowWelcomePane(boolean canShow) {
         getDefaultPreferences()
             .edit()
-            .putBoolean(SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE, canShow)
+            .putBoolean(Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE, canShow)
             .apply();
     }
 
     public static boolean canShareAnynomousStatistics() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_SHARE_STATISTICS, true);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS, true);
     }
 
     public static void enableShareAnynomousStatistics(boolean enabled) {
         getDefaultPreferences()
             .edit()
-            .putBoolean(SharedPreferenceKeys.KEY_SHARE_STATISTICS, enabled)
+            .putBoolean(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS, enabled)
             .apply();
     }
 
@@ -620,7 +606,7 @@ public class PreferencesUtils {
      */
     public static int getCurrentBufferSize() {
         var selectedBufferSize =
-            getDefaultPreferences().getString(SharedPreferenceKeys.KEY_BUFFER_SIZE, "5");
+            getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_BUFFER_SIZE, "5");
         return Integer.parseInt(selectedBufferSize) * 1024;
     }
 
@@ -630,6 +616,6 @@ public class PreferencesUtils {
      * @return true if the font liagtures is used, otherwise false.
      */
     public static boolean useFontLiagtures() {
-        return getDefaultPreferences().getBoolean(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_LIAGTURES, false);
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_LIAGTURES, false);
     }
 }

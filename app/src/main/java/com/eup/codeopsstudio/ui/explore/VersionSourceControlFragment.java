@@ -33,13 +33,13 @@ import androidx.fragment.app.Fragment;
 
 import com.eup.codeopsstudio.databinding.FragmentVscBinding;
 
-public class Vscfragment extends Fragment {
+public class VersionSourceControlFragment extends Fragment {
 
-    public static final String TAG = Vscfragment.class.getSimpleName();
+    public static final String TAG = VersionSourceControlFragment.class.getSimpleName();
     private FragmentVscBinding binding;
 
-    public static Vscfragment newInstance() {
-        return new Vscfragment();
+    public static VersionSourceControlFragment newInstance() {
+        return new VersionSourceControlFragment();
     }
 
     @Override

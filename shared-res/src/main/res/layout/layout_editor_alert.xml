@@ -22,47 +22,42 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:theme="@style/AppTheme">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <ImageView
+        android:id="@+id/alert_icon"
+        android:layout_width="@dimen/dimen74dp"
+        android:layout_height="@dimen/dimen74dp"
+        android:contentDescription="@string/alert_icon_desc"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_alert" />
+
+    <TextView
+        android:id="@+id/alert_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dimen8dp"
         android:gravity="center"
-        android:orientation="vertical">
+        android:padding="@dimen/dimen8dp"
+        tools:text="@string/alrt_unsupported_txt_encoding" />
 
-        <ImageView
-            android:id="@+id/alert_icon"
-            android:layout_width="@dimen/dimen50dp"
-            android:layout_height="@dimen/dimen50dp"
-            android:padding="@dimen/alertIconDimen"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_alert" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/action_button"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dimen48dp"
+        android:layout_marginTop="@dimen/dimen4dp"
+        android:layout_marginEnd="@dimen/dimen48dp"
+        android:gravity="center"
+        tools:text="@string/open_anyway" />
 
-        <TextView
-            android:id="@+id/alert_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/alert_icon"
-            android:gravity="center"
-            android:padding="8dp"
-            tools:text="@string/alrt_unsupported_txt_encoding" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/action_button"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="48dp"
-            android:gravity="center"
-            android:padding="8dp"
-            tools:text="@string/open_anyway" />
-
-    </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>

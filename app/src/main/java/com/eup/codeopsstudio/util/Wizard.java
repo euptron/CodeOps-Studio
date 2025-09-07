@@ -23,7 +23,6 @@
 package com.eup.codeopsstudio.util;
 
 import static android.content.Context.UI_MODE_SERVICE;
-import static com.eup.codeopsstudio.common.util.SDKUtil.API;
 
 import android.app.UiModeManager;
 import android.content.ActivityNotFoundException;
@@ -47,7 +46,6 @@ import androidx.core.content.FileProvider;
 import com.eup.codeopsstudio.BuildConfig;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.common.util.SDKUtil;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 
@@ -148,13 +146,9 @@ public class Wizard {
                 .getResources()
                 .getConfiguration();
             Locale locale;
-            if (SDKUtil.isAtLeast(SDKUtil.API.ANDROID_7)) {
-                locale = configuration
-                    .getLocales()
-                    .get(0);
-            } else {
-                locale = configuration.locale;
-            }
+            locale = configuration
+                .getLocales()
+                .get(0);
             return validate(locale.getCountry());
         }
         return validate(null);
@@ -382,12 +376,7 @@ public class Wizard {
     }
 
     public static Uri getUriForFile(Context context, File file) {
-        if (SDKUtil.isAtLeast(SDKUtil.API.ANDROID_7)) {
-            return FileProvider.getUriForFile(context,
-                BuildConfig.APPLICATION_ID + ".provider", file);
-        } else {
-            return Uri.fromFile(file);
-        }
+        return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
     }
 
     public static String getMimeType(Context context, File file) {
@@ -408,16 +397,12 @@ public class Wizard {
     /**
      * Returns whether the app is running on an automotive device.
      *
-     * @param context Any context.
      * @return Whether the app is running on an automotive device.
      */
     public boolean isAutomotive() {
-        if (SDKUtil.isAtLeast(API.ANDROID_6)) {
-            return mContext
-                .getPackageManager()
-                .hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE);
-        }
-        return false;
+        return mContext
+            .getPackageManager()
+            .hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE);
     }
 
     /**

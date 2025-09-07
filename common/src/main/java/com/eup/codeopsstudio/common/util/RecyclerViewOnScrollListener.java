@@ -36,8 +36,9 @@ public class RecyclerViewOnScrollListener extends RecyclerView.OnScrollListener 
      * Callback method to be invoked when RecyclerView's scroll state changes.
      *
      * @param recyclerView The RecyclerView whose scroll state has changed.
-     * @param newState     The updated scroll state. One of {@link #SCROLL_STATE_IDLE},
-     *                     {@link #SCROLL_STATE_DRAGGING} or {@link #SCROLL_STATE_SETTLING}.
+     * @param newState     The updated scroll state. One of {@link RecyclerView#SCROLL_STATE_IDLE},
+     *                     {@link RecyclerView#SCROLL_STATE_DRAGGING} or
+     *                     {@link RecyclerView#SCROLL_STATE_SETTLING}.
      */
     @Override
     public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {

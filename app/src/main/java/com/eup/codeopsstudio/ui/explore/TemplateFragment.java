@@ -47,7 +47,7 @@ import com.eup.codeopsstudio.adapters.template.ProjectTemplateAdapter;
 import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.common.util.Archive;
+import com.eup.codeopsstudio.common.archive.ZIPArchive;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
@@ -539,7 +539,11 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         }
 
         int bufferSize = PreferencesUtils.getCurrentBufferSize();
-        Archive.unzipFromAssets(requireContext(), bufferSize, "templates.zip", parentPath);
+        String asset = "templates.zip";
+
+        File destDir = new File(parentPath);
+        var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize);
+        archive.unzip();
 
         File hashFile = new File(templatesDir, "hash");
         if (!hashFile.createNewFile()) {

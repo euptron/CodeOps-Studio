@@ -32,7 +32,7 @@
     <style name="AppTheme.TabLayout" parent="@style/AppTheme.BaseTabLayout">
         <item name="tabMode">scrollable</item>
         <item name="tabTextAppearance">@style/AppTheme.TabLayout.Title</item>
-        <item name="tabGravity">fill</item>
+        <item name="tabGravity">start</item>
     </style>
 
     <style name="AppTheme.BaseTabLayout" parent="Widget.Material3.TabLayout">
@@ -56,13 +56,17 @@
         <item name="android:fontFamily">@font/westudio_font</item>
     </style>
 
-    <style name="AppTheme.SwitchPreference" parent="Preference.SwitchPreference.Material">
+    <style name="AppTheme.Preference.ThemeOverlay" parent="@style/PreferenceThemeOverlay">
+        <item name="switchPreferenceCompatStyle">@style/AppTheme.SwitchPreference</item>
+    </style>
+
+    <style name="AppTheme.SwitchPreference" parent="@style/Preference.SwitchPreferenceCompat.Material">
         <item name="android:widgetLayout">@layout/otg_mtrl_switch_layout</item>
     </style>
 
     <style name="AppTheme.ShapeableImageView.ShapeAppearance" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">@dimen/dimen25dp</item>
+        <item name="cornerSize">@dimen/dimen24dp</item>
     </style>
 
     <style name="AppTheme.MaterialAlertDialog" parent="@style/ThemeOverlay.Material3.MaterialAlertDialog">

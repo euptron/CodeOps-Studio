@@ -22,37 +22,54 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:fillViewport="true"
+    tools:theme="@style/AppTheme">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_name"
-        style="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp">
+        android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <TextView
+            android:id="@+id/input_description"
+            style="?attr/materialAlertDialogBodyTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="false" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:paddingLeft="?attr/dialogPreferredPadding"
+            android:paddingRight="?attr/dialogPreferredPadding"
+            android:visibility="gone" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_other"
-        style="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:visibility="gone">
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_name"
+            style="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"
+            android:layout_width="@dimen/textinput_default_width"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dimen8dp"
+            android:layout_marginEnd="@dimen/dimen8dp"
+            android:hint="@string/name">
 
-        <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_other"
+            style="@style/Widget.Material3.TextInputEditText.OutlinedBox.Dense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="false" />
-    </com.google.android.material.textfield.TextInputLayout>
-</LinearLayout>
+            android:layout_marginStart="@dimen/dimen8dp"
+            android:layout_marginEnd="@dimen/dimen8dp"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="false" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -33,18 +33,19 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:foreground="@drawable/base_ripple"
-        android:padding="8dp"
+        android:padding="@dimen/dimen8dp"
         android:textSize="13sp"
         tools:text="@string/app_name" />
 
     <ImageView
         android:id="@+id/crumb_icon"
-        android:layout_width="22dp"
-        android:layout_height="24dp"
+        android:layout_width="@dimen/dimen24dp"
+        android:layout_height="@dimen/dimen24dp"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="2dp"
+        android:layout_marginLeft="@dimen/dimen2dp"
         android:layout_toEndOf="@id/crumb_text"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
+        android:contentDescription="@string/breadcrumb_icon_desc"
+        android:paddingTop="@dimen/dimen8dp"
+        android:paddingBottom="@dimen/dimen8dp"
         android:src="@drawable/ic_chevron_right" />
 </RelativeLayout>

@@ -23,41 +23,51 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dp">
+    tools:theme="@style/AppTheme">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="10dp">
+        android:layout_marginStart="@dimen/dimen8dp"
+        android:layout_marginEnd="@dimen/dimen8dp"
+        android:layout_marginBottom="@dimen/dimen4dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@android:id/title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp" />
+            android:textSize="@dimen/dimen20sp"
+            tools:text="Sheet List" />
 
         <TextView
             android:id="@android:id/summary"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="14sp" />
+            android:layout_marginTop="@dimen/dimen4dp"
+            android:textSize="@dimen/dimen14sp" />
     </LinearLayout>
 
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="1px"
-        android:alpha="0.5"
+        android:layout_height="wrap_content"
+        android:alpha="0.7"
         android:background="?attr/colorAccent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/sheetList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dimen8dp"
+        android:layout_marginEnd="@dimen/dimen8dp"
         android:nestedScrollingEnabled="true" />
 
 </LinearLayout>

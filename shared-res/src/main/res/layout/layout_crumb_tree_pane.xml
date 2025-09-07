@@ -26,7 +26,7 @@
     android:id="@+id/tree_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:padding="@dimen/dimen4dp">
 
     <HorizontalScrollView
         android:id="@+id/horizontal_scroll"
@@ -36,7 +36,7 @@
 
     <ProgressBar
         android:id="@+id/loading"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="@dimen/dimen24dp"
+        android:layout_height="@dimen/dimen24dp"
         android:layout_centerInParent="true" />
 </RelativeLayout>

@@ -62,6 +62,7 @@ public class EditorShortcutView extends RecyclerView {
         adapter.submitList(actions);
     }
 
+    @NonNull
     private List<EditorAction> getActions() {
         List<EditorAction> shortcutActions = new ArrayList<>();
         numberOfTabs = PreferencesUtils.getCodeEditorTabSize();

@@ -23,6 +23,7 @@
 
 package com.eup.codeopsstudio.ui.editor.actions;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
@@ -46,7 +47,7 @@ public class EditorShortcutAdapter extends EditorShortcutView.Adapter<EditorShor
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutEditorShortcutItemBinding binding =
             LayoutEditorShortcutItemBinding.inflate(LayoutInflater.from(parent.getContext()),
                 parent, false);
@@ -114,6 +115,7 @@ public class EditorShortcutAdapter extends EditorShortcutView.Adapter<EditorShor
      *
      * @param data The list of data.
      */
+    @SuppressLint("NotifyDataSetChanged")
     public void submitList(List<EditorAction> actions) {
         actionList.clear();
         actionList.addAll(actions);
@@ -124,7 +126,7 @@ public class EditorShortcutAdapter extends EditorShortcutView.Adapter<EditorShor
         this.editor = editor;
     }
 
-    public class ViewHolder extends EditorShortcutView.ViewHolder {
+    public static class ViewHolder extends EditorShortcutView.ViewHolder {
         private final TextView name;
 
         public ViewHolder(LayoutEditorShortcutItemBinding binding) {

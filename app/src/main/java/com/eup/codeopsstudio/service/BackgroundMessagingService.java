@@ -202,12 +202,12 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
         String channelId = getString(R.string.cloud_messaging_notification_channel_id);
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,
-            channelId).setSmallIcon(com.eup.codeopsstudio.res.R.drawable.ic_westudio) //
-                                                                                                        .setContentTitle(messageTitle)
-                                                                                                        .setContentText(messageBody)
-                                                                                                        .setAutoCancel(true)
-                                                                                                        .setSound(defaultSoundUri)
-                                                                                                        .setContentIntent(pendingIntent);
+            channelId).setSmallIcon(com.eup.codeopsstudio.res.R.drawable.ic_codeopsstudio) //
+                      .setContentTitle(messageTitle)
+                      .setContentText(messageBody)
+                      .setAutoCancel(true)
+                      .setSound(defaultSoundUri)
+                      .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
             (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

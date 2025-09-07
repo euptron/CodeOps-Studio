@@ -43,20 +43,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="start|center_vertical"
-        android:minWidth="56dp"
+        android:minWidth="@dimen/dimen56dp"
         android:orientation="horizontal"
         android:paddingStart="0dp"
         android:paddingLeft="0dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="8dp"
-        android:paddingRight="8dp"
-        android:paddingBottom="4dp"
+        android:paddingTop="@dimen/dimen4dp"
+        android:paddingEnd="@dimen/dimen8dp"
+        android:paddingRight="@dimen/dimen8dp"
+        android:paddingBottom="@dimen/dimen4dp"
         android:visibility="gone">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@android:id/icon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/dimen48dp"
+            android:layout_height="@dimen/dimen48dp"
             android:duplicateParentState="true"
             android:importantForAccessibility="no"
             android:scaleType="center" />
@@ -72,8 +72,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="marquee"
-            android:singleLine="true"
-            android:textSize="16sp"
+            android:maxLines="1"
+            android:textSize="@dimen/dimen16sp"
             tools:text="Check Update" />
 
         <TextView
@@ -89,5 +89,4 @@
             android:textColor="?android:attr/textColorSecondary"
             tools:text="Check for the latest release" />
     </RelativeLayout>
-
 </LinearLayout>

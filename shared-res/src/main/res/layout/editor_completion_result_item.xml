@@ -24,12 +24,12 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="vertical"
-    android:paddingTop="2dp"
-    android:paddingBottom="2dp">
+    android:paddingTop="@dimen/dimen2dp"
+    android:paddingBottom="@dimen/dimen2dp">
 
     <LinearLayout
         android:id="@+id/base_result_holder"
@@ -41,10 +41,10 @@
 
         <ImageView
             android:id="@+id/result_item_image"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_width="@dimen/dimen24dp"
+            android:layout_height="@dimen/dimen24dp"
+            android:layout_marginLeft="@dimen/dimen8dp"
+            android:layout_marginRight="@dimen/dimen8dp"
             android:contentDescription="@string/completion_result_item_icon"
             android:src="@android:drawable/ic_delete" />
 
@@ -54,13 +54,13 @@
             android:gravity="center_vertical"
             android:orientation="vertical"
             android:paddingLeft="0dp"
-            android:paddingRight="8dp">
+            android:paddingRight="@dimen/dimen8dp">
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/result_item_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
+                android:textSize="@dimen/dimen14sp"
                 tools:text="Result item (Medium Text)" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -68,7 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textSize="11sp"
+                android:textSize="@dimen/dimen11sp"
                 tools:text="Result description(Small Text)" />
         </LinearLayout>
     </LinearLayout>
@@ -82,7 +82,7 @@
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
-            android:layout_height="1px"
+            android:layout_height="wrap_content"
             android:alpha="0.7"
             android:visibility="visible" />
 
@@ -91,17 +91,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="4dp"
+            android:layout_margin="@dimen/dimen4dp"
             android:autoLink="web"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:textSize="14sp"
-            tools:text="A description that&apos;s more compressive" />
+            android:textSize="@dimen/dimen14sp" />
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
-            android:layout_height="1px"
+            android:layout_height="wrap_content"
             android:alpha="0.7"
             android:visibility="visible" />
     </LinearLayout>

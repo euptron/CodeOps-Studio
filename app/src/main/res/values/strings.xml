@@ -26,4 +26,9 @@
     <string name="diagnostics">Diagnostics!</string>
     <string name="fragment_treeview_folder_options_content_desc">Folder options</string>
     <string name="fragment_warning_alert_icon_content_desc">Alert Icon</string>
+    <string name="three_ellipsis">…</string>
+    <string name="items_computing">Items: computing…</string>
+    <string name="items_left_computing">Items Left: computing…</string>
+    <string name="speed_computing">Speed: computing…</string>
+    <string name="cannot_open_invalid_zip_file">Cannot open invalid zip file</string>
 </resources>

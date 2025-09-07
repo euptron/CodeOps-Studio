@@ -23,12 +23,14 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/loading_layout_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:visibility="visible">
+    android:visibility="visible"
+    tools:theme="@style/AppTheme">
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressbar"
@@ -41,8 +43,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/dimen16dp"
         android:text="@string/project_loading_template"
-        android:textSize="24sp" />
+        android:textSize="@dimen/dimen24sp" />
 
 </LinearLayout>

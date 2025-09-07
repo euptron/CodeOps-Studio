@@ -194,7 +194,6 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
      * android.widget.HorizontalScrollView}
      *
      * @see R.id#panel_root
-     * @see R.id#panel_hv
      * @see R.id#panel_btn_select_all
      * @see R.id#panel_btn_copy
      * @see R.id#panel_btn_cut

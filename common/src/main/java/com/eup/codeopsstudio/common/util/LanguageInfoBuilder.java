@@ -30,22 +30,25 @@ import java.util.HashMap;
 
 public class LanguageInfoBuilder {
 
-    private String grammar, name, scopeName, languageConfiguration;
-    // configuration
-    private HashMap<String, Object> languages = new HashMap<>();
     private final ArrayList<HashMap<String, Object>> listMap = new ArrayList<>();
     //  scope
     private final HashMap<String, Object> hashMap = new HashMap<>();
     private final HashMap<String, Object> innerMap = new HashMap<>();
     private final ArrayList<String> extensionList = new ArrayList<>();
     private final String extensionInput = "";
-
+    private String grammar, name, scopeName, languageConfiguration;
+    // configuration
+    private HashMap<String, Object> languages = new HashMap<>();
     public LanguageInfoBuilder(String grammar, String name, String scopeName,
-                               String languageConfiguration) {
+        String languageConfiguration) {
         this.grammar               = grammar;
         this.name                  = name;
         this.scopeName             = scopeName;
         this.languageConfiguration = languageConfiguration;
+    }
+
+    public HashMap<String, Object> languages() {
+        return languages;
     }
 
     public String createConfiguration() {
