@@ -85,6 +85,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
+            android:gravity="center"
             android:paddingBottom="5dp"
             android:text="@string/no_folder_opened_prompt"
             android:textSize="14sp" />
@@ -92,25 +93,24 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tree_open_folder"
             style="@style/Widget.Material3.Button"
-            android:layout_width="@dimen/button_max_width"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
             android:text="@string/open_folder" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
+            android:gravity="center"
             android:paddingBottom="5dp"
             android:text="@string/no_folder_opened_aux_prompt"
             android:textSize="14sp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/choose_template"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="@dimen/button_max_width"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
             android:text="@string/choose_template" />
     </LinearLayout>
 
@@ -118,6 +118,7 @@
         android:id="@+id/file_tree_area"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="@string/tree_view_desc"
         android:fillViewport="true"
         android:padding="5dp"
         android:visibility="visible" />

@@ -33,7 +33,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/dimen4dp">
+        android:padding="@dimen/dimen8dp">
 
         <TextView
             android:id="@+id/welcome_tv"
@@ -50,9 +50,10 @@
             android:id="@+id/slogan_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:padding="0dp"
             android:text="@string/app_slogan"
             android:textSize="@dimen/dimen14sp"
-            app:layout_constraintStart_toStartOf="@+id/welcome_tv"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/welcome_tv" />
 
         <com.google.android.material.button.MaterialButton
@@ -61,9 +62,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dimen6dp"
-            android:padding="@dimen/dimen8dp"
+            android:insetLeft="0dp"
+            android:padding="@dimen/dimen10dp"
             android:text="@string/import_zip"
             android:textSize="@dimen/dimen14sp"
+            app:layout_constraintEnd_toStartOf="@id/recent_project_btn"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/slogan_tv" />
 
@@ -71,8 +74,8 @@
             android:id="@+id/recent_project_btn"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/dimen6dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="12dp"
             android:padding="@dimen/dimen8dp"
             android:text="@string/recent_project"
             android:textSize="@dimen/dimen14sp"
@@ -84,7 +87,7 @@
             android:id="@+id/options_header_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dimen8dp"
+            android:layout_marginTop="@dimen/dimen6dp"
             android:text="@string/start"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -97,6 +100,8 @@
             android:layout_height="wrap_content"
             android:elevation="0dp"
             android:ellipsize="end"
+            android:paddingStart="0dp"
+            android:paddingEnd="@dimen/dimen16dp"
             android:singleLine="true"
             android:text="@string/new_file"
             android:textAlignment="textStart"
@@ -117,6 +122,8 @@
             android:layout_height="wrap_content"
             android:elevation="0dp"
             android:ellipsize="end"
+            android:paddingStart="0dp"
+            android:paddingEnd="@dimen/dimen16dp"
             android:singleLine="true"
             android:text="@string/open_file"
             android:textAlignment="textStart"
@@ -137,6 +144,8 @@
             android:layout_height="wrap_content"
             android:elevation="0dp"
             android:ellipsize="end"
+            android:paddingStart="0dp"
+            android:paddingEnd="@dimen/dimen16dp"
             android:singleLine="true"
             android:text="@string/open_folder"
             android:textAlignment="textStart"
@@ -156,6 +165,8 @@
             android:layout_height="wrap_content"
             android:elevation="0dp"
             android:ellipsize="end"
+            android:paddingStart="0dp"
+            android:paddingEnd="@dimen/dimen16dp"
             android:singleLine="true"
             android:text="@string/clone_git_repo"
             android:textAlignment="textStart"

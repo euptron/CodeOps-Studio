@@ -39,13 +39,14 @@
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:elevation="0dp"
-            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$Behavior">
+            app:elevation="0dp">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
+                style="?toolbarSurfaceStyle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                app:titleMargin="@dimen/dimen2dp" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progress"
@@ -55,7 +56,6 @@
                 android:visibility="gone"
                 app:indicatorDirectionLinear="startToEnd"
                 app:trackThickness="4dp" />
-
         </com.google.android.material.appbar.AppBarLayout>
 
         <androidx.fragment.app.FragmentContainerView
@@ -69,22 +69,19 @@
             tools:layout="@layout/fragment_base" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <!--     android:layout_width="300dp" -->
-    <!--     android:background="?attr/colorSurface" -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="false"
+        android:background="?attr/colorSurface"
         app:drawerLayoutCornerSize="0dp">
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nav_primary_side_bar"
             android:name="com.eup.codeopsstudio.ui.explore.PrimarySideBarFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_primary_side_bar" />
     </com.google.android.material.navigation.NavigationView>
-
 </com.eup.codeopsstudio.ui.AllowChildInterceptDrawerLayout>
