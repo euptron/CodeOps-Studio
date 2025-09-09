@@ -149,10 +149,8 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        PreferencesUtils
-            .getDefaultPreferences()
-            .registerOnSharedPreferenceChangeListener(this);
-        sharedPreferences    = PreferencesUtils.getPersistentPanesPreferences();
+
+        sharedPreferences    = PreferencesUtils.getGlobalPreferences();
         mMainViewModel       = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         mSavedStateViewModel =
             new ViewModelProvider(requireActivity()).get(SavedStateViewModel.class);
@@ -211,6 +209,15 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        PreferencesUtils
+            .getDefaultPreferences()
+            .registerOnSharedPreferenceChangeListener(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         mSavedStateViewModel.saveActionSheetState(mBehavior.getState());
@@ -220,6 +227,10 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     public void onPause() {
         super.onPause();
         persistPanes();
+        PreferencesUtils
+            .getDefaultPreferences()
+            .unregisterOnSharedPreferenceChangeListener(this);
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -821,7 +832,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         return new LinkedList<LinkedTreeMap<String, Object>>();
     }
 
-    public boolean isPersisted(Pane pane) {
+    private boolean isPersisted(Pane pane) {
         var isPersisted = false;
         var linkedTreeMapList = getPersistedPaneTree();
         for (LinkedTreeMap<String, Object> treeMap : linkedTreeMapList) {
