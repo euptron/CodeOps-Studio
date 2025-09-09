@@ -23,8 +23,6 @@
 
 package com.eup.codeopsstudio.ui.settings;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.os.Build;
 import android.os.Bundle;
 
@@ -34,6 +32,8 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.eup.codeopsstudio.IdeApplication;
+import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.res.R;
 import com.google.android.material.transition.MaterialSharedAxis;
@@ -50,23 +50,26 @@ public class GeneralConfigurationFragment extends PreferenceFragmentCompat {
     }
 
     @Override
-    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+    public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
         setPreferencesFromResource(R.xml.general_configuration_preferences, rootKey);
-        Preference preferenceTheme = findPreference(SharedPreferenceKeys.KEY_APP_THEME);
-        SwitchPreferenceCompat switchPreferenceCompat =
-            findPreference(SharedPreferenceKeys.KEY_DYNAMIC_COLOURS);
+        Preference themePreference = findPreference(Constants.SharedPreferenceKeys.KEY_APP_THEME);
+        SwitchPreferenceCompat switchPreference =
+            findPreference(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            switchPreferenceCompat.setEnabled(false);
-            switchPreferenceCompat.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
+        if (themePreference == null || switchPreference == null) {
+            ILog.debug(TAG, "themePreference or switchPreference == null");
+            return;
         }
 
-        preferenceTheme.setOnPreferenceChangeListener((preference, newValue) -> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            switchPreference.setEnabled(false);
+            switchPreference.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
+        }
+
+        themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
             if (newValue instanceof String val) {
                 int newTheme = PreferencesUtils.getCurrentTheme(val);
-                IdeApplication
-                    .getInstance()
-                    .changeTheme(newTheme);
+                IdeApplication.changeTheme(newTheme);
                 return true;
             }
             return false;

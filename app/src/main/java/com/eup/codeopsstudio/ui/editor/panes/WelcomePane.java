@@ -84,6 +84,8 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             .getZipFile()
             .observe(requireActivity(), this::openZipFile);
 
+        configureWelcomePaneCheckBox();
+        
         binding.welcomeCheckbox.setOnCheckedChangeListener((button, isChecked) -> PreferencesUtils.setCanShowWelcomePane(isChecked));
         binding.newFile.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
             "createFileFromManager"));
@@ -140,8 +142,12 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
     @Override
     public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
         if (Objects.equals(key, Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE)) {
-            boolean isChecked = PreferencesUtils.canShowWelcomePanel();
-            binding.welcomeCheckbox.setChecked(isChecked);
+            configureWelcomePaneCheckBox();
         }
+    }
+
+    private void configureWelcomePaneCheckBox() {
+        boolean isChecked = PreferencesUtils.canShowWelcomePanel();
+        binding.welcomeCheckbox.setChecked(isChecked);
     }
 }

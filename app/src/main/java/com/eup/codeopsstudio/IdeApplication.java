@@ -179,7 +179,11 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         return BuildConfig.DEBUG;
     }
 
-    public void changeTheme(int themeMode) {
+    public static void changeTheme(int themeMode) {
+        if (applicationInstance == null) {
+            ILog.warning(TAG, "Cannot change theme, app instance is null");
+            return;
+        }
         AppCompatDelegate.setDefaultNightMode(themeMode);
     }
 

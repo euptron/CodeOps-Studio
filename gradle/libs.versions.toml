@@ -18,6 +18,9 @@ googlePlayServicesOSSLicenses = "17.2.1"
 # Firebase
 firebaseBom = "34.0.0"
 # Other
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
 commonsIO = "2.18.0"
 ossLicensesPlugin = "0.10.6"
 zip4j = "2.11.1"
@@ -38,9 +41,6 @@ glide = "5.0.4"
 androidGradlePlugin = "8.7.0"
 googleServicesPlugin = "4.4.3"
 firebaseCrashlyticsPlugin = "3.0.5"
-junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
 
 [libraries]
 # AndroidX
@@ -66,6 +66,9 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 firebase-inappmessaging = { group = "com.google.firebase", name = "firebase-inappmessaging-display" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 # Other
+other-junit = { group = "junit", name = "junit", version.ref = "junit" }
+other-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+other-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
 other-commons-io = { group = "commons-io", name = "commons-io", version.ref = "commonsIO" }
 other-lingala-zip4j = { group = "net.lingala.zip4j", name = "zip4j", version.ref = "zip4j" }
@@ -85,9 +88,6 @@ other-sora-editor-code = { group = "io.github.Rosemoe.sora-editor", name = "edit
 other-sora-editor-textmate = { group = "io.github.Rosemoe.sora-editor", name = "language-textmate" }
 other-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 other-glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 
 [plugins]

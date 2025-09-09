@@ -142,5 +142,17 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>
+
+    <style name="AppTheme.MainToolBar.TitleAppearanceLarge" parent="@style/TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">@dimen/dimen20sp</item>
+    </style>
+
+    <style name="AppTheme.MainToolBar.TitleAppearance" parent="@style/TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">@dimen/dimen14sp</item>
+    </style>
+
+    <style name="AppTheme.MainToolBar.SubTitleAppearance" parent="@style/TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">@dimen/dimen12sp</item>
+    </style>
 </resources>
 

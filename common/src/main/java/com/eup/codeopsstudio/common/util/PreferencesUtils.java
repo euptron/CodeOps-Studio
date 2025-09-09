@@ -78,7 +78,7 @@ public class PreferencesUtils {
      *
      * @return The SharedPreferences for persisted panes.
      */
-    public static SharedPreferences getPersistentPanesPreferences() {
+    public static SharedPreferences getGlobalPreferences() {
         return ContextManager
             .getApplicationContext()
             .getSharedPreferences("persistent_panes", Context.MODE_PRIVATE);

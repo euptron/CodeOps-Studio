@@ -26,7 +26,6 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
     id "com.google.android.gms.oss-licenses-plugin"
-
 }
 
 def secretsPropertiesFile = rootProject.file("secrets.properties")
@@ -46,6 +45,8 @@ android {
         // Flag to enable support for the new language APIs
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     if (secretsPropertiesFile.exists() && secretsPropertiesFile.text.trim()) {
@@ -144,6 +145,10 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.inappmessaging)
+
+    testImplementation libs.other.junit
+    androidTestImplementation libs.other.ext.junit
+    androidTestImplementation libs.other.espresso.core
     debugImplementation(libs.other.leakcanary.android)
     coreLibraryDesugaring(libs.other.desugar)
 

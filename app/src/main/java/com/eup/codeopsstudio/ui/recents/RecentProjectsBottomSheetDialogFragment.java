@@ -96,9 +96,6 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (sharedPreferences != null) {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
-        }
         binding = null;
     }
 
@@ -118,7 +115,6 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
 
         recentProjects    = Recents.initialize(requireContext());
         sharedPreferences = recentProjects.getSharedPreferences();
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
         adapter = new ProjectAdapter();
         populateRecentsAdapter(recentProjects.getRecentProjects());
@@ -126,6 +122,18 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
         adapter.setOnItemLongClickListener(this::inflateProjectDialogs);
         binding.list.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.list.setAdapter(adapter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
 
     /**
