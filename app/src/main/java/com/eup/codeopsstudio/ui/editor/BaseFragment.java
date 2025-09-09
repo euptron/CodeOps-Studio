@@ -259,9 +259,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             .addSettingsPane()
             .removeObservers(getViewLifecycleOwner());
         panesLiveData.removeObserver(panesObserver);
-        PreferencesUtils
-            .getDefaultPreferences()
-            .unregisterOnSharedPreferenceChangeListener(this);
         this.binding = null;
     }
 
