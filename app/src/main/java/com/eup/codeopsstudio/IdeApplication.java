@@ -155,8 +155,9 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         ILog.mode(isAppInDebugMode());
         super.onCreate();
         applicationInstance = this;
-        ThemeManager.applyTheme(this);
         ContextManager.initialize(getGlobalContext());
+
+        ThemeManager.applyTheme(this);
         crashlytics = FirebaseCrashlytics.getInstance();
         crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
         FirebaseAnalytics
