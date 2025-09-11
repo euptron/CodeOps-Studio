@@ -27,6 +27,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
@@ -109,7 +110,7 @@ public class FileManager {
     }
 
     public void startFileTask(final FileAction fileAction, final File file,
-                              final TaskListener listener) {
+        final TaskListener listener) {
         String title = "";
         String message = "";
         String hint = "";
@@ -186,7 +187,7 @@ public class FileManager {
 
     @SuppressWarnings("deprecation")
     private void executeFileTask(final FileAction fileAction, final String newFileName,
-                                 final File file, final TaskListener listener) {
+        final File file, final TaskListener listener) {
         new AsyncTask<Void, Integer, Object>() {
 
             @Override
@@ -239,19 +240,21 @@ public class FileManager {
             LayoutDialogProgressBinding.inflate(LayoutInflater.from(context));
 
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
-        builder.setTitle(getProgressDialogTitle(fileAction, file));
         builder.setView(binding.getRoot());
+        binding.textView.setText(getProgressDialogTitle(fileAction, file));
         builder.setCancelable(false);
         alertDialog = builder.show();
     }
 
+    @NonNull
     private String getProgressDialogTitle(FileAction fileAction, File file) {
         if (fileAction == FileAction.DELETE_FILE) {
             return context.getString(R.string.msg_deleting_action, SPACE + file.getName());
         } else if (fileAction == FileAction.DELETE_FOLDER) {
             return context.getString(R.string.msg_deleting_action, SPACE + file.getName());
         }
-        return context.getString(R.string.processing);
+        return context.getString(R.string.processing)
+            + context.getString(com.eup.codeopsstudio.R.string.three_ellipsis);
     }
 
     private void hideProgressDialog() {

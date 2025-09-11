@@ -23,22 +23,21 @@
 
 package com.eup.codeopsstudio.ui.settings;
 
-import android.os.Build;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
-import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.util.manager.ThemeManager;
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.transition.MaterialSharedAxis;
 
-public class GeneralConfigurationFragment extends PreferenceFragmentCompat {
+public class GeneralConfigurationFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String TAG = GeneralConfigurationFragment.class.getSimpleName();
 
@@ -52,27 +51,62 @@ public class GeneralConfigurationFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
         setPreferencesFromResource(R.xml.general_configuration_preferences, rootKey);
-        Preference themePreference = findPreference(Constants.SharedPreferenceKeys.KEY_APP_THEME);
-        SwitchPreferenceCompat switchPreference =
-            findPreference(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS);
+        SwitchPreferenceCompat switchPreference = findPreference(ThemeManager.KEY_DYNAMIC_COLORS);
 
-        if (themePreference == null || switchPreference == null) {
-            ILog.debug(TAG, "themePreference or switchPreference == null");
-            return;
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            switchPreference.setEnabled(false);
-            switchPreference.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
-        }
-
-        themePreference.setOnPreferenceChangeListener((preference, newValue) -> {
-            if (newValue instanceof String val) {
-                int newTheme = PreferencesUtils.getCurrentTheme(val);
-                IdeApplication.changeTheme(newTheme);
-                return true;
+        if (switchPreference == null) {
+            ILog.debug(TAG, "Dynamic switch preference is null");
+        } else {
+            if (!DynamicColors.isDynamicColorAvailable()) {
+                switchPreference.setEnabled(false);
+                switchPreference.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
             }
-            return false;
-        });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences pref = getPreferenceManager().getSharedPreferences();
+
+        if (pref != null) {
+            pref.registerOnSharedPreferenceChangeListener(this);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        SharedPreferences pref = getPreferenceManager().getSharedPreferences();
+
+        if (pref != null) {
+            pref.unregisterOnSharedPreferenceChangeListener(this);
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+        @Nullable String key) {
+        if (key != null) {
+            switch (key) {
+                case ThemeManager.KEY_THEME:
+                    // fall-through
+                case ThemeManager.KEY_DYNAMIC_COLORS:
+                    ThemeManager.applyTheme(requireActivity().getApplication());
+                    requireActivity().recreate();
+                    break;
+                case Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE:
+                    boolean checked = sharedPreferences.getBoolean(key, true);
+                    syncSwitch(findPreference(Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE), checked);
+                    break;
+            }
+        }
+    }
+
+    private void syncSwitch(SwitchPreferenceCompat switchPreference, boolean checked) {
+        if (switchPreference == null) {
+            ILog.debug(TAG, "Switch preference is null");
+        } else {
+            switchPreference.setChecked(checked);
+        }
     }
 }

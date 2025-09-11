@@ -33,7 +33,6 @@ import android.os.Build;
 import android.os.Process;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
@@ -43,11 +42,7 @@ import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.ThrowableUtils;
 import com.eup.codeopsstudio.util.Wizard;
-import com.google.android.material.color.DynamicColors;
-import com.google.android.material.color.DynamicColors.Precondition;
-import com.google.android.material.color.DynamicColorsOptions;
-import com.google.android.material.color.HarmonizedColors;
-import com.google.android.material.color.HarmonizedColorsOptions;
+import com.eup.codeopsstudio.util.manager.ThemeManager;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.CustomKeysAndValues;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -160,6 +155,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         ILog.mode(isAppInDebugMode());
         super.onCreate();
         applicationInstance = this;
+        ThemeManager.applyTheme(this);
         ContextManager.initialize(getGlobalContext());
         crashlytics = FirebaseCrashlytics.getInstance();
         crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
@@ -170,37 +166,11 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         Thread.setDefaultUncaughtExceptionHandler(this);
         crashlytics.sendUnsentReports();
         validateExpirationDate();
-        changeTheme(PreferencesUtils.getCurrentTheme());
-        applyDynamicColor();
         editorConfigFuture = initializeEditorConfigurationsInBackground();
     }
 
     public static boolean isAppInDebugMode() {
         return BuildConfig.DEBUG;
-    }
-
-    public static void changeTheme(int themeMode) {
-        if (applicationInstance == null) {
-            ILog.warning(TAG, "Cannot change theme, app instance is null");
-            return;
-        }
-        AppCompatDelegate.setDefaultNightMode(themeMode);
-    }
-
-    private void applyDynamicColor() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
-
-        final Precondition precondition = (activity, theme) -> PreferencesUtils.useDynamicColors();
-        DynamicColors.applyToActivitiesIfAvailable(this, new DynamicColorsOptions.Builder()
-            .setPrecondition(precondition)
-            .setOnAppliedCallback(activity -> {
-                if ((activity instanceof MainActivity)
-                    && ((MainActivity) activity).isColorHarmonizationEnabled()) {
-                    HarmonizedColors.applyToContextIfAvailable(activity,
-                        HarmonizedColorsOptions.createMaterialDefaults());
-                }
-            })
-            .build());
     }
 
     private void validateExpirationDate() {

@@ -477,9 +477,14 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             }
         } catch (Throwable e) {
             // corrupted thus clear
-            PreferencesUtils.clearPerference(PreferencesUtils.getLastOpenedProjectPreferences(),
+
+            boolean clearedPrefSuccess = PreferencesUtils.clearPerference(PreferencesUtils.getLastOpenedProjectPreferences(),
                 SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
-            logger.e(LOG_TAG, "Failed to reopen last opened project" + "\n\n" + e);
+            logger.e(LOG_TAG, "Failed to reopen last opened project: " + e);
+
+            if (clearedPrefSuccess) {
+                ILog.debug(TAG,"Cleared corrupted save state for last opened project");
+            }
         }
     }
 

@@ -50,7 +50,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:nestedScrollingEnabled="false"
             android:padding="@dimen/dimen2dp"
             android:text="@string/drag_up_for_logs"
             android:textSize="11sp" />
@@ -69,17 +68,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="@string/log_tab_desc"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/row_layout" />
-
-    <com.google.android.material.divider.MaterialDivider
-        android:id="@+id/bottom_divider"
-        android:layout_width="0dp"
-        android:layout_height="1px"
-        android:alpha="0.7"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/action_pager"
@@ -88,6 +79,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/bottom_divider" />
+        app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

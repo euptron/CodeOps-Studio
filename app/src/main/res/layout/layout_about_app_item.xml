@@ -25,15 +25,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/alert_header"
-    android:layout_width="fill_parent"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="start"
     android:gravity="center"
     android:minHeight="8dp"
     android:orientation="vertical">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/icon_container"
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/icon"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_gravity="center"
@@ -41,15 +41,12 @@
         android:layout_marginTop="28dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="4dp"
-        app:cardCornerRadius="56dp"
-        app:cardElevation="6dp">
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitCenter"
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+        app:srcCompat="@mipmap/ic_launcher"
+        app:strokeWidth="1px" />
 
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@mipmap/ic_launcher" />
-    </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:id="@+id/app_name"

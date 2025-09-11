@@ -35,6 +35,8 @@ import com.eup.codeopsstudio.models.user.DeviceInfo;
 import com.eup.codeopsstudio.res.R;
 import com.google.android.material.transition.MaterialSharedAxis;
 
+import java.util.Objects;
+
 /**
  * @author Etido Peter
  */
@@ -72,18 +74,19 @@ public class PrivacyFragment extends PreferenceFragmentCompat {
         Preference prefCountry = findPreference(SharedPreferenceKeys.KEY_DEVICE_COUNTRY);
         Preference prefLocale = findPreference(SharedPreferenceKeys.KEY_LOCALE);
 
-        assert prefPkgName != null;
-        assert prefAppVersionCode != null;
-        assert prefAppVersionName != null;
-        assert prefDeviceModel != null;
-        assert prefSdkVersion != null;
-        assert prefBuildId != null;
-        assert prefRelease != null;
-        assert prefBoard != null;
-        assert prefBrand != null;
-        assert prefCpuArch != null;
-        assert prefCountry != null;
-        assert prefLocale != null;
+        // NPE are thrown on purpose, leave this
+        Objects.requireNonNull(prefPkgName);
+        Objects.requireNonNull(prefAppVersionCode);
+        Objects.requireNonNull(prefAppVersionName);
+        Objects.requireNonNull(prefDeviceModel);
+        Objects.requireNonNull(prefSdkVersion);
+        Objects.requireNonNull(prefBuildId);
+        Objects.requireNonNull(prefRelease);
+        Objects.requireNonNull(prefBoard);
+        Objects.requireNonNull(prefBrand);
+        Objects.requireNonNull(prefCpuArch);
+        Objects.requireNonNull(prefCountry);
+        Objects.requireNonNull(prefLocale);
 
         // application summary
         prefPkgName.setSummary(deviceInfo.getAppPackageName());

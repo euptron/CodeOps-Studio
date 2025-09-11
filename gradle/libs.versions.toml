@@ -3,18 +3,18 @@
 androidxAppCompat = "1.7.1"
 androidxAnnotation = "1.9.1"
 androidxConstraintLayout = "2.2.1"
-androidxNavigationFragment = "2.9.3"
+androidxNavigationFragment = "2.9.4"
 androidxNavigationUi = "2.9.3"
 androidxPreference = "1.2.1"
 androidxSwipeReFreshLayout = "1.2.0-beta01"
 androidxSplashScreen = "1.0.1"
-androidxWorkRuntime = "2.10.3"
+androidxWorkRuntime = "2.10.4"
 androidxDataStore = "1.1.7"
 # Google
-googleMaterial = "1.12.0"
+googleMaterial = "1.13.0"
 googleGuava = "33.4.8-android"
 googleGson = "2.10"
-googlePlayServicesOSSLicenses = "17.2.1"
+googlePlayServicesOSSLicenses = "17.3.0"
 # Firebase
 firebaseBom = "34.0.0"
 # Other
@@ -41,6 +41,7 @@ glide = "5.0.4"
 androidGradlePlugin = "8.7.0"
 googleServicesPlugin = "4.4.3"
 firebaseCrashlyticsPlugin = "3.0.5"
+documentfile = "1.1.0"
 
 [libraries]
 # AndroidX
@@ -88,6 +89,7 @@ other-sora-editor-code = { group = "io.github.Rosemoe.sora-editor", name = "edit
 other-sora-editor-textmate = { group = "io.github.Rosemoe.sora-editor", name = "language-textmate" }
 other-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 other-glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 
 [plugins]

@@ -27,18 +27,22 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 
+import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ContextManager;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.res.R;
-import com.google.android.material.color.DynamicColors;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class PreferencesUtils {
+
+    private static final String TAG = PreferencesUtils.class.getSimpleName();
 
     /**
      * Get the SharedPreferences for the advertisement
@@ -110,12 +114,15 @@ public class PreferencesUtils {
      * @param selectedTheme The selected theme value.
      * @return The corresponding theme.
      */
-    public static int getCurrentTheme(String selectedTheme) {
+    public static int getCurrentTheme(@NonNull String selectedTheme) {
+        // 1 => Light
+        // 2 => Dark
+        // 3 => Auto
         switch (selectedTheme) {
-            case "2":
-                return AppCompatDelegate.MODE_NIGHT_YES;
             case "1":
                 return AppCompatDelegate.MODE_NIGHT_NO;
+            case "2":
+                return AppCompatDelegate.MODE_NIGHT_YES;
             default:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     return AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
@@ -131,12 +138,7 @@ public class PreferencesUtils {
      * @return true if dynamic colors should be used, otherwise false.
      */
     public static boolean useDynamicColors() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            && DynamicColors.isDynamicColorAvailable()) {
-            return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS, false);
-        } else {
-            return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS, false);
-        }
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS, false);
     }
 
     // =======================
@@ -175,20 +177,13 @@ public class PreferencesUtils {
      * @return The corresponding editor font.
      */
     private static int getEditorFont(String selectedFont) {
-        switch (selectedFont) {
-            case "inconsolata_regular":
-                return R.font.inconsolata_regular;
-            case "sourcecodepro_regular":
-                return R.font.sourcecodepro_regular;
-            case "firacode_regular":
-                return R.font.firacode_regular;
-            case "jetbrains_mono_regular":
-                return R.font.jetbrains_mono_regular;
-            case "notosans_regular":
-                return R.font.notosans_regular;
-            default:
-                return R.font.jetbrains_mono_regular;
-        }
+        return switch (selectedFont) {
+            case "inconsolata_regular" -> R.font.inconsolata_regular;
+            case "sourcecodepro_regular" -> R.font.sourcecodepro_regular;
+            case "firacode_regular" -> R.font.firacode_regular;
+            case "notosans_regular" -> R.font.notosans_regular;
+            default -> R.font.jetbrains_mono_regular;
+        };
     }
 
     /**
@@ -277,18 +272,12 @@ public class PreferencesUtils {
      * @return The corresponding line height value.
      */
     private static float getEditorLineHeight(String lineHeightEntry) {
-        switch (lineHeightEntry) {
-            case "1":
-                return 1;
-            case "2":
-                return 2;
-            case "3":
-                return 3;
-            case "4":
-                return 4;
-            default:
-                return 2;
-        }
+        return switch (lineHeightEntry) {
+            case "1" -> 1;
+            case "3" -> 3;
+            case "4" -> 4;
+            default -> 2;
+        };
     }
 
     /**
@@ -549,6 +538,7 @@ public class PreferencesUtils {
      * @param index    The index of the item to retrieve.
      * @return The item at the specified index from the resource array.
      */
+    @NonNull
     public static String getItem(int resource, int index) {
         CharSequence[] choices = ContextManager
             .getApplicationContext()
@@ -590,11 +580,20 @@ public class PreferencesUtils {
             .apply();
     }
 
-    public static boolean clearPerference(SharedPreferences pref, String key) {
-        return pref
+    public static boolean clearPerference(@NonNull SharedPreferences pref, String key) {
+        final boolean[] success = {false};
+
+        AsyncTask.runNonCancelable(pref
             .edit()
-            .putString(key, "")
-            .commit();
+            .putString(key, "")::commit, (result, throwable) -> {
+            if (throwable == null) {
+                success[0] = result;
+                ILog.debug(TAG, "Cleared preference successfully");
+            } else {
+                ILog.debug(TAG, "Error when clearing preference: ", throwable);
+            }
+        });
+        return success[0];
     }
 
     /**

@@ -149,7 +149,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         sharedPreferences    = PreferencesUtils.getGlobalPreferences();
         mMainViewModel       = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         mSavedStateViewModel =

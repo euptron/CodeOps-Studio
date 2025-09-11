@@ -83,7 +83,8 @@ public class TabSizeSeekBarDialogPreference extends Preference {
             var pref = PreferencesUtils.getDefaultPreferences();
             var editor = pref.edit();
             editor.putInt(SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size);
-            return editor.commit();
+            editor.apply();
+            return true;
         }
         return false;
     }

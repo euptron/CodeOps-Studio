@@ -207,13 +207,6 @@ public class MainActivity extends AppCompatActivity {
             .show();
     }
 
-    /**
-     * Returns {@code true} if color harmonization is enabled.
-     */
-    public boolean isColorHarmonizationEnabled() {
-        return false;
-    }
-
     public ContextualLifecycleObserver getLifecycleObserver() {
         return this.lifecycleObserver;
     }
@@ -265,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = Uri.fromParts("package", getPackageName(), null);
             intent.setData(uri);
             requestStoragePermissionLauncherApi30.launch(intent);
-        } catch (ActivityNotFoundException anfe) {
+        } catch (ActivityNotFoundException ignored) {
             try {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
                 Uri uri = Uri.fromParts("package", getPackageName(), null);

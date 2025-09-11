@@ -83,7 +83,8 @@ public class FontSeekBarDialogPreference extends Preference {
             var pref = PreferencesUtils.getDefaultPreferences();
             var editor = pref.edit();
             editor.putFloat(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, fontSize);
-            return editor.commit();
+            editor.apply();
+            return true;
         }
         return false;
     }

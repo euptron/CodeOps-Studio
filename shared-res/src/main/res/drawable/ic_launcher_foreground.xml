@@ -1,14 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of CodeOps Studio.
+  ~ CodeOps Studio - Code anywhere anytime
+  ~ https://github.com/euptron/CodeOps-Studio
+  ~ Copyright (C) 2024-2025 Etido Peter
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program. If not, see https://www.gnu.org/licenses/
+  ~
+  ~ If you have more questions, feel free to message Etido Peter if you have any
+  ~ questions or need additional information. Email: euptron@gmail.com
+  -->
+
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="58"
-    android:viewportHeight="58">
-  <group android:scaleX="0.30555555"
-      android:scaleY="0.30555555"
-      android:translateX="20.13889"
-      android:translateY="20.13889">
-    <path
-        android:pathData="M41.25,60V54.375H54.375V5.625H41.25V0H60V60H41.25ZM0,60V0H18.75V5.625H5.625V54.375H18.75V60H0Z"
-        android:fillColor="#AAC7FF"/>
-  </group>
+    android:tint="#AAC7FF"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.5"
+        android:scaleY="0.5"
+        android:translateX="6"
+        android:translateY="6">
+
+        <path
+            android:fillColor="#ff000000"
+            android:pathData="M15,4V6H18V18H15V20H20V4M4,4V20H9V18H6V6H9V4H4Z" />
+
+    </group>
 </vector>
+

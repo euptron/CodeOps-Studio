@@ -28,18 +28,30 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="@dimen/dimen16dp"
     tools:theme="@style/AppTheme">
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progress_bar"
-        android:layout_width="@dimen/dimen32dp"
-        android:layout_height="@dimen/dimen32dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="@dimen/dimen8dp"
         android:indeterminate="true"
         android:visibility="visible"
-        app:indicatorSize="@dimen/dimen32dp"
-        app:trackColor="@android:color/transparent"
+        app:indicatorSize="@dimen/dimen40dp"
+        app:indicatorTrackGapSize="@dimen/dimen4dp"
+        app:trackCornerRadius="@dimen/dimen5dp"
         app:trackThickness="@dimen/dimen4dp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        tools:text="Progress text" />
 </LinearLayout>

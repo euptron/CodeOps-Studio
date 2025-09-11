@@ -32,10 +32,9 @@
     android:layout_marginStart="8dp"
     android:layout_marginTop="4dp"
     android:layout_marginEnd="8dp"
-    android:layout_marginBottom="4dp"
     android:animateLayoutChanges="true"
     android:background="?android:attr/selectableItemBackground"
-    android:paddingVertical="8dp">
+    android:paddingVertical="@dimen/dimen2dp">
 
     <View
         android:id="@+id/version_indicator"
@@ -50,6 +49,7 @@
         android:id="@+id/chevron"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:contentDescription="@string/toggle_release_dec"
         android:padding="12dp"
         android:src="@drawable/ic_chevron_down"
         app:layout_constraintBottom_toBottomOf="@+id/expandable_pane"
@@ -81,7 +81,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:alpha="0.7"
+        android:alpha="0.8"
         android:focusable="false"
         android:gravity="center_vertical"
         android:textSize="14sp"
@@ -129,7 +129,7 @@
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/bottom_divider"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="1px"
             android:alpha="0.7"
             android:visibility="visible" />
     </LinearLayout>

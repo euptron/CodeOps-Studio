@@ -83,7 +83,8 @@ public class DefaultFileEncodingDialogPreference extends Preference {
         var pref = PreferencesUtils.getDefaultPreferences();
         var editor = pref.edit();
         editor.putString(SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding);
-        return editor.commit();
+        editor.apply();
+        return true;
     }
 
     @Override

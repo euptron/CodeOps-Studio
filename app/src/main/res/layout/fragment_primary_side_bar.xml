@@ -35,7 +35,7 @@
         app:menu="@menu/primary_sidebar_navigation_menu" />
 
     <com.google.android.material.divider.MaterialDivider
-        android:layout_width="1dp"
+        android:layout_width="1px"
         android:layout_height="match_parent"
         android:alpha="0.7" />
 

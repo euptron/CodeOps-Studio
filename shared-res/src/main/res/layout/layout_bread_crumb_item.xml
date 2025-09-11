@@ -25,6 +25,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
+    android:padding="@dimen/dimen2dp"
     android:layout_height="wrap_content">
 
     <TextView
@@ -33,8 +34,8 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:foreground="@drawable/base_ripple"
-        android:padding="@dimen/dimen8dp"
-        android:textSize="13sp"
+        android:padding="@dimen/dimen4dp"
+        android:textSize="11sp"
         tools:text="@string/app_name" />
 
     <ImageView
@@ -45,7 +46,6 @@
         android:layout_marginLeft="@dimen/dimen2dp"
         android:layout_toEndOf="@id/crumb_text"
         android:contentDescription="@string/breadcrumb_icon_desc"
-        android:paddingTop="@dimen/dimen8dp"
-        android:paddingBottom="@dimen/dimen8dp"
+        android:scaleType="centerInside"
         android:src="@drawable/ic_chevron_right" />
 </RelativeLayout>
