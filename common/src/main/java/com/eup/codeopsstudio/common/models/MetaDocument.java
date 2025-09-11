@@ -29,6 +29,7 @@ import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.FileUriMediator;
@@ -349,7 +350,7 @@ public class MetaDocument {
      * @param name name of new directory
      * @return true if successful otherwise false
      * @throws UnsupportedOperationException when working with a single document created from {@link
-     *                                       #fromSingleUri(Context, Uri)}.
+     *                                       DocumentFile#fromSingleUri(Context, Uri)}.
      * @throws SecurityException             If a security manager exists and its <code>{@link
      *                                       <p>
      *                                       <p>
@@ -358,7 +359,7 @@ public class MetaDocument {
      *                                       </code> method does not permit
      *                                       the named directory to be created
      * @see androidx.documentfile.provider.DocumentFile#createDirectory(String)
-     * @see File.mkdir()
+     * @see File#mkdir()
      */
     public boolean createDirectory(String name) {
         if (mFile != null) {
@@ -428,7 +429,7 @@ public class MetaDocument {
      * resolve filesystem
      * conflicts ("eup" → "eup (1)" → Etido Peter). Providers might create a new document with
      * updated URI and
-     * MIME type; callers must recheck {@link #getUri()} and {@link #getType()} post-rename.
+     * MIME type; callers must recheck {@link #getUri()} and {@link DocumentFile#getType()} post-rename.
      *
      * <p>After renaming directories, reload document lists as {@link DocumentFile#listFiles()} may
      * return stale entries.

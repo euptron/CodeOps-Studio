@@ -53,6 +53,7 @@ android {
 }
 
 dependencies {
+    api(libs.androidx.documentfile)
     api(libs.google.guava)
     api(libs.google.gson)
     api(libs.other.commons.io)
