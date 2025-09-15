@@ -29,25 +29,33 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.text.InputType;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
 
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
+import com.eup.codeopsstudio.editor.databinding.EditorProgressIndicatorLayoutBinding;
 import com.eup.codeopsstudio.editor.event.IndexingEvent;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorAutoCompletion;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorCompletionAdapter;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorTextActionWindow;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.eclipse.tm4e.core.registry.IThemeSource;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 import io.github.rosemoe.sora.langs.textmate.TextMateColorScheme;
 import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
@@ -107,7 +115,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         PreferencesUtils
             .getDefaultPreferences()
             .registerOnSharedPreferenceChangeListener(this);
-        setInputType(defaultInputType(true, true, true, true));
+        setInputType(defaultInputType(true, true, false, true));
         editorAutoCompletion = new ContextualEditorAutoCompletion(this);
         editorAutoCompletion.setAdapter(new ContextualEditorCompletionAdapter());
         replaceComponent(EditorAutoCompletion.class, editorAutoCompletion);
@@ -429,6 +437,10 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         }
     }
 
+    public void useICULibrary(boolean enabled) {
+        getProps().useICULibToSelectWords = enabled;
+    }
+
     public void gotoEnd() {
         setSelection(
             getText().getLineCount() - 1, getText().getColumnCount(getText().getLineCount() - 1));
@@ -488,10 +500,6 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         } catch (IllegalStateException e) {
             toast(e.getLocalizedMessage());
         }
-    }
-
-    public void useICULibrary(boolean enabled) {
-        getProps().useICULibToSelectWords = enabled;
     }
 
     public String getSelectedText() {
@@ -574,36 +582,6 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         return text;
     }
 
-    /**
-     * Updates the previous editor theme with a new one
-     *
-     * @param themeName the name of theme to be used for update
-     */
-    public void updateTextMateTheme(String themeName) throws Exception {
-        ensureTextmateTheme();
-        ThemeRegistry
-            .getInstance()
-            .setTheme(themeName);
-        resetColorScheme();
-    }
-
-    /*
-     * Call this method when ever you set a new theme
-     */
-    public void ensureTextmateTheme() throws Exception {
-        EditorColorScheme editorColorScheme = getColorScheme();
-        if (!(editorColorScheme instanceof TextMateColorScheme)) {
-            editorColorScheme = TextMateColorScheme.create(ThemeRegistry.getInstance());
-            setColorScheme(editorColorScheme);
-            // in case of crash below is suspect
-            getComponent(EditorAutoCompletion.class).applyColorScheme();
-        }
-    }
-
-    public void resetColorScheme() {
-        setColorScheme(getColorScheme());
-    }
-
     public void convertSelectionToLowerCase() {
         final var cursor = getCursor();
 
@@ -614,45 +592,21 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
             if (length > 0) {
                 final var line = cursor.left().line;
-                setIndexing(true);
-                AsyncTask
-                    .runProvideError(() -> getText().substring(left, right))
-                    .thenApply(this::toLowerCase)
-                    .thenAccept(result -> this.post(() -> {
-                        setIndexing(false);
-                        if (result != null) {
-                            commitText(result);
-                            setSelectionRegion(line, 0, line, getText().getColumnCount(line)); //
-                            // reselect line
-                        } else {
-                            toast(R.string.editor_unable_to_format);
-                        }
-                    }));
+
+                final var caseHandler = new CaseHandler(getText().substring(left, right));
+                caseHandler.consumeCase(CaseHandler.CaseType.LOWER, output -> {
+                    if (output != null) {
+                        commitText(output);
+                        // reselect line
+                        setSelectionRegion(line, 0, line, getText().getColumnCount(line));
+                    } else {
+                        toast(R.string.editor_unable_to_format);
+                    }
+                });
             }
         } else {
             toast(R.string.editor_select_convert_text_first);
         }
-    }
-
-    private String toLowerCase(String input) {
-        return toLowerCase(input, null);
-    }
-
-    private String toLowerCase(String input, ProgressListener listener) {
-        var result = new StringBuilder();
-
-        for (int i = 0; i < input.length(); i++) {
-            var current = input.charAt(i);
-            result.append(Character.toLowerCase(current));
-
-            if (listener != null) {
-                // Update progress
-                int progress = (i + 1) * 100 / input.length();
-                listener.onProgress(progress);
-            }
-        }
-
-        return result.toString();
     }
 
     private void toast(@StringRes int message) {
@@ -671,47 +625,21 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
             if (length > 0) {
                 final var line = cursor.left().line;
-                setIndexing(true);
-                AsyncTask
-                    .runProvideError(() -> getText().substring(left, right))
-                    .thenApply(this::toUpperCase)
-                    .thenAccept(result -> this.post(() -> {
-                        setIndexing(false);
-                        if (result != null) {
-                            commitText(result);
-                            setSelectionRegion(line, 0, line, getText().getColumnCount(line)); //
-                            // reselect line
-                        } else {
-                            toast(R.string.editor_unable_to_format);
-                        }
-                    }));
+
+                final var caseHandler = new CaseHandler(getText().substring(left, right));
+                caseHandler.consumeCase(CaseHandler.CaseType.UPPER, output -> {
+                    if (output != null) {
+                        commitText(output);
+                        // reselect line
+                        setSelectionRegion(line, 0, line, getText().getColumnCount(line));
+                    } else {
+                        toast(R.string.editor_unable_to_format);
+                    }
+                });
             }
         } else {
             toast(R.string.editor_select_convert_text_first);
         }
-    }
-
-    @NonNull
-    private String toUpperCase(String input) {
-        return toUpperCase(input, null);
-    }
-
-    @NonNull
-    private String toUpperCase(String input, ProgressListener listener) {
-        var result = new StringBuilder();
-
-        for (int i = 0; i < input.length(); i++) {
-            var current = input.charAt(i);
-            result.append(Character.toUpperCase(current));
-
-            if (listener != null) {
-                // Update progress
-                int progress = (i + 1) * 100 / input.length();
-                listener.onProgress(progress);
-            }
-        }
-
-        return result.toString();
     }
 
     public void replaceCurrLine() {
@@ -777,6 +705,37 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
     public String getFilePath() {
         return mFile.getAbsolutePath();
+    }
+
+    /**
+     * Updates the previous editor theme with a new one
+     *
+     * @param themeName the name of theme to be used for update
+     */
+    @VisibleForTesting
+    public void updateTextMateTheme(String themeName) throws Exception {
+        ensureTextmateTheme();
+        ThemeRegistry
+            .getInstance()
+            .setTheme(themeName);
+        resetColorScheme();
+    }
+
+    /*
+     * Call this method when ever you set a new theme
+     */
+    public void ensureTextmateTheme() throws Exception {
+        EditorColorScheme editorColorScheme = getColorScheme();
+        if (!(editorColorScheme instanceof TextMateColorScheme)) {
+            editorColorScheme = TextMateColorScheme.create(ThemeRegistry.getInstance());
+            setColorScheme(editorColorScheme);
+            // in case of crash below is suspect
+            getComponent(EditorAutoCompletion.class).applyColorScheme();
+        }
+    }
+
+    public void resetColorScheme() {
+        setColorScheme(getColorScheme());
     }
 
     public void refreshEditorLanguageSyntax(String languageExtension, String langScope,
@@ -857,7 +816,89 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         return tml;
     }
 
-    public interface ProgressListener {
-        void onProgress(int progress);
+    @NonNull
+    public final String getString(@StringRes int resId) {
+        return getContext().getString(resId);
+    }
+
+    @NonNull
+    public final String getString(@StringRes int resId, Object... formatArgs) {
+        return getContext().getString(resId, formatArgs);
+    }
+
+    private class CaseHandler {
+
+        private final String input;
+
+        public CaseHandler(String input) {
+            this.input = input;
+        }
+
+        public void consumeCase(@NonNull final CaseType type, final Consumer<String> output) {
+            final boolean toUpperCase = !type.equals(CaseType.LOWER);
+            final int bufferSize = PreferencesUtils.getCurrentBufferSize();
+            final String upperCaseRes = getString(R.string.editor_upper_case);
+            final String lowerCaseRes = getString(R.string.editor_lower_case);
+            final String selectedCase = toUpperCase ? upperCaseRes : lowerCaseRes;
+            final String info = getString(R.string.editor_converting_to_title, selectedCase);
+
+            LayoutInflater inflater = LayoutInflater.from(getContext());
+            var binding = EditorProgressIndicatorLayoutBinding.inflate(inflater);
+            binding.progressIndicator.setIndeterminate(false);
+            binding.progressIndicator.setMax(100);
+            binding.progressMessage.setText(info);
+
+            final AlertDialog progressDialog = new MaterialAlertDialogBuilder(getContext())
+                .setView(binding.getRoot())
+                .setCancelable(false)
+                .create();
+
+            progressDialog.show();
+
+            final ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute(() -> {
+                try {
+                    int length = input.length();
+                    StringBuilder result = new StringBuilder(input);
+
+                    for (int i = 0; i < length; i += bufferSize) {
+                        int end = Math.min(i + bufferSize, length);
+                        String part = input.substring(i, end);
+                        result.append(toUpperCase ? part.toUpperCase() : part.toLowerCase());
+
+                        // Update progress
+                        final int progress = (int) (((double) end / length) * 100);
+                        AsyncTask.runOnUiThread(() -> binding.progressIndicator.setProgressCompat(progress, true));
+                    }
+
+                    final String converted = result.toString();
+
+                    AsyncTask.runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        output.accept(converted);
+                    });
+                } catch (Exception e) {
+                    AsyncTask.runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        showErrorDialog(e.getMessage());
+                    });
+                } finally {
+                    executor.shutdown();
+                }
+            });
+        }
+
+        private void showErrorDialog(String message) {
+            AsyncTask.runOnUiThread(() -> new MaterialAlertDialogBuilder(getContext())
+                .setTitle(R.string.editor_conversion_failed)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+        }
+
+        public enum CaseType {
+            UPPER,
+            LOWER
+        }
     }
 }
