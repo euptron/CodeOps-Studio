@@ -41,10 +41,11 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.databinding.FragmentChangeLogBinding;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.ui.settings.api.ChangelogAdapter;
 import com.eup.codeopsstudio.ui.settings.api.ChangelogItem;
 import com.google.android.material.transition.MaterialSharedAxis;
@@ -57,11 +58,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @author Etido Peter
+ */
 public class ChangeLogFragment extends Fragment {
 
     public static final String TAG = ChangeLogFragment.class.getSimpleName();
     private static final String SHARED_PREF_KEY = Constants.CHANGE_LOG_SHARED_PREF_KEY;
-    private RequestQueue requestQueue;
     private FragmentChangeLogBinding binding;
     private SharedPreferences sharedPreferences;
     private updateListener listener;
@@ -79,16 +82,15 @@ public class ChangeLogFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
         binding = FragmentChangeLogBinding.inflate(inflater, viewgroup, false);
         return binding.getRoot();
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // initialize
-        requestQueue      = Volley.newRequestQueue(requireContext());
         sharedPreferences = requireContext().getSharedPreferences(SHARED_PREF_KEY,
             Context.MODE_PRIVATE);
 
@@ -114,21 +116,19 @@ public class ChangeLogFragment extends Fragment {
             }
         };
 
-        AsyncTask.runNonCancelable(() -> {
-            return loadSavedLogs();
-        }, (cachedData, throwable) -> {
+        AsyncTask.runNonCancelable(this::loadSavedLogs, (cachedData, throwable) -> {
             if (cachedData != null) {
                 if (cachedData.isEmpty()) {
                     if (hasInternetConnection()) {
                         showSyncingAlert();
-                        fetchLogs(Constants.DEFAULT_CHANGE_LOG_URL);
+                        fetchLogs();
                     } else {
                         showOfflineAlert(getString(R.string.offline_summary));
                     }
                 } else {
                     if (hasInternetConnection()) {
                         showSyncingAlert();
-                        fetchLogs(Constants.DEFAULT_CHANGE_LOG_URL);
+                        fetchLogs();
                     } else {
                         // load saved logs
                         listener.onDataLoaded(cachedData);
@@ -160,9 +160,10 @@ public class ChangeLogFragment extends Fragment {
                 binding.alertTitle.setText(R.string.failed_sync_change_log_title);
                 binding.alertMessage.setText(getString(R.string.failed_sync_change_log_summ));
                 binding.retryButton.setVisibility(View.VISIBLE);
-                binding.retryButton.setOnClickListener(v -> fetchLogs(Constants.DEFAULT_CHANGE_LOG_URL));
+                binding.retryButton.setOnClickListener(v -> fetchLogs());
                 checkIfLoaded(false);
             });
+        ILog.error(TAG, errorMessage);
     }
 
     private void checkIfLoaded(boolean isLoaded) {
@@ -190,36 +191,32 @@ public class ChangeLogFragment extends Fragment {
 
     /**
      * Make a request
-     *
-     * @param url the url containing a json object
      */
-    private void fetchLogs(final String url) {
+    private void fetchLogs() {
         RequestQueue requestQueue = Volley.newRequestQueue(requireContext());
         // request check for outdated data
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-            response -> {
-            AsyncTask.runNonCancelable(() -> {
-                var parsedLogs = parseLogs(response);
-                saveToSharedPreferences(parsedLogs);
-                return parsedLogs;
-            }, (parsedItems, throwable) -> {
-                if (parsedItems != null) {
-                    listener.onDataLoaded(parsedItems);
-                }
-                if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
-            });
-        }, error -> {
-            requireActivity().runOnUiThread(() -> listener.onDataFailedToLoad(error));
-        });
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,
+            Constants.DEFAULT_CHANGE_LOG_URL, null, response -> AsyncTask.runNonCancelable(() -> {
+            var parsedLogs = parseLogs(response);
+            saveToSharedPreferences(parsedLogs);
+            return parsedLogs;
+        }, (parsedItems, throwable) -> {
+            if (parsedItems != null) {
+                listener.onDataLoaded(parsedItems);
+            }
+            if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
+        }), error -> requireActivity().runOnUiThread(() -> listener.onDataFailedToLoad(error)));
         requestQueue.add(request);
     }
 
     /**
      * Saves a list of app change logs to shared-preferences
      *
-     * @return the change list
+     * @param changelogList the log list to save
+     * @throws JSONException if error JSON error occurs
      */
-    private void saveToSharedPreferences(List<ChangelogItem> changelogList) throws JSONException {
+    private void saveToSharedPreferences(
+        @NonNull List<ChangelogItem> changelogList) throws JSONException {
         JSONArray jsonArray = new JSONArray();
         for (ChangelogItem item : changelogList) {
             JSONObject jsonObject = new JSONObject();
@@ -271,7 +268,8 @@ public class ChangeLogFragment extends Fragment {
      * @param response the json object
      * @return a list of ChangelogItem
      */
-    private List<ChangelogItem> parseLogs(JSONObject response) throws JSONException {
+    @NonNull
+        private List<ChangelogItem> parseLogs(@NonNull JSONObject response) {
         List<ChangelogItem> changelogList = new ArrayList<>();
         JSONArray changelogArray = response.optJSONArray("changelog");
         if (changelogArray != null) {
@@ -293,15 +291,6 @@ public class ChangeLogFragment extends Fragment {
             }
         }
         return changelogList;
-    }
-
-    private void clearSavedLogs() {
-        if (sharedPreferences != null) {
-            sharedPreferences
-                .edit()
-                .clear()
-                .apply();
-        }
     }
 
     public interface updateListener {

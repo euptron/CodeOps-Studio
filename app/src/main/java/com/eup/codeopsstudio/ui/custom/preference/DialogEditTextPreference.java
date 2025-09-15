@@ -23,33 +23,48 @@
 
 package com.eup.codeopsstudio.ui.custom.preference;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.Context;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.widget.EditText;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
+import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.function.Consumer;
+
+/**
+ * @author Etido Peter
+ */
 public class DialogEditTextPreference extends Preference {
 
-    public DialogEditTextPreference(Context context) {
-        super(context);
+    private static final String TAG = DialogEditTextPreference.class.getSimpleName();
+
+    public DialogEditTextPreference(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public DialogEditTextPreference(Context context, AttributeSet attrs) {
+    public DialogEditTextPreference(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public DialogEditTextPreference(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public DialogEditTextPreference(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    public DialogEditTextPreference(@NonNull Context context) {
+        super(context);
     }
 
     @Override
@@ -57,17 +72,20 @@ public class DialogEditTextPreference extends Preference {
         super.onClick();
         LayoutDialogTextInputBinding binding =
             LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
-        binding.tilName
-            .getEditText()
-            .setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        applyTo(binding.tilName.getEditText(),
+            editText -> editText.setInputType(InputType.TYPE_CLASS_NUMBER));
         new MaterialAlertDialogBuilder(getContext())
             .setTitle(R.string.pref_editor_code_editor_summ_cursor_blnk_dialog_title)
             .setMessage(R.string.pref_editor_code_editor_summ_cursor_blnk_dialog_msg)
             .setPositiveButton(android.R.string.ok, (d, w) -> {
-                var cursorBlinkPeriod = Integer.parseInt(binding.tilName
-                    .getEditText()
-                    .getEditableText()
-                    .toString());
+                int cursorBlinkPeriod = 0;
+                if (binding.tilName.getEditText() != null) {
+                    cursorBlinkPeriod = Integer.parseInt(binding.tilName
+                        .getEditText()
+                        .getEditableText()
+                        .toString());
+                }
                 persistInt(cursorBlinkPeriod);
                 notifyChanged();
             })
@@ -76,16 +94,15 @@ public class DialogEditTextPreference extends Preference {
             .setView(binding.getRoot())
             .setCancelable(false)
             .show();
-        binding.tilName
-            .getEditText()
-            .setText(String.valueOf(getPersistedInt(500)));
+        applyTo(binding.tilName.getEditText(),
+            editText -> editText.setText(String.valueOf(getPersistedInt(500))));
     }
 
     private void resetCursorBlinkPeriod() {
         var pref = PreferencesUtils.getDefaultPreferences();
         pref
             .edit()
-            .putInt(SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, 500)
+            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, 500)
             .apply();
     }
 
@@ -94,7 +111,8 @@ public class DialogEditTextPreference extends Preference {
         var pref = PreferencesUtils.getDefaultPreferences();
         pref
             .edit()
-            .putInt(SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, cursorBlinkPeriod)
+            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD,
+                cursorBlinkPeriod)
             .apply();
         return true;
     }
@@ -102,5 +120,13 @@ public class DialogEditTextPreference extends Preference {
     @Override
     protected int getPersistedInt(int fallback) {
         return PreferencesUtils.getCursorBlinkPeriod(fallback);
+    }
+
+    private void applyTo(@Nullable EditText editText, @NonNull Consumer<EditText> application) {
+        if (editText == null) {
+            ILog.debug(TAG, "EditText = null");
+            return;
+        }
+        application.accept(editText);
     }
 }

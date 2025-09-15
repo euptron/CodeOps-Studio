@@ -217,8 +217,9 @@ public class PaneUtil {
             return pane;
         } catch (RuntimeException e) {
             BaseUtil.toastShort(e.getLocalizedMessage());
+            throw e;
         }
-        return null;
+        //return null;
     }
 
     public static Pair<Tab, Pane> getPair(List<Pair<Tab, Pane>> paneTabs, Tab tab) {

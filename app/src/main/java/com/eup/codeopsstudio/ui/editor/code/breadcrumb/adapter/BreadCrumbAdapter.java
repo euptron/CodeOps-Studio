@@ -34,7 +34,7 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.eup.codeopsstudio.res.databinding.LayoutBreadCrumbItemBinding;
+import com.eup.codeopsstudio.databinding.LayoutBreadCrumbItemBinding;
 import com.eup.codeopsstudio.ui.editor.code.breadcrumb.model.BreadCrumb;
 
 import java.util.List;

@@ -35,22 +35,31 @@ import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.LayoutPaneWebviewBinding;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.server.LiveServer;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
+/**
+ * TODO: Implement {@link #goBack()} and {@link #goForward()}
+ *
+ * @author Etido Peter
+ */
 public class WebViewPane extends Pane {
 
     public static final String LOG_TAG = WebViewPane.class.getSimpleName();
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10) AppleWebKit/537.36 "
+        + "(KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36";
     private LayoutPaneWebviewBinding binding;
     private boolean showConsole = true;
     private boolean isDesktopMode = false;
@@ -80,8 +89,8 @@ public class WebViewPane extends Pane {
         super.onViewCreated(view);
         logger.attach(requireActivity());
 
-        liveServer    = new LiveServer(getContext());
-        consoleServer = new LiveServer(getContext());
+        liveServer    = new LiveServer(requireContext());
+        consoleServer = new LiveServer(requireContext());
 
         WebSettings webSettings = binding.webview.getSettings();
         webSettings.setMediaPlaybackRequiresUserGesture(true);
@@ -96,7 +105,7 @@ public class WebViewPane extends Pane {
         webSettings.setSupportMultipleWindows(true);
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setDefaultTextEncodingName("UTF-8");
+        webSettings.setDefaultTextEncodingName(StandardCharsets.UTF_8.displayName());
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -136,16 +145,21 @@ public class WebViewPane extends Pane {
                 if (showConsole) {
                     String msg = getString(R.string.msg_console_welcome,
                         getString(R.string.app_name));
-                    String initalizeConsole =
-                        "eruda.init({" + "\n" + "    defaults: {" + "\n" + "displaySize: 50," + "\n"
-                            + "transparency: 1," + "\n" + "theme: 'Atom One Dark'" + "\n" + "}"
-                            + "\n" + "});";
+                    String initializeConsole = """
+                        eruda.init({
+                            defaults: {
+                        displaySize: 50,
+                        transparency: 1,
+                        theme: 'Atom One Dark'
+                        }\
+                        
+                        });""";
                     if (consoleServer.getUrl() != null) {
                         view.evaluateJavascript(
                             "javascript:(function () { var script = document.createElement"
                                 + "('script'); script.src=\"" + consoleServer.getUrl()
                                 + "\"; document.body.appendChild(script);"
-                                + "script.onload = function () { " + initalizeConsole
+                                + "script.onload = function () { " + initializeConsole
                                 + "let console = eruda.get('console');" + "console.log('" + msg
                                 + "');" + "\n" + "} })();", null);
                     }
@@ -158,7 +172,7 @@ public class WebViewPane extends Pane {
             public void onProgressChanged(WebView view, int progress) {
                 if (binding == null) return;
                 binding.progressbar.setProgressCompat(progress, true);
-                if (view.getTitle() != null && view.getTitle() == "about:blank") {
+                if (view.getTitle() != null && Objects.equals(view.getTitle(), "about:blank")) {
                     setTitle(view.getTitle());
                 }
             }
@@ -249,8 +263,7 @@ public class WebViewPane extends Pane {
         isDesktopMode = enabled;
 
         if (enabled) {
-            webSettings.setUserAgentString("Mozilla/5.0 (Windows NT 10) AppleWebKit/537.36 "
-                + "(KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36");
+            webSettings.setUserAgentString(USER_AGENT);
             webSettings.setUseWideViewPort(true);
             webSettings.setLoadWithOverviewMode(true);
             webSettings.setSupportZoom(true);
@@ -284,28 +297,8 @@ public class WebViewPane extends Pane {
         binding.webview.reload();
     }
 
-    public void loadHtmlSnippet(String snippet) {
-        binding.webview.loadData(snippet, "text/html", "UTF-8");
-    }
-
     public WebView getWebView() {
         return binding.webview;
-    }
-
-    public void closeFindResult() {
-        binding.webview.clearMatches();
-    }
-
-    public void findText(String text) {
-        binding.webview.findAllAsync(text);
-    }
-
-    public void findNext(boolean forward) {
-        binding.webview.findNext(forward);
-    }
-
-    public void setFindListener(WebView.FindListener findListener) {
-        binding.webview.setFindListener(findListener);
     }
 
     public void goBack() {
@@ -342,14 +335,6 @@ public class WebViewPane extends Pane {
         binding.webview
             .getSettings()
             .setSupportZoom(enabled);
-    }
-
-    public boolean hasshowConsole() {
-        return showConsole;
-    }
-
-    public void showConsole(boolean enabled) {
-        showConsole = enabled;
     }
 
     public void openInDeviceBrowser() {

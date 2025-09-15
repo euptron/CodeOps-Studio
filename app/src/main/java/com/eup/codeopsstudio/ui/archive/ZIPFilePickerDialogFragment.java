@@ -41,8 +41,8 @@ import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
+import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.models.logger.Logger;
-import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -90,18 +90,18 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
         dialogTextInputBinding = LayoutDialogTextInputBinding.inflate(getLayoutInflater());
 
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
-        builder.setTitle(com.eup.codeopsstudio.res.R.string.create_project);
+        builder.setTitle(R.string.create_project);
         builder.setView(dialogTextInputBinding.getRoot());
         dialogTextInputBinding.tilOther.setVisibility(View.VISIBLE);
         dialogTextInputBinding.inputDescription.setVisibility(View.VISIBLE);
-        dialogTextInputBinding.inputDescription.setText(com.eup.codeopsstudio.res.R.string.msg_unzip_project_into_dir_based_on_project_name);
-        dialogTextInputBinding.tilName.setHint(getString(com.eup.codeopsstudio.res.R.string.project_name));
+        dialogTextInputBinding.inputDescription.setText(R.string.msg_unzip_project_into_dir_based_on_project_name);
+        dialogTextInputBinding.tilName.setHint(getString(R.string.project_name));
         Objects
             .requireNonNull(dialogTextInputBinding.tilName.getEditText())
             .setText(FileUtil.getFileNameWithoutExtension(zipFile));
-        dialogTextInputBinding.tilOther.setHint(getString(com.eup.codeopsstudio.res.R.string.save_location));
+        dialogTextInputBinding.tilOther.setHint(getString(R.string.save_location));
         dialogTextInputBinding.tilOther.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
-        dialogTextInputBinding.tilOther.setEndIconDrawable(com.eup.codeopsstudio.res.R.drawable.ic_folder_outline);
+        dialogTextInputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
         dialogTextInputBinding.tilOther.setEndIconOnClickListener(v -> {
             MainActivity mainActivity = (MainActivity) requireActivity();
             mainActivity
@@ -109,8 +109,7 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
                 .pickFolder();
         });
 
-        builder.setPositiveButton(getString(com.eup.codeopsstudio.res.R.string.create), (dialog,
-            which) -> {
+        builder.setPositiveButton(getString(R.string.create), (dialog, which) -> {
             String projectName = dialogTextInputBinding.tilName
                 .getEditText()
                 .getText()
@@ -149,7 +148,7 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
                     if (!output.exists()) {
                         positiveButton.setEnabled(false);
                         dialogTextInputBinding.tilOther.setErrorEnabled(true);
-                        dialogTextInputBinding.tilOther.setError(getString(com.eup.codeopsstudio.res.R.string.msg_dir_not_exist));
+                        dialogTextInputBinding.tilOther.setError(getString(R.string.msg_dir_not_exist));
                     } else {
                         positiveButton.setEnabled(true);
                         if (dialogTextInputBinding.tilOther.isErrorEnabled()) {
@@ -173,7 +172,7 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
                     if (output.exists()) {
                         positiveButton.setEnabled(false);
                         dialogTextInputBinding.tilName.setErrorEnabled(true);
-                        dialogTextInputBinding.tilName.setError(getString(com.eup.codeopsstudio.res.R.string.msg_dir_does_exist));
+                        dialogTextInputBinding.tilName.setError(getString(R.string.msg_dir_does_exist));
                     } else {
                         positiveButton.setEnabled(true);
                         if (dialogTextInputBinding.tilName.isErrorEnabled()) {
@@ -197,9 +196,8 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
             if (!zipFile
                 .getName()
                 .endsWith(".zip")) {
-                String msg =
-                    getString(com.eup.codeopsstudio.res.R.string.msg_selected_file_not_valid_type
-                        , getString(com.eup.codeopsstudio.res.R.string.zip));
+                String msg = getString(R.string.msg_selected_file_not_valid_type,
+                    getString(R.string.zip));
                 BaseUtil.toastShort(msg);
                 logger.w(TAG, msg);
                 dismiss();
@@ -214,7 +212,7 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
             dialogTextInputBinding.tilOther
                 .getEditText()
                 .setText(folderPath);
-            logger.d(TAG, getString(com.eup.codeopsstudio.res.R.string.folder_selection_success));
+            logger.d(TAG, getString(R.string.folder_selection_success));
         }
     }
 

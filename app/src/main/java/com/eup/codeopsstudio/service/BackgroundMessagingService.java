@@ -17,7 +17,7 @@ import androidx.work.WorkManager;
 import com.eup.codeopsstudio.MainActivity;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.service.fcm.FCMWorker;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -124,7 +124,7 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
      * 2) Whenever an existing token is changed
      * Under #2, there are three scenarios when the existing token is changed:
      * A) App is restored to a new device
-     * B) User uninstalls/reinstalls the app
+     * B) User uninstalls/re-installs the app
      * C) User clears app data
      */
     @Override
@@ -202,7 +202,7 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
         String channelId = getString(R.string.cloud_messaging_notification_channel_id);
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,
-            channelId).setSmallIcon(com.eup.codeopsstudio.res.R.drawable.ic_codeopsstudio) //
+            channelId).setSmallIcon(com.eup.codeopsstudio.res.R.drawable.ic_stat_name)
                       .setContentTitle(messageTitle)
                       .setContentText(messageBody)
                       .setAutoCancel(true)

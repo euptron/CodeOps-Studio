@@ -31,40 +31,22 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 
-import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.res.R;
 
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+/**
+ * @author Etido Peter
+ */
 public class PreferencesUtils {
 
     private static final String TAG = PreferencesUtils.class.getSimpleName();
-
-    /**
-     * Get the SharedPreferences for the advertisement
-     *
-     * @return The advertisement SharedPreferences.
-     */
-    public static SharedPreferences getAdvertisementPreferences() {
-        return ContextManager
-            .getApplicationContext()
-            .getSharedPreferences("advertisement_pref", Context.MODE_PRIVATE);
-    }
-
-    /**
-     * Get the default SharedPreferences for the file treeview.
-     *
-     * @return The SharedPreferences for the file treeview.
-     */
-    public static SharedPreferences getFileTreePrefs() {
-        return ContextManager
-            .getApplicationContext()
-            .getSharedPreferences("file_tree", Context.MODE_PRIVATE);
-    }
 
     /**
      * Get the last opened project SharedPreferences .
@@ -176,7 +158,7 @@ public class PreferencesUtils {
      * @param selectedFont The font value entry.
      * @return The corresponding editor font.
      */
-    private static int getEditorFont(String selectedFont) {
+    private static int getEditorFont(@NonNull String selectedFont) {
         return switch (selectedFont) {
             case "inconsolata_regular" -> R.font.inconsolata_regular;
             case "sourcecodepro_regular" -> R.font.sourcecodepro_regular;
@@ -325,22 +307,8 @@ public class PreferencesUtils {
         return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_PIN_LINE_NUM, true);
     }
 
-    /**
-     * Check if the symbol input panel is displayed.
-     *
-     * @return true if the symbol input panel is displayed, otherwise false.
-     */
-    public static boolean displaySIPanel() {
-        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_SI_PANEL, false);
-    }
-
-    /**
-     * Check if the function panel is displayed.
-     *
-     * @return true if the function panel is displayed, otherwise false.
-     */
-    public static boolean displayFunctionPanel() {
-        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FUN_PANEL, false);
+    public static boolean canDisplayTabIcons() {
+        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_DISPLAY_TAB_ICONS, true);
     }
 
     /**
@@ -478,42 +446,13 @@ public class PreferencesUtils {
         return getDefaultPreferences().getString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding);
     }
 
-    /**
-     * Set the default file encoding
-     *
-     * @param encoding The fallback encoding in case there is a failure while getting the actual
-     */
-    public static void setDefaultFileEncoding(String encoding) {
-        getDefaultPreferences()
-            .edit()
-            .putString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING,
-                encoding)
-            .apply();
-    }
-
     public static boolean canCloseUnPinnedProjectPanes() {
         return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, true);
-    }
-
-    public static void setCloseUnPinnedProjectPanes(boolean closeUnPinned) {
-        getDefaultPreferences()
-            .edit()
-            .putBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES, closeUnPinned)
-            .apply();
     }
 
     // =======================
     // Other Preferences
     // =======================
-
-    /**
-     * Check if the user wants to use the Google JSON formatter.
-     *
-     * @return true if the user wants to use the Google JSON formatter, otherwise false.
-     */
-    public static boolean useGoogleJsonFormatter() {
-        return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_GOOGLE_JSON_FORMATTER, false);
-    }
 
     /**
      * @return true if the user wants to open the last project, otherwise false.
@@ -529,22 +468,6 @@ public class PreferencesUtils {
      */
     public static boolean useOutLinedIcons() {
         return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_OUTLINE_ICONS, true);
-    }
-
-    /**
-     * Get an item from a specified resource array at a given index.
-     *
-     * @param resource The resource array.
-     * @param index    The index of the item to retrieve.
-     * @return The item at the specified index from the resource array.
-     */
-    @NonNull
-    public static String getItem(int resource, int index) {
-        CharSequence[] choices = ContextManager
-            .getApplicationContext()
-            .getResources()
-            .getStringArray(resource);
-        return choices[index].toString();
     }
 
     public static boolean canCloseRelativeToFirstDepth() {
@@ -569,37 +492,49 @@ public class PreferencesUtils {
             .apply();
     }
 
-    public static boolean canShareAnynomousStatistics() {
+    public static boolean canShareAnonymousStatistics() {
         return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS, true);
     }
 
-    public static void enableShareAnynomousStatistics(boolean enabled) {
-        getDefaultPreferences()
-            .edit()
-            .putBoolean(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS, enabled)
-            .apply();
-    }
-
-    public static boolean clearPerference(@NonNull SharedPreferences pref, String key) {
-        final boolean[] success = {false};
-
-        AsyncTask.runNonCancelable(pref
-            .edit()
-            .putString(key, "")::commit, (result, throwable) -> {
-            if (throwable == null) {
-                success[0] = result;
-                ILog.debug(TAG, "Cleared preference successfully");
-            } else {
-                ILog.debug(TAG, "Error when clearing preference: ", throwable);
+    public static void clearPreference(@NonNull SharedPreferences pref, String key) {
+        Map<String, ?> cues = pref.getAll();
+        cues.forEach((k, v) -> {
+            if (Objects.equals(key, k)) {
+                emptyEditorValue(pref.edit(), k, v);
             }
         });
-        return success[0];
+    }
+
+    private static void emptyEditorValue(SharedPreferences.Editor editor, @NonNull String key,
+        @NonNull Object value) {
+        try {
+            ILog.debug(TAG, String.format(" Key-Value: %s -> %s", key, value));
+            if (value instanceof Boolean) {
+                editor
+                    .putBoolean(key, false)
+                    .apply();
+            } else if (value instanceof Float) {
+                editor.putFloat(key, 0.0f);
+            } else if (value instanceof String) {
+                editor.putString(key, "");
+            } else if (value instanceof Integer) {
+                editor.putInt(key, 0);
+            } else if (value instanceof Long) {
+                editor.putLong(key, 0L);
+            } else if (value instanceof Set<?>) {
+                editor.putStringSet(key, new HashSet<>());
+            }
+            ILog.debug(TAG, String.format(" Key-Value: %s -> %s", key, value));
+            editor.apply();
+        } catch (Exception e) {
+            ILog.error(TAG, "Failed to clear preference value", e);
+        }
     }
 
     /**
      * Get the user selected buffer size
      *
-     * <p>No set method to prevent concurrent modification, buffer size is updated on restary
+     * <p>No set method to prevent concurrent modification, buffer size is updated on restart
      *
      * @return the buffer size in kilobytes
      */
@@ -610,11 +545,11 @@ public class PreferencesUtils {
     }
 
     /**
-     * Check if the font liagtures is enabled
+     * Check if the font ligatures is enabled
      *
-     * @return true if the font liagtures is used, otherwise false.
+     * @return true if the font ligatures is used, otherwise false.
      */
-    public static boolean useFontLiagtures() {
+    public static boolean useFontLigatures() {
         return getDefaultPreferences().getBoolean(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_LIAGTURES, false);
     }
 }

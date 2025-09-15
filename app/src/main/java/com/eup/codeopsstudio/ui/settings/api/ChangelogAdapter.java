@@ -42,7 +42,7 @@ import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.LayoutChangeLogItemBinding;
 import com.eup.codeopsstudio.domain.FormatDateUseCase;
 import com.eup.codeopsstudio.models.user.User;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 

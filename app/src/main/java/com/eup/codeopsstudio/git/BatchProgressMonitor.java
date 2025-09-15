@@ -26,8 +26,8 @@ package com.eup.codeopsstudio.git;
 import androidx.annotation.NonNull;
 
 import com.eup.codeopsstudio.IdeApplication;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.git.listeners.CloneListener;
-import com.eup.codeopsstudio.res.R;
 
 import org.eclipse.jgit.lib.BatchingProgressMonitor;
 

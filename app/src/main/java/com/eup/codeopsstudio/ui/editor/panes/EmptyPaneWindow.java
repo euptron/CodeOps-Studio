@@ -37,7 +37,7 @@ import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.eup.codeopsstudio.databinding.EmptyPaneWindowBinding;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 public class EmptyPaneWindow extends Pane {
@@ -64,28 +64,28 @@ public class EmptyPaneWindow extends Pane {
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
         mViewModel =
-            new ViewModelProvider((ViewModelStoreOwner) getContext()).get(MainViewModel.class);
+            new ViewModelProvider((ViewModelStoreOwner) requireContext()).get(MainViewModel.class);
         mViewModel
             .getDrawerInstance()
             .observe(lifecycleOwner, isDrawerLayout -> {
                 if (isDrawerLayout) {
                     styledString = new SpannableString(
-                        getContext().getString(R.string.open_file_tree,
-                            getContext().getString(R.string.explorer))
+                        getString(R.string.open_file_tree,
+                            getString(R.string.explorer))
                             // index 18-30
                             + "\n"
-                            + getContext().getString(R.string.open_build_actions,
-                            getContext().getString(R.string.build_actions))); // index 25 - 37
+                            + getString(R.string.open_build_actions,
+                            getString(R.string.build_actions))); // index 25 - 37
 
                     ClickableSpan opentreeSpan = new ClickableSpan() {
                         @Override
-                        public void onClick(View widget) {
+                        public void onClick(@NonNull View widget) {
                             mViewModel.setDrawerState(true);
                         }
                     };
                     ClickableSpan openactionSpan = new ClickableSpan() {
                         @Override
-                        public void onClick(View widget) {
+                        public void onClick(@NonNull View widget) {
                             mViewModel.setBottomSheetExpanded(true);
                         }
                     };
@@ -95,29 +95,25 @@ public class EmptyPaneWindow extends Pane {
                     // Styled open build actions
                     styledString.setSpan(openactionSpan, 45, 52, 0);
                     // the url and clickable styles.
-                    binding.prompt.setMovementMethod(LinkMovementMethod.getInstance());
-                    binding.prompt.setSelectAllOnFocus(false);
-                    binding.prompt.setFocusable(false);
-                    binding.prompt.setText(styledString);
                 } else {
                     styledString =
-                        new SpannableString(getContext().getString(R.string.open_build_actions,
-                            getContext().getString(R.string.build_actions)));
+                        new SpannableString(getString(R.string.open_build_actions,
+                            getString(R.string.build_actions)));
                     ClickableSpan openactionSpan = new ClickableSpan() {
 
                         @Override
-                        public void onClick(View widget) {
+                        public void onClick(@NonNull View widget) {
                             mViewModel.setBottomSheetExpanded(true);
                         }
                     };
                     // Styled open build actions
                     styledString.setSpan(openactionSpan, 13, 26, 0);
                     //  the url and clickable styles.
-                    binding.prompt.setMovementMethod(LinkMovementMethod.getInstance());
-                    binding.prompt.setSelectAllOnFocus(false);
-                    binding.prompt.setFocusable(false);
-                    binding.prompt.setText(styledString);
                 }
+                binding.prompt.setMovementMethod(LinkMovementMethod.getInstance());
+                binding.prompt.setSelectAllOnFocus(false);
+                binding.prompt.setFocusable(false);
+                binding.prompt.setText(styledString);
             });
     }
 

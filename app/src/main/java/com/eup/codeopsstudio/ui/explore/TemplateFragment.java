@@ -23,8 +23,6 @@
 
 package com.eup.codeopsstudio.ui.explore;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -46,6 +44,7 @@ import androidx.transition.TransitionManager;
 import com.eup.codeopsstudio.adapters.template.ProjectTemplateAdapter;
 import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.AsyncTask;
+import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.archive.ZIPArchive;
 import com.eup.codeopsstudio.common.util.FileUtil;
@@ -55,7 +54,7 @@ import com.eup.codeopsstudio.databinding.FragmentTemplateBinding;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.models.template.ProjectTemplateModel;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
@@ -110,8 +109,8 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         recentProjects = Recents.initialize(requireContext());
 
         final ActivityResultRegistry resultRegistry = requireActivity().getActivityResultRegistry();
-        lifecycleObserver = new ContextualLifecycleObserver(getContext(), resultRegistry,
-            getActivity());
+        lifecycleObserver = new ContextualLifecycleObserver(requireContext(), resultRegistry,
+            requireActivity());
         getLifecycle().addObserver(lifecycleObserver);
     }
 
@@ -239,7 +238,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             .getEditText()
             .setText(PreferenceManager
                 .getDefaultSharedPreferences(requireContext())
-                .getString(SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
+                .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
                     .getExternalFilesDir("Projects")
                     .getAbsolutePath()));
         initializeSaveLocation();
@@ -338,7 +337,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         }
         File file = new File(PreferenceManager
             .getDefaultSharedPreferences(requireContext())
-            .getString(SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
+            .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
                 .getExternalFilesDir("Projects")
                 .getAbsolutePath()) + "/" + editable);
 

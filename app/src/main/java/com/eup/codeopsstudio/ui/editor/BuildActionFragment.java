@@ -34,6 +34,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.adapters.BuildActionPagerAdapter;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
@@ -43,7 +44,6 @@ import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.ui.editor.actions.EditorAction;
 import com.eup.codeopsstudio.ui.editor.actions.EditorShortcutAdapter;
 import com.eup.codeopsstudio.ui.editor.actions.EditorShortcutWizard;

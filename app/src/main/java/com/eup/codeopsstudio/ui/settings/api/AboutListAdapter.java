@@ -30,7 +30,7 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.eup.codeopsstudio.res.databinding.LayoutThreeLineListItemBinding;
+import com.eup.codeopsstudio.databinding.LayoutThreeLineListItemBinding;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.shape.CornerFamily;
 

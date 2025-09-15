@@ -32,7 +32,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.models.logger.Log;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
@@ -53,7 +53,6 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<Integer> mBottomSheetState =
         new MutableLiveData<>(BottomSheetBehavior.STATE_COLLAPSED);
     private final MutableLiveData<Boolean> shouldUpdateMenu = new MutableLiveData<>();
-    private MutableLiveData<String> mCurrentState = new MutableLiveData<>();
     private final MutableLiveData<Boolean> addSettingsPane = new MutableLiveData<>(false);
     private final MutableLiveData<File> mWebViewPaneFile = new MutableLiveData<>();
     private final MutableLiveData<File> mTreeFragmentViewFile = new MutableLiveData<>();
@@ -63,7 +62,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<File> pickZipFile = new MutableLiveData<>();
 
     public MainViewModel() {
-        mToolbarTitle.setValue(IdeApplication
+        setToolbarTitle(IdeApplication
             .getGlobalContext()
             .getString(R.string.app_name));
     }
@@ -74,17 +73,6 @@ public class MainViewModel extends ViewModel {
 
     public void setBottomSheetState(@BottomSheetBehavior.State int bottomSheetState) {
         mBottomSheetState.setValue(bottomSheetState);
-    }
-
-    public MutableLiveData<String> getCurrentState() {
-        if (mCurrentState == null) {
-            mCurrentState = new MutableLiveData<>(null);
-        }
-        return mCurrentState;
-    }
-
-    public void setCurrentState(@Nullable String message) {
-        mCurrentState.setValue(message);
     }
 
     public LiveData<Boolean> getDrawerState() {
@@ -170,14 +158,14 @@ public class MainViewModel extends ViewModel {
 
     public MutableLiveData<ArrayList<Log>> getIDELogs() {
         if (mIDELogs == null) {
-            mIDELogs = new MutableLiveData<ArrayList<Log>>();
+            mIDELogs = new MutableLiveData<>();
         }
         return mIDELogs;
     }
 
     public MutableLiveData<ArrayList<Log>> getBUILDLogs() {
         if (mBUILDLogs == null) {
-            mBUILDLogs = new MutableLiveData<ArrayList<Log>>();
+            mBUILDLogs = new MutableLiveData<>();
         }
         return mBUILDLogs;
     }

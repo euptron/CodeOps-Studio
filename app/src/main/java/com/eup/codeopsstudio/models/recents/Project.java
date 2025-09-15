@@ -115,6 +115,10 @@ public class Project {
 
     @NonNull
     public String getPath() {
+        if (file == null) {
+            ILog.error(TAG, "Project file reference is null, returning empty path");
+            return "";
+        }
         return this.file.getAbsolutePath();
     }
 

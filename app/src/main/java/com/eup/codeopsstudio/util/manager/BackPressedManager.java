@@ -18,40 +18,35 @@
  * along with this program. If not, see https://www.gnu.org/licenses/
  *
  * If you have more questions, feel free to message Etido Peter if you have any
- * questions or need additional information. Email: euptron@gmail.com
+ * questions or need additional information. Email: etido.up@gmail.com
  */
 
-package com.eup.codeopsstudio.models.logger;
+package com.eup.codeopsstudio.util.manager;
 
-import com.eup.codeopsstudio.IdeApplication;
-import com.eup.codeopsstudio.R;
+import android.app.Activity;
 
-public enum LogLevel {
-    WARN(IdeApplication
-        .getInstance()
-        .getString(R.string.warn)),
-    INFO(IdeApplication
-        .getInstance()
-        .getString(R.string.info)),
-    DEBUG(IdeApplication
-        .getInstance()
-        .getString(R.string.debug)),
-    ERROR(IdeApplication
-        .getInstance()
-        .getString(R.string.error));
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 
-    public final String level;
+import java.util.Objects;
 
-    LogLevel(String level) {
-        this.level = level;
+/**
+ * @author  Etido Peter
+ */
+public abstract class BackPressedManager extends OnBackPressedCallback {
+    protected final Activity activity;
+
+    public BackPressedManager(@NonNull Activity activity) {
+        this(activity, true);
     }
 
-    public static String getLevel(LogLevel level) {
-        for (LogLevel value : values()) {
-            if (value.level.equals(level.level)) {
-                return value.level;
-            }
-        }
-        return "INVALID-LOG-LEVEL";
+    public BackPressedManager(@NonNull Activity activity, boolean enabled) {
+        super(enabled);
+        Objects.requireNonNull(activity);
+        this.activity = activity;
+    }
+
+    public Activity getActivity() {
+        return activity;
     }
 }

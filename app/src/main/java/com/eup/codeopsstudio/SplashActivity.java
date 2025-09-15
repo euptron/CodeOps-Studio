@@ -18,39 +18,31 @@
  * along with this program. If not, see https://www.gnu.org/licenses/
  *
  * If you have more questions, feel free to message Etido Peter if you have any
- * questions or need additional information. Email: euptron@gmail.com
+ * questions or need additional information. Email: etido.up@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.settings;
+package com.eup.codeopsstudio;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
-import androidx.preference.PreferenceFragmentCompat;
-
-import com.eup.codeopsstudio.R;
-import com.google.android.material.transition.MaterialSharedAxis;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.splashscreen.SplashScreen;
 
 /**
  * @author Etido Peter
  */
-public class CodeEditorConfigurationFragment extends PreferenceFragmentCompat {
-
-    public static final String TAG = CodeEditorConfigurationFragment.class.getSimpleName();
-
-    public static CodeEditorConfigurationFragment newInstance() {
-        return new CodeEditorConfigurationFragment();
-    }
-
+@SuppressLint("CustomSplashScreen")
+public class SplashActivity extends AppCompatActivity {
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        final var splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
-        setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
-        setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
-    }
-
-    @Override
-    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-        setPreferencesFromResource(R.xml.editor_preferences, rootKey);
+        splashScreen.setKeepOnScreenCondition(() -> true);
+        var intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

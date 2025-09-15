@@ -23,41 +23,49 @@
 
 package com.eup.codeopsstudio.ui.custom.preference;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutMaterialSliderBinding;
+import com.eup.codeopsstudio.databinding.LayoutMaterialSliderBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+/**
+ * @author Etido Peter
+ */
 public class TabSizeSeekBarDialogPreference extends Preference {
 
     private static final int DEFAULT_TAB_SIZE = 4;
 
-    public TabSizeSeekBarDialogPreference(Context context) {
-        super(context);
+    public TabSizeSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public TabSizeSeekBarDialogPreference(Context context, AttributeSet attrs) {
+    public TabSizeSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public TabSizeSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public TabSizeSeekBarDialogPreference(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    public TabSizeSeekBarDialogPreference(@NonNull Context context) {
+        super(context);
     }
 
     @Override
     protected void onClick() {
         super.onClick();
-        var binding =
-            LayoutMaterialSliderBinding.inflate(LayoutInflater.from(getContext()));
+        var binding = LayoutMaterialSliderBinding.inflate(LayoutInflater.from(getContext()));
         binding.slider.setValueFrom(1.0f);
         binding.slider.setValueTo(12.0f);
         binding.slider.setValue(getPersistedInt(DEFAULT_TAB_SIZE));
@@ -82,7 +90,7 @@ public class TabSizeSeekBarDialogPreference extends Preference {
         if ((size >= 1) && (size <= 12)) {
             var pref = PreferencesUtils.getDefaultPreferences();
             var editor = pref.edit();
-            editor.putInt(SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size);
+            editor.putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size);
             editor.apply();
             return true;
         }
@@ -98,7 +106,7 @@ public class TabSizeSeekBarDialogPreference extends Preference {
         var pref = PreferencesUtils.getDefaultPreferences();
         pref
             .edit()
-            .putInt(SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, DEFAULT_TAB_SIZE)
+            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, DEFAULT_TAB_SIZE)
             .apply();
     }
 }

@@ -11,7 +11,7 @@ import com.eup.codeopsstudio.git.auth.AuthProvider;
 import com.eup.codeopsstudio.git.auth.SshAuthProvider;
 import com.eup.codeopsstudio.git.auth.UsernamePasswordAuthProvider;
 import com.eup.codeopsstudio.git.listeners.CloneListener;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;

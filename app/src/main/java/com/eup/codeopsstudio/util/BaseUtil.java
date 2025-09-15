@@ -62,7 +62,7 @@ import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 
 public class BaseUtil {
 

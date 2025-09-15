@@ -48,7 +48,7 @@ import com.eup.codeopsstudio.common.models.MetaDocument;
 import com.eup.codeopsstudio.common.util.FileUriMediator;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.UriUtils;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 
 import java.io.File;

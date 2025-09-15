@@ -30,8 +30,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.eup.codeopsstudio.editor.R;
 import com.eup.codeopsstudio.editor.langs.completion.ContextualCompletionItem;
-import com.eup.codeopsstudio.res.R;
 import com.google.android.material.textview.MaterialTextView;
 
 import io.github.rosemoe.sora.lang.completion.CompletionItem;

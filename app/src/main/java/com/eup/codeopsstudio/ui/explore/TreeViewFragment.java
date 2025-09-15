@@ -54,8 +54,8 @@ import com.eup.codeopsstudio.domain.FileAction;
 import com.eup.codeopsstudio.models.ActionModel;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.observers.FileWatcher;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutSheetListBinding;
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.databinding.LayoutSheetListBinding;
 import com.eup.codeopsstudio.service.FileWatcherService;
 import com.eup.codeopsstudio.service.FileWatcherServiceConnection;
 import com.eup.codeopsstudio.tv.model.TreeNode;
@@ -98,7 +98,6 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
     private String fileTreeSavedState;
     private String lastOpenedFilePath;
     private SavedStateViewModel mSavedStateViewModel;
-    private File currentDirectory = null;
     private FileWatcherServiceConnection fileEventRelay;
 
     public static TreeViewFragment newInstance() {
@@ -132,9 +131,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
 
         mSavedStateViewModel
             .getTreeViewFragmentTreeState()
-            .observe(getActivity(), savedState -> {
-                fileTreeSavedState = savedState;
-            });
+            .observe(requireActivity(), savedState -> fileTreeSavedState = savedState);
 
         binding.folderOptions.setOnClickListener(v -> {
             if (rootNode != null) {
@@ -244,17 +241,15 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
                 currentNode.setExpanded(true);
             }
             return null;
-        }, (result) -> {
-            post.run();
-        });
+        }, (result) -> post.run());
     }
 
-    public void addChildrenToNode(TreeNode parent) {
+    public void addChildrenToNode(@NonNull TreeNode parent) {
         List<File> files = toSortedList(FileUtil.listFiles(parent.getValue()));
 
         for (File file : files) {
             var child = new TreeNode(file);
-            child.setViewHolder(new FileTreeViewHolder(getContext()));
+            child.setViewHolder(new FileTreeViewHolder(requireContext()));
             parent.addChild(child);
         }
     }
@@ -263,15 +258,14 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
         Executor executor = Executors.newFixedThreadPool(Runtime
             .getRuntime()
             .availableProcessors());
-        List<File> list = Stream
+        return Stream
             .of(files)
             .sorted(FileManager.DIR_FIRST_SORT)
             .map(file -> CompletableFuture.supplyAsync(() -> file, executor))
-            .collect(Collectors.toList())
+            .toList()
             .stream()
             .map(CompletableFuture::join)
             .collect(Collectors.toList());
-        return list;
     }
 
     public void expandNode(TreeNode node) {
@@ -326,9 +320,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
                 new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(deletedDirName)
                     .setMessage(delete_msg)
-                    .setPositiveButton(R.string.ok, (d, which) -> {
-                        doCloseFolder(true);
-                    })
+                    .setPositiveButton(R.string.ok, (d, which) -> doCloseFolder(true))
                     .setCancelable(false)
                     .show();
                 logger.i(LOG_TAG,
@@ -342,9 +334,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
                 new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(movedDirName)
                     .setMessage(moved_msg)
-                    .setPositiveButton(R.string.ok, (d, which) -> {
-                        doCloseFolder(true);
-                    })
+                    .setPositiveButton(R.string.ok, (d, which) -> doCloseFolder(true))
                     .setCancelable(false)
                     .show();
                 logger.i(LOG_TAG, moved_msg + ", this action was probably executed by another app");
@@ -368,8 +358,6 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
      */
     private void populateFileTree(File dir) {
         if (getContext() == null || dir == null) return;
-
-        currentDirectory = dir;
 
         if (!Wizard.isEmpty(lastOpenedFilePath)
             && !lastOpenedFilePath.equals(dir.getAbsolutePath())) {
@@ -410,7 +398,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
 
     public void addNewChild(TreeNode parent, File file) {
         var newNode = new TreeNode(file);
-        newNode.setViewHolder(new FileTreeViewHolder(getContext()));
+        newNode.setViewHolder(new FileTreeViewHolder(requireContext()));
         parent.addChild(newNode);
     }
 
@@ -459,7 +447,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
 
             mMainViewModel.setToolbarSubTitle(null);
             if (removePrefsAndTreeState) {
-                PreferencesUtils.clearPerference(PreferencesUtils.getLastOpenedProjectPreferences(), Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
+                PreferencesUtils.clearPreference(PreferencesUtils.getLastOpenedProjectPreferences(), Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
                 fileTreeSavedState = null;
                 unbindFileWatcherService();
             }
@@ -525,7 +513,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
 
     private void displayBottomSheetOnClickFolderOptions() {
         var rootDir = rootNode.getValue();
-        var bottomSheetDialog = new BottomSheetDialog(getActivity());
+        var bottomSheetDialog = new BottomSheetDialog(requireActivity());
         var bind = LayoutSheetListBinding.inflate(getLayoutInflater());
         bottomSheetDialog.setContentView(bind.getRoot());
         // Get the options list
@@ -540,7 +528,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
             } else if (label == getString(R.string.delete)) {
                 fileManager.startFileTask(FileAction.DELETE_FOLDER,
                     new File(rootDir.getAbsolutePath()), object -> {
-                    if (object != null && object instanceof Boolean) {
+                    if (object instanceof Boolean) {
                         if ((Boolean) object) doCloseFolder(true);
                     }
                 });

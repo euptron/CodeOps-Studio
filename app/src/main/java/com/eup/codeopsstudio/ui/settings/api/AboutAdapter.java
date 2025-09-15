@@ -27,7 +27,6 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,13 +34,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.LayoutAboutAppItemBinding;
 import com.eup.codeopsstudio.databinding.LayoutAboutNestedListItemBinding;
 import com.eup.codeopsstudio.databinding.LayoutBundleReleaseItemBinding;
 import com.eup.codeopsstudio.databinding.LayoutPrivacyItemBinding;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutShareAppItemBinding;
+import com.eup.codeopsstudio.databinding.LayoutShareAppItemBinding;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.libraries.sharelayout.ShareLayout;
@@ -52,7 +51,6 @@ import java.util.List;
 public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     // nested list item by hierarchy
-    public static final int APP_VERSION = 0;
     public static final int VISIT_WEBSITE = 1;
     public static final int SOCIALS = 2;
     public static final int OPEN_SOURCE_LICENCES = 3;
@@ -79,26 +77,22 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int position) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
-        switch (getItemViewType(position)) {
-            case VIEW_TYPE_ABOUT_APP:
-                return new AboutAppViewHolder(LayoutAboutAppItemBinding.inflate(inflater, parent,
-                    false));
-            case VIEW_TYPE_SHARE:
-                return new ShareViewHolder(LayoutShareAppItemBinding.inflate(inflater, parent,
-                    false));
-            case VIEW_TYPE_NESTED_LIST:
-                return new NestedListViewHolder(LayoutAboutNestedListItemBinding.inflate(inflater
-                    , parent, false));
-            case VIEW_TYPE_SERVICES:
-                return new PrivacyViewHolder(LayoutPrivacyItemBinding.inflate(inflater, parent,
-                    false));
-            case VIEW_TYPE_BUNDLE_RELEASE:
-                return new ReleaseViewHolder(LayoutBundleReleaseItemBinding.inflate(inflater,
-                    parent, false));
-            default: // fall out
-        }
-        throw new RuntimeException(
-            "Invalid view type at position: " + position); // IllegalArgumentException
+        // fall out
+        return switch (getItemViewType(position)) {
+            case
+                VIEW_TYPE_ABOUT_APP -> new AboutAppViewHolder(LayoutAboutAppItemBinding.inflate(inflater, parent, false));
+            case
+                VIEW_TYPE_SHARE -> new ShareViewHolder(LayoutShareAppItemBinding.inflate(inflater
+                , parent, false));
+            case
+                VIEW_TYPE_NESTED_LIST -> new NestedListViewHolder(LayoutAboutNestedListItemBinding.inflate(inflater, parent, false));
+            case
+                VIEW_TYPE_SERVICES -> new PrivacyViewHolder(LayoutPrivacyItemBinding.inflate(inflater, parent, false));
+            case
+                VIEW_TYPE_BUNDLE_RELEASE -> new ReleaseViewHolder(LayoutBundleReleaseItemBinding.inflate(inflater, parent, false));
+            default -> throw new RuntimeException(
+                "Invalid view type at position: " + position); // IllegalArgumentException
+        };
     }
 
     @Override
@@ -160,13 +154,9 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return aboutItemsList;
     }
 
-    private void bind(PrivacyViewHolder privacyViewHolder) {
-        privacyViewHolder.privacy.setOnClickListener(v -> {
-            BaseUtil.openUrlOutsideActivity(Constants.PRIVACY_POLICY_URL);
-        });
-        privacyViewHolder.service_terms.setOnClickListener(v -> {
-            BaseUtil.openUrlOutsideActivity(Constants.TERMS_OF_SERVICE_URL);
-        });
+    private void bind(@NonNull PrivacyViewHolder privacyViewHolder) {
+        privacyViewHolder.privacy.setOnClickListener(v -> BaseUtil.openUrlOutsideActivity(Constants.PRIVACY_POLICY_URL));
+        privacyViewHolder.service_terms.setOnClickListener(v -> BaseUtil.openUrlOutsideActivity(Constants.TERMS_OF_SERVICE_URL));
     }
 
     @Override
@@ -183,24 +173,14 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         void onItemClick(AboutItems items, int position);
     }
 
-    private class AboutAppViewHolder extends RecyclerView.ViewHolder {
+    private static class AboutAppViewHolder extends RecyclerView.ViewHolder {
 
-        private final ImageView icon;
-        private final TextView title, summary;
-
-        public AboutAppViewHolder(LayoutAboutAppItemBinding binding) {
+        public AboutAppViewHolder(@NonNull LayoutAboutAppItemBinding binding) {
             super(binding.getRoot());
-            this.icon    = binding.icon;
-            this.title   = binding.appName;
-            this.summary = binding.appSlogan;
-        }
-
-        private void bind() {
-            // TODO: Dynamic loading of app name, icon and slogan
         }
     }
 
-    private class ShareViewHolder extends RecyclerView.ViewHolder {
+    private static class ShareViewHolder extends RecyclerView.ViewHolder {
         private final ShareLayout shareLayout;
 
         public ShareViewHolder(LayoutShareAppItemBinding binding) {
@@ -209,14 +189,13 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    private class NestedListViewHolder extends RecyclerView.ViewHolder {
-        private final RecyclerView nestedRecyclerView;
+    private static class NestedListViewHolder extends RecyclerView.ViewHolder {
         private final AboutListAdapter adapter;
 
         public NestedListViewHolder(LayoutAboutNestedListItemBinding binding) {
             super(binding.getRoot());
-            nestedRecyclerView = binding.recyclerview;
-            adapter            = new AboutListAdapter(new ArrayList<>()); // Initialize the mAdapter
+            RecyclerView nestedRecyclerView = binding.recyclerview;
+            adapter = new AboutListAdapter(new ArrayList<>()); // Initialize the mAdapter
             LinearLayoutManager linearLayoutManager =
                 new LinearLayoutManager(itemView.getContext());
             linearLayoutManager.setOrientation(RecyclerView.VERTICAL);
@@ -229,7 +208,7 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    private class PrivacyViewHolder extends RecyclerView.ViewHolder {
+    private static class PrivacyViewHolder extends RecyclerView.ViewHolder {
         private final TextView privacy;
         private final TextView service_terms;
 
@@ -241,13 +220,14 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     private class ReleaseViewHolder extends RecyclerView.ViewHolder {
-        private final TextView release_info;
 
         public ReleaseViewHolder(LayoutBundleReleaseItemBinding binding) {
             super(binding.getRoot());
-            release_info = binding.appBundleName;
-            release_info.setText(
-                Wizard.getAppName(context) + " " + Wizard.getAppVersionName(context));
+            TextView release_info = binding.appBundleName;
+            String appName = Wizard.getAppName(context);
+            String appVersionName = Wizard.getAppVersionName(context);
+            String releaseInfo = appName + " " + appVersionName;
+            release_info.setText(releaseInfo);
         }
     }
 }

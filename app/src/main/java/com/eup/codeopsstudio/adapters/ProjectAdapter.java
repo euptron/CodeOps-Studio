@@ -34,12 +34,12 @@ import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.LayoutEmptyProjectsBinding;
+import com.eup.codeopsstudio.databinding.RecentProjectItemBinding;
 import com.eup.codeopsstudio.models.ExtensionTable;
 import com.eup.codeopsstudio.models.recents.Project;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.RecentProjectItemBinding;
 
 import java.util.List;
 
@@ -61,7 +61,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         @Override
         public boolean areContentsTheSame(@NonNull Project oldProject,
-                                          @NonNull Project newProject) {
+            @NonNull Project newProject) {
             return oldProject.equals(newProject);
         }
     };
@@ -101,7 +101,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         holder.itemView.setOnClickListener(v -> {
             if (itemClickListener != null) {
-                int position = holder.getAdapterPosition();
+                int position = holder.getAbsoluteAdapterPosition();
                 Project project = mDiffer
                     .getCurrentList()
                     .get(position);
@@ -113,7 +113,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         holder.itemView.setOnLongClickListener(v -> {
             if (itemLongClickListener != null) {
-                int position = holder.getAdapterPosition();
+                int position = holder.getAbsoluteAdapterPosition();
                 Project project = mDiffer
                     .getCurrentList()
                     .get(position);

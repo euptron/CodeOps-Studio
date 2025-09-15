@@ -41,12 +41,10 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.splashscreen.SplashScreen;
 
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.databinding.ActivityMainBinding;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -78,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

@@ -88,13 +88,15 @@
             android:gravity="center"
             android:paddingBottom="5dp"
             android:text="@string/no_folder_opened_prompt"
-            android:textSize="14sp" />
+            android:textAppearance="?attr/textAppearanceBodySmall" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tree_open_folder"
             style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dimen8dp"
+            android:layout_marginEnd="@dimen/dimen8dp"
             android:text="@string/open_folder" />
 
         <TextView
@@ -104,13 +106,15 @@
             android:gravity="center"
             android:paddingBottom="5dp"
             android:text="@string/no_folder_opened_aux_prompt"
-            android:textSize="14sp" />
+            android:textAppearance="?attr/textAppearanceBodySmall" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/choose_template"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dimen8dp"
+            android:layout_marginEnd="@dimen/dimen8dp"
             android:text="@string/choose_template" />
     </LinearLayout>
 

@@ -79,6 +79,7 @@ public final class Constants {
     public static final long AVG_WAIT_MILLS = 250; // MillSeconds
     public static final long TOGGLE_TREENODE_ANIM_TIME = 500; // MillSeconds
     public static final String PREFERRED_TIME_ZONE = "UTC";
+    public static final String SEPARATOR = "/";
     /**
      * Used by the  <strong>DefaultFileEncodingDialogPreference#resetEncoding()</strong>
      */
@@ -190,6 +191,7 @@ public final class Constants {
         public static final String KEY_CODE_EDITOR_FONT_LIAGTURES =
             "pref_code_editor_font_liagtures";
         public static final String KEY_CODE_EDITOR_WORD_WRAP = "pref_code_editor_word_wrap";
+        public static final String KEY_DISPLAY_TAB_ICONS = "pref_display_tab_icons";
         public static final String KEY_CODE_EDITOR_TAB_INDENT = "pref_code_editor_tab_indent";
         public static final String KEY_CODE_EDITOR_ICU = "pref_code_editor_icu";
         public static final String KEY_CODE_EDITOR_AUTO_SAVE = "pref_code_editor_auto_save";

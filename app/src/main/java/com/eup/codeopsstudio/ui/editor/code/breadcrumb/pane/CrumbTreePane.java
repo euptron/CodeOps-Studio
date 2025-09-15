@@ -35,12 +35,12 @@ import android.widget.PopupWindow;
 import androidx.annotation.NonNull;
 
 import com.eup.codeopsstudio.MainFragment;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.adapters.holder.FileTreeViewHolder;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.util.FileUtil;
+import com.eup.codeopsstudio.databinding.LayoutCrumbTreePaneBinding;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutCrumbTreePaneBinding;
 import com.eup.codeopsstudio.tv.model.TreeNode;
 import com.eup.codeopsstudio.tv.view.AndroidTreeView;
 import com.eup.codeopsstudio.util.BaseUtil;
@@ -54,12 +54,12 @@ import java.util.Arrays;
 public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListener,
     TreeNode.TreeNodeLongClickListener {
 
+    private final View anchorView;
     private LayoutCrumbTreePaneBinding binding;
     private PopupWindow window;
     private AndroidTreeView treeView;
     private TreeNode rootNode;
     private String path;
-    private final View anchorView;
 
     public CrumbTreePane(Context context, View anchorView) {
         super(context, "file-tree");
@@ -104,8 +104,8 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);
         drawable.setCornerRadius(BaseUtil.dp(4));
-        drawable.setColor(SurfaceColors.SURFACE_1.getColor(getContext()));
-        drawable.setStroke(1, MaterialColors.getColor(getContext(),
+        drawable.setColor(SurfaceColors.SURFACE_1.getColor(requireContext()));
+        drawable.setStroke(1, MaterialColors.getColor(requireContext(),
             com.google.android.material.R.attr.colorOutline, 0));
         binding
             .getRoot()
@@ -132,7 +132,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
         }
     }
 
-    public void listNode(TreeNode node, Runnable post) {
+    public void listNode(@NonNull TreeNode node, Runnable post) {
         node
             .getChildren()
             .clear();
@@ -152,19 +152,21 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
                 parent.setExpanded(true);
             }
             return null;
-        }, (result) -> {
-            post.run();
-        });
+        }, (result) -> post.run());
     }
 
-    public void addChildrenToNode(TreeNode parent) {
+    public void addChildrenToNode(@NonNull TreeNode parent) {
         File[] fileArray = FileUtil.listFiles(parent.getValue());
         Arrays.sort(fileArray, FileManager.DIR_FIRST_SORT);
         for (File file : fileArray) {
-            var child = new TreeNode(file);
-            child.setViewHolder(new FileTreeViewHolder(getContext()));
-            parent.addChild(child);
+            addNewChild(parent, file);
         }
+    }
+
+    public void addNewChild(@NonNull TreeNode parent, File file) {
+        TreeNode newNode = new TreeNode(file);
+        newNode.setViewHolder(new FileTreeViewHolder(requireContext()));
+        parent.addChild(newNode);
     }
 
     public void expandNode(TreeNode node) {
@@ -179,13 +181,13 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
         updateToggle(node);
     }
 
-    private void updateToggle(TreeNode node) {
-        if (node.getViewHolder() instanceof FileTreeViewHolder) {
-            ((FileTreeViewHolder) node.getViewHolder()).rotateChevron(node.isExpanded());
+    private void updateToggle(@NonNull TreeNode node) {
+        if (node.getViewHolder() instanceof FileTreeViewHolder viewHolder) {
+            viewHolder.rotateChevron(node.isExpanded());
         }
     }
 
-    public void setLoading(TreeNode node, boolean loading) {
+    public void setLoading(@NonNull TreeNode node, boolean loading) {
         if (node.getViewHolder() instanceof FileTreeViewHolder) {
             ((FileTreeViewHolder) node.getViewHolder()).setLoading(loading);
         }
@@ -204,7 +206,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
     private void listFiles() {
         treeView = null;
         rootNode = TreeNode.root(new File(path));
-        rootNode.setViewHolder(new FileTreeViewHolder(getContext()));
+        rootNode.setViewHolder(new FileTreeViewHolder(requireContext()));
 
         binding.loading.setVisibility(View.VISIBLE);
         listNode(rootNode, () -> {
@@ -222,11 +224,5 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
                 binding.loading.setVisibility(View.GONE);
             }
         });
-    }
-
-    public void addNewChild(TreeNode parent, File file) {
-        TreeNode newNode = new TreeNode(file);
-        newNode.setViewHolder(new FileTreeViewHolder(getContext()));
-        parent.addChild(newNode);
     }
 }

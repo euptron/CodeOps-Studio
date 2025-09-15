@@ -23,36 +23,43 @@
 
 package com.eup.codeopsstudio.ui.custom.preference;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.Context;
 import android.util.AttributeSet;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.EncodingDetector;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.List;
 
+/**
+ * @author Etido Peter
+ */
 public class DefaultFileEncodingDialogPreference extends Preference {
 
-    private int selectedEncodingIndex;
-
-    public DefaultFileEncodingDialogPreference(Context context) {
-        super(context);
+    public DefaultFileEncodingDialogPreference(@NonNull Context context,
+        @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public DefaultFileEncodingDialogPreference(Context context, AttributeSet attrs) {
+    public DefaultFileEncodingDialogPreference(@NonNull Context context,
+        @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public DefaultFileEncodingDialogPreference(@NonNull Context context,
+        @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public DefaultFileEncodingDialogPreference(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    public DefaultFileEncodingDialogPreference(@NonNull Context context) {
+        super(context);
     }
 
     @Override
@@ -61,7 +68,7 @@ public class DefaultFileEncodingDialogPreference extends Preference {
 
         List<String> encodings = EncodingDetector.getSupportedEncodings();
 
-        selectedEncodingIndex =
+        int selectedEncodingIndex =
             encodings.indexOf(getPersistedString(Constants.FALLBACK_FILE_ENCODING));
 
         new MaterialAlertDialogBuilder(getContext())
@@ -82,7 +89,8 @@ public class DefaultFileEncodingDialogPreference extends Preference {
     protected boolean persistString(String encoding) {
         var pref = PreferencesUtils.getDefaultPreferences();
         var editor = pref.edit();
-        editor.putString(SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING, encoding);
+        editor.putString(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_DEFAULT_FILE_ENCODING,
+            encoding);
         editor.apply();
         return true;
     }
@@ -90,9 +98,5 @@ public class DefaultFileEncodingDialogPreference extends Preference {
     @Override
     protected String getPersistedString(String fallbackEncoding) {
         return PreferencesUtils.getDefaultFileEncoding(fallbackEncoding);
-    }
-
-    private void resetEncoding() {
-        PreferencesUtils.setDefaultFileEncoding(Constants.FALLBACK_FILE_ENCODING);
     }
 }

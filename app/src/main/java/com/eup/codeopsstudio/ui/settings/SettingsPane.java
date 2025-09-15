@@ -32,24 +32,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.pane.FragmentPane;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.BaseUtil;
-import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 import java.util.Objects;
 
+/**
+ * @author Etido Peter
+ */
 public class SettingsPane extends FragmentPane implements PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
 
     public static final String TAG = SettingsPane.class.getSimpleName();
     private final Logger logger;
     private LifecycleOwner cycleOwner;
-    private MainViewModel mMainViewModel;
 
     public SettingsPane(Context context, String title, Fragment fragment) {
         this(context, title, true, fragment);
@@ -64,7 +64,6 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
     @Override
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
-        mMainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         logger.attach(requireActivity());
 
         if (cycleOwner != null) {
@@ -73,12 +72,12 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
                 .addCallback(cycleOwner, new OnBackPressedCallback(true) {
                     @Override
                     public void handleOnBackPressed() {
-                        /**
-                         * Fixes fragment back stack handling (variant: OXIDE: - v0.0.1: Primary
-                         * fragment
-                         * was incorrectly removed. - v0.0.2: Fixed by preserving primary
-                         * fragment during
-                         * back stack removal.
+                        /*
+                          Fixes fragment back stack handling (variant: OXIDE: - v0.0.1: Primary
+                          fragment
+                          was incorrectly removed. - v0.0.2: Fixed by preserving primary
+                          fragment during
+                          back stack removal.
                          */
                         int stackCount = requireActivity()
                             .getSupportFragmentManager()
@@ -113,23 +112,28 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
     }
 
     @Override
-    public boolean onPreferenceStartFragment(PreferenceFragmentCompat caller, Preference pref) {
+    public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller,
+        @NonNull Preference pref) {
         final Bundle args = pref.getExtras();
-        final Fragment fragment = requireActivity()
-            .getSupportFragmentManager()
-            .getFragmentFactory()
-            .instantiate(requireActivity().getClassLoader(), pref.getFragment());
-        fragment.setArguments(args);
-        final String FRAGMENT_TAG = fragment
-            .getClass()
-            .getSimpleName();
-        requireActivity()
-            .getSupportFragmentManager()
-            .beginTransaction()
-            .replace(getContainerId(), fragment, FRAGMENT_TAG)
-            .addToBackStack(null)
-            .commit();
-        return true;
+        final Fragment fragment;
+        if (pref.getFragment() != null) {
+            fragment = requireActivity()
+                .getSupportFragmentManager()
+                .getFragmentFactory()
+                .instantiate(requireActivity().getClassLoader(), pref.getFragment());
+            fragment.setArguments(args);
+            final String FRAGMENT_TAG = fragment
+                .getClass()
+                .getSimpleName();
+            requireActivity()
+                .getSupportFragmentManager()
+                .beginTransaction()
+                .replace(getContainerId(), fragment, FRAGMENT_TAG)
+                .addToBackStack(null)
+                .commit();
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -35,7 +35,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.TooltipCompat;
 
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.editor.R;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.elevation.SurfaceColors;
 

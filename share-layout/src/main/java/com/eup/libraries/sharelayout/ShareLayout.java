@@ -230,6 +230,9 @@ public class ShareLayout extends LinearLayout {
         shareButton.setText(actionText);
         shareButton.setInsetTop(0);
         shareButton.setInsetBottom(0);
+        shareButton.setVerticalScrollBarEnabled(false);
+        shareButton.setGravity(Gravity.CENTER);
+        shareButton.setHorizontalScrollBarEnabled(false);
         shareButton.setCornerRadius(shareActionsCornerRadius);
         shareButton.setTextSize(14);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

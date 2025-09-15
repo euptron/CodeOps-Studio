@@ -28,9 +28,12 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.google.android.material.transition.MaterialSharedAxis;
 
+/**
+ * @author Etido Peter
+ */
 public class PreferencesFragment extends PreferenceFragmentCompat {
 
     public static final String TAG = PreferencesFragment.class.getSimpleName();

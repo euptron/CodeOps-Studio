@@ -51,12 +51,12 @@ import com.eup.codeopsstudio.editor.event.IndexingEvent;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
-import com.eup.codeopsstudio.res.databinding.LayoutReplaceInFileBinding;
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
+import com.eup.codeopsstudio.databinding.LayoutReplaceInFileBinding;
 import com.eup.codeopsstudio.ui.editor.code.breadcrumb.pane.CrumbTreePane;
 import com.eup.codeopsstudio.util.BaseUtil;
-import com.eup.codeopsstudio.util.BinaryFileChecker;
+import com.eup.codeopsstudio.util.BinaryFileChecker ;
 import com.eup.codeopsstudio.util.EncodingDetector;
 import com.eup.codeopsstudio.util.Wizard;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -364,7 +364,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         if (isInvalidContext()) return;
 
         searchMenu = new PopupMenu(requireContext(), binding.searchPanel.moreOptions);
-        searchMenu.inflate(R.menu.menu_search_options);
+        searchMenu.inflate(com.eup.codeopsstudio.R.menu.menu_search_options);
         searchMenu.setOnMenuItemClickListener(this::onMenuItemClick);
 
         if (selectedItem != -1) {
@@ -387,10 +387,10 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         item.setChecked(!isChecked);
 
         final int itemId = item.getItemId();
-        final int regexId = R.id.search_option_regex;
-        final int wholeWordId = R.id.search_option_whole_word;
-        final int matchCaseId = R.id.search_option_match_case;
-        final int closeId = R.id.close_search_options;
+        final int regexId = com.eup.codeopsstudio.R.id.search_option_regex;
+        final int wholeWordId = com.eup.codeopsstudio.R.id.search_option_whole_word;
+        final int matchCaseId = com.eup.codeopsstudio.R.id.search_option_match_case;
+        final int closeId = com.eup.codeopsstudio.R.id.close_search_options;
 
         if (itemId == regexId) {
             selectedItem = isChecked ? -1 : regexId;
@@ -407,15 +407,15 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
         boolean ignoreCase = !searchMenu
             .getMenu()
-            .findItem(R.id.search_option_match_case)
+            .findItem(com.eup.codeopsstudio.R.id.search_option_match_case)
             .isChecked();
         boolean regex = searchMenu
             .getMenu()
-            .findItem(R.id.search_option_regex)
+            .findItem(com.eup.codeopsstudio.R.id.search_option_regex)
             .isChecked();
         boolean wholeWord = searchMenu
             .getMenu()
-            .findItem(R.id.search_option_whole_word)
+            .findItem(com.eup.codeopsstudio.R.id.search_option_whole_word)
             .isChecked();
 
         int searchType = EditorSearcher.SearchOptions.TYPE_NORMAL;

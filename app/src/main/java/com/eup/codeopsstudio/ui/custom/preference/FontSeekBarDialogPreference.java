@@ -23,41 +23,49 @@
 
 package com.eup.codeopsstudio.ui.custom.preference;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutMaterialSliderBinding;
+import com.eup.codeopsstudio.databinding.LayoutMaterialSliderBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+/**
+ * @author Etido Peter
+ */
 public class FontSeekBarDialogPreference extends Preference {
 
     private static final float DEFAULT_FONT_SIZE = 14.0f;
 
-    public FontSeekBarDialogPreference(Context context) {
-        super(context);
+    public FontSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public FontSeekBarDialogPreference(Context context, AttributeSet attrs) {
+    public FontSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public FontSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public FontSeekBarDialogPreference(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    public FontSeekBarDialogPreference(@NonNull Context context) {
+        super(context);
     }
 
     @Override
     protected void onClick() {
         super.onClick();
-        var binding =
-            LayoutMaterialSliderBinding.inflate(LayoutInflater.from(getContext()));
+        var binding = LayoutMaterialSliderBinding.inflate(LayoutInflater.from(getContext()));
         binding.slider.setValueFrom(6.0f);
         binding.slider.setValueTo(32.0f);
         binding.slider.setValue(getPersistedFloat(DEFAULT_FONT_SIZE));
@@ -82,7 +90,7 @@ public class FontSeekBarDialogPreference extends Preference {
         if ((fontSize >= 6) && (fontSize <= 32)) {
             var pref = PreferencesUtils.getDefaultPreferences();
             var editor = pref.edit();
-            editor.putFloat(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, fontSize);
+            editor.putFloat(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, fontSize);
             editor.apply();
             return true;
         }
@@ -98,7 +106,7 @@ public class FontSeekBarDialogPreference extends Preference {
         var pref = PreferencesUtils.getDefaultPreferences();
         pref
             .edit()
-            .putFloat(SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, 14)
+            .putFloat(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, 14)
             .apply();
     }
 }

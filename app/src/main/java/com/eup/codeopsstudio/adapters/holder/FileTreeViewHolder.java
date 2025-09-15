@@ -30,9 +30,9 @@ import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.databinding.LayoutFileTreeItemBinding;
 import com.eup.codeopsstudio.models.ExtensionTable;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutFileTreeItemBinding;
 import com.eup.codeopsstudio.tv.model.TreeNode;
 import com.eup.codeopsstudio.util.BaseUtil;
 
@@ -62,8 +62,7 @@ public class FileTreeViewHolder extends TreeNode.BaseNodeViewHolder<File> {
     }
 
     protected RelativeLayout applyPadding(@NonNull final TreeNode node,
-                                          @NonNull final LayoutFileTreeItemBinding binding,
-                                          final int padding) {
+        @NonNull final LayoutFileTreeItemBinding binding, final int padding) {
         final RelativeLayout root = binding.getRoot();
         root.setPaddingRelative(root.getPaddingLeft() + (padding * (node.getLevel()
             - 1)), root.getPaddingTop(), root.getPaddingRight(), root.getPaddingBottom());

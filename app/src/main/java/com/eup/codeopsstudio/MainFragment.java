@@ -64,8 +64,7 @@ import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
+import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.ui.AllowChildInterceptDrawerLayout;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.ui.editor.panes.WebViewPane;
@@ -259,7 +258,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
 
         BaseUtil.registerSoftInputChangedListener(getActivity(), __ -> invalidateMenu());
 
-        if (PreferencesUtils.canShareAnynomousStatistics()) User.registerSession();
+        if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
 
         if (savedInstanceState != null) restoreViewState(savedInstanceState);
         restoreLastProject();
@@ -477,14 +476,9 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             }
         } catch (Throwable e) {
             // corrupted thus clear
-
-            boolean clearedPrefSuccess = PreferencesUtils.clearPerference(PreferencesUtils.getLastOpenedProjectPreferences(),
+            PreferencesUtils.clearPreference(PreferencesUtils.getLastOpenedProjectPreferences(),
                 SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
             logger.e(LOG_TAG, "Failed to reopen last opened project: " + e);
-
-            if (clearedPrefSuccess) {
-                ILog.debug(TAG,"Cleared corrupted save state for last opened project");
-            }
         }
     }
 
@@ -705,7 +699,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
         switch (key) {
             case SharedPreferenceKeys.KEY_SHARE_STATISTICS:
-                if (PreferencesUtils.canShareAnynomousStatistics()) User.registerSession();
+                if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
                 break;
         }
     }

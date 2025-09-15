@@ -36,7 +36,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.eup.codeopsstudio.databinding.FragmentPrimarySideBarBinding;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.google.android.material.navigationrail.NavigationRailView;
 

@@ -35,6 +35,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.adapters.ProjectAdapter;
 import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.Constants;
@@ -168,8 +169,7 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
         var file = project.getFile();
 
         if (!file.exists()) {
-            logger.w(TAG, getString(com.eup.codeopsstudio.res.R.string.msg_file_does_not_exist,
-                file.getAbsolutePath()));
+            logger.w(TAG, getString(R.string.msg_file_does_not_exist, file.getAbsolutePath()));
             return;
         }
 
@@ -191,37 +191,32 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
     @SuppressLint("NotifyDataSetChanged")
     private boolean inflateProjectDialogs(View view, Project project) {
         CharSequence[] options = {
-            getString(com.eup.codeopsstudio.res.R.string.remove),
-            getString(com.eup.codeopsstudio.res.R.string.check_history)
+            getString(R.string.remove), getString(R.string.check_history)
         };
 
         new MaterialAlertDialogBuilder(requireContext())
             .setItems(options, (dialog, which) -> {
                 if (which == 0) {
                     dialog.dismiss();
-                    String message =
-                        getString(com.eup.codeopsstudio.res.R.string.prompt_remove_from_recent,
-                            project.getName());
+                    String message = getString(R.string.prompt_remove_from_recent,
+                        project.getName());
                     new MaterialAlertDialogBuilder(requireContext())
                         .setMessage(message)
-                        .setPositiveButton(com.eup.codeopsstudio.res.R.string.yes,
-                            (dialogInterface, item) -> {
+                        .setPositiveButton(R.string.yes, (dialogInterface, item) -> {
                             recentProjects.remove(project);
                             if (adapter != null) {
                                 notifyDataSetChanged();
                             }
                         })
-                        .setNegativeButton(com.eup.codeopsstudio.res.R.string.no, null)
+                        .setNegativeButton(R.string.no, null)
                         .show();
                 } else if (which == 1) {
                     dialog.dismiss();
                     long date = Objects.requireNonNull(project.getHistory()).creationDate;
-                    String message =
-                        getString(com.eup.codeopsstudio.res.R.string.msg_recent_project_history,
-                            getDate(date), project.getHistory().fileAction.toString());
+                    String message = getString(R.string.msg_recent_project_history, getDate(date)
+                        , project.getHistory().fileAction.toString());
                     new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(project.getName() + " "
-                            + getString(com.eup.codeopsstudio.res.R.string.history))
+                        .setTitle(project.getName() + " " + getString(R.string.history))
                         .setMessage(message)
                         .setPositiveButton(android.R.string.cancel, null)
                         .show();

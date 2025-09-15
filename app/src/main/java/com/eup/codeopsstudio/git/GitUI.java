@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,21 +19,20 @@ import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.eup.codeopsstudio.MainActivity;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.adapters.logger.LogAdapter;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
+import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.databinding.LayoutLoggingSheetBinding;
 import com.eup.codeopsstudio.git.listeners.CloneListener;
 import com.eup.codeopsstudio.git.task.CloneTask;
 import com.eup.codeopsstudio.models.logger.Logger;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutDialogTextInputBinding;
+import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
-import com.eup.codeopsstudio.util.BaseUtil;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
@@ -76,8 +76,8 @@ public class GitUI {
         if (context instanceof ViewModelStoreOwner currentVMScope) {
             this.logger.attach(currentVMScope);
         }
-        this.model                     = new ViewModelProvider(activity).get(MainViewModel.class);
-        this.fileViewModel             = new ViewModelProvider(activity).get(FileViewModel.class);
+        this.model         = new ViewModelProvider(activity).get(MainViewModel.class);
+        this.fileViewModel = new ViewModelProvider(activity).get(FileViewModel.class);
     }
 
     private FragmentActivity inFragmentActivity(@NonNull Context c) {
@@ -94,7 +94,7 @@ public class GitUI {
         logger.d(TAG, context.getString(R.string.initializing));
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
         builder.setTitle(R.string.clone_git_repo);
-        inputBinding = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(context));
+        inputBinding    = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(context));
         logSheetBinding = LayoutLoggingSheetBinding.inflate(LayoutInflater.from(context));
         setupInputFields();
         setupValidation(builder);
@@ -122,44 +122,32 @@ public class GitUI {
         }
         positiveButton.setOnClickListener(v -> startCloneOperation(dialog));
     }
-    
-    private boolean validatePathExistence(Button positiveButton, Editable editable) {
-       String path = editable.toString();
-       String url = getUrl();
 
-       if (Wizard.isEmpty(url) || Wizard.isEmpty(path)) {
-          return false;
-       }
-       
-       File output = new File(path, RepoConfig.extractRepoNameFromUri(getUrl()));
-       
-       if (output.exists()) {
-           positiveButton.setEnabled(false);
-           inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_already_exists));
-           // invoked after error message is set so layout resize 
-           inputBinding.tilOther.setErrorEnabled(true);
-           inputBinding.tilOther.getEditText().requestFocus();
-           BaseUtil.toastLong(R.string.msg_repo_dir_already_exists);
-           return true;
-       } else {
-           positiveButton.setEnabled(true);
-           inputBinding.tilOther.setErrorEnabled(false);
-           return false;
-       }
+    private boolean validatePathExistence(Button positiveButton, Editable editable) {
+        String path = editable.toString();
+        String url = getUrl();
+
+        if (Wizard.isEmpty(url) || Wizard.isEmpty(path)) {
+            return false;
+        }
+
+        File output = new File(path, RepoConfig.extractRepoNameFromUri(getUrl()));
+
+        if (output.exists()) {
+            positiveButton.setEnabled(false);
+            inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_already_exists));
+            // invoked after error message is set so layout resize
+            inputBinding.tilOther.setErrorEnabled(true);
+            requestFocus(inputBinding.tilOther.getEditText());
+            BaseUtil.toastLong(R.string.msg_repo_dir_already_exists);
+            return true;
+        } else {
+            positiveButton.setEnabled(true);
+            inputBinding.tilOther.setErrorEnabled(false);
+            return false;
+        }
     }
-    
-    private boolean isValidPath() {
-       String path = getPath();
-       if (Wizard.isEmpty(path)) return false;
-       return true;
-    }
-    
-    private boolean isValidUrl() {
-       String url = getUrl();
-       if (Wizard.isEmpty(url)) return false;
-       return true;
-    }
-    
+
     @Nullable
     private String getUrl() {
         return inputBinding.tilName.getEditText() != null ? inputBinding.tilName
@@ -168,47 +156,55 @@ public class GitUI {
             .toString() : null;
     }
 
-    @Nullable
-    private String getPath() {
-        return inputBinding.tilOther.getEditText() != null ? inputBinding.tilOther
-            .getEditText()
-            .getText()
-            .toString() : null;
+    private void requestFocus(@Nullable EditText editText) {
+        if (editText != null) {
+            editText.requestFocus();
+        }
     }
 
     private void startCloneOperation(@NonNull AlertDialog dialog) {
         if (!isValidUrl()) {
-          ILog.warning(TAG, "Failed to start clone operation, url is null");
-          inputBinding.tilName.setError(context.getString(R.string.msg_repo_url_required));
-          // invoked after error message is set so layout resize 
-          inputBinding.tilName.setErrorEnabled(true);
-          inputBinding.tilName.getEditText().requestFocus();
-          BaseUtil.toastLong(R.string.msg_repo_url_required);
-          return;
+            ILog.warning(TAG, "Failed to start clone operation, url is null");
+            inputBinding.tilName.setError(context.getString(R.string.msg_repo_url_required));
+            // invoked after error message is set so layout resize
+            inputBinding.tilName.setErrorEnabled(true);
+            requestFocus(inputBinding.tilOther.getEditText());
+            BaseUtil.toastLong(R.string.msg_repo_url_required);
+            return;
         }
-        
+
         if (!isValidPath()) {
-          ILog.warning(TAG, "Failed to start clone operation, path is null");
-          inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_required));
-          // invoked after error message is set so layout resize 
-          inputBinding.tilOther.setErrorEnabled(true);
-          inputBinding.tilOther.getEditText().requestFocus();
-          BaseUtil.toastLong(R.string.msg_repo_dir_required);
-          return;
+            ILog.warning(TAG, "Failed to start clone operation, path is null");
+            inputBinding.tilOther.setError(context.getString(R.string.msg_repo_dir_required));
+            // invoked after error message is set so layout resize
+            inputBinding.tilOther.setErrorEnabled(true);
+            requestFocus(inputBinding.tilOther.getEditText());
+            BaseUtil.toastLong(R.string.msg_repo_dir_required);
+            return;
         }
-        
+
         String url = getUrl();
+        if (url == null){
+            ILog.debug(TAG, "Aborting since url == null");
+            return;
+        }
         String directory = getPath();
-        
+
         Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        Editable editable = inputBinding.tilOther.getEditText().getText();
-           
+        EditText saveLocationEditText =inputBinding.tilOther.getEditText();
+
+         if (saveLocationEditText == null){
+             ILog.debug(TAG, "Aborting since SaveLocation edittext == null");
+             return;
+         }
+        Editable editable = saveLocationEditText.getText();
+
         if (validatePathExistence(positiveButton, editable)) return;
-        
+
         if (!url.endsWith(".git")) {
             url += ".git";
         }
-        
+
         var sheetDialog = new BottomSheetDialog(context);
         final var output = new File(directory, RepoConfig.extractRepoNameFromUri(url));
         sheetDialog.setContentView(logSheetBinding.getRoot());
@@ -218,21 +214,19 @@ public class GitUI {
         logSheetBinding.loggingList.setLayoutManager(new LinearLayoutManager(context));
         logSheetBinding.loggingList.setAdapter(logAdapter);
         sheetDialog.show();
-        
+
         model
             .getIDELogs()
             .observe(lifecycleOwner, data -> {
                 logAdapter.submitList(data);
                 scrollToLastItem();
             });
-            
+
         CloneListener listener = new CloneListener() {
             @Override
             public void onCloneComplete(File file) {
                 if (file != null && file.exists()) {
-                   AsyncTask.runOnUiThread(() -> {
-                    cloneCompleteListener.onCloneCompleted(file);
-                   });
+                    AsyncTask.runOnUiThread(() -> cloneCompleteListener.onCloneCompleted(file));
                 }
             }
 
@@ -282,7 +276,7 @@ public class GitUI {
         task.whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
             clearLogs();
             if (dialog.isShowing()) dialog.dismiss();
-            
+
             if (throwable != null) {
                 listener.onCloneFailed(throwable.getMessage());
             } else if (result != null) {
@@ -302,6 +296,24 @@ public class GitUI {
             clearLogs();
             sheetDialog.dismiss();
         });
+    }
+
+    private boolean isValidPath() {
+        String path = getPath();
+        return !Wizard.isEmpty(path);
+    }
+
+    @Nullable
+    private String getPath() {
+        return inputBinding.tilOther.getEditText() != null ? inputBinding.tilOther
+            .getEditText()
+            .getText()
+            .toString() : null;
+    }
+
+    private boolean isValidUrl() {
+        String url = getUrl();
+        return !Wizard.isEmpty(url);
     }
 
     private void scrollToLastItem() {

@@ -56,12 +56,19 @@
             app:key="pref_show_welcome_pane"
             app:summary="@string/pref_general_config_display_welcome_pane"
             app:title="@string/pref_general_config_startup_editor" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            app:iconSpaceReserved="false"
+            app:key="pref_display_tab_icons"
+            app:summary="@string/pref_general_config_display_tab_icons_summary"
+            app:title="@string/pref_general_config_display_tab_icon" />
     </PreferenceCategory>
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/pref_general_conifg_project_title">
         <ListPreference
-            android:defaultValue="5"
+            android:defaultValue="4"
             android:dialogTitle="@string/pref_general_config_buffer_size_title"
             android:entries="@array/buffer_sizes"
             android:entryValues="@array/buffer_sizes"
@@ -78,4 +85,3 @@
     </PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>
-

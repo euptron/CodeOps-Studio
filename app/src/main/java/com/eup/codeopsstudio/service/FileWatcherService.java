@@ -40,7 +40,7 @@ import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.observers.FileWatcher;
 import com.eup.codeopsstudio.observers.FileWatcher.OnFileChangeListener;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -23,5 +23,13 @@
   -->
 
 <resources>
-    <color name="ic_launcher_background">#1A1B1F</color>
+    <string name="editor_selected">Selected</string>
+    <string name="editor_no_search_match">No results</string>
+    <string name="editor_unable_to_format">Unable to format sequence</string>
+    <string name="editor_clip_text_length_too_large">Text is too large to copy</string>
+    <string name="editor_select_convert_text_first">Please select the text to be converted first</string>
+    <plurals name="editor_search_matches">
+        <item quantity="one">Match</item>
+        <item quantity="other">Matches</item>
+    </plurals>
 </resources>

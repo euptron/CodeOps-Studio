@@ -22,57 +22,57 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.preference.PreferenceScreen
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/pref_editor_file_category_title">
         <com.eup.codeopsstudio.ui.custom.preference.DefaultFileEncodingDialogPreference
-            android:defaultValue="UTF-8"
-            android:key="pref_editor_default_file_encoding"
-            android:summary="@string/pref_editor_file_summ_default_file_encoding"
-            android:title="@string/pref_editor_file_title_default_file_encoding"
-            app:iconSpaceReserved="false" />
+            app:defaultValue="UTF-8"
+            app:iconSpaceReserved="false"
+            app:key="pref_editor_default_file_encoding"
+            app:summary="@string/pref_editor_file_summ_default_file_encoding"
+            app:title="@string/pref_editor_file_title_default_file_encoding" />
     </PreferenceCategory>
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/pref_editor_code_editor_category_title">
         <com.eup.codeopsstudio.ui.custom.preference.FontSeekBarDialogPreference
-            android:defaultValue="14.0f"
+            app:defaultValue="14.0f"
             app:iconSpaceReserved="false"
             app:key="pref_code_editor_font_size"
             app:summary="@string/pref_editor_code_editor_summ_font_size"
             app:title="@string/pref_editor_code_editor_title_font_size" />
         <ListPreference
-            android:defaultValue="jetbrains_mono_regular"
-            android:dialogTitle="@string/pref_editor_code_editor_title_font"
-            android:entries="@array/code_editor_default_fonts"
-            android:entryValues="@array/code_editor_default_fonts_values"
+            app:defaultValue="jetbrains_mono_regular"
+            app:dialogTitle="@string/pref_editor_code_editor_title_font"
+            app:entries="@array/code_editor_default_fonts"
+            app:entryValues="@array/code_editor_default_fonts_values"
             app:iconSpaceReserved="false"
             app:key="pref_code_editor_font"
             app:summary="@string/pref_editor_code_editor_summ_font"
             app:title="@string/pref_editor_code_editor_title_font" />
         <ListPreference
-            android:defaultValue="2"
-            android:dialogTitle="@string/pref_editor_code_editor_title_line_height"
-            android:entries="@array/code_editor_line_height_value"
-            android:entryValues="@array/code_editor_line_height_value"
+            app:defaultValue="2"
+            app:dialogTitle="@string/pref_editor_code_editor_title_line_height"
+            app:entries="@array/code_editor_line_height_value"
+            app:entryValues="@array/code_editor_line_height_value"
             app:iconSpaceReserved="false"
             app:key="pref_code_editor_line_height"
             app:summary="@string/pref_editor_code_editor_summ_line_height"
             app:title="@string/pref_editor_code_editor_title_line_height" />
         <MultiSelectListPreference
-            android:dialogTitle="@string/pref_editor_code_editor_title_npc"
-            android:entries="@array/code_editor_tab_npc_flag"
-            android:entryValues="@array/code_editor_tab_npc_flag_value"
+            app:dialogTitle="@string/pref_editor_code_editor_title_npc"
+            app:entries="@array/code_editor_tab_npc_flag"
+            app:entryValues="@array/code_editor_tab_npc_flag_value"
             app:iconSpaceReserved="false"
             app:key="pref_code_editor_npc"
             app:summary="@string/pref_editor_code_editor_summ_npc"
             app:title="@string/pref_editor_code_editor_title_npc" />
         <com.eup.codeopsstudio.ui.custom.preference.TabSizeSeekBarDialogPreference
-            android:defaultValue="4"
+            app:defaultValue="4"
             app:iconSpaceReserved="false"
             app:key="pref_code_editor_tab_size"
             app:summary="@string/pref_editor_code_editor_summ_tab_size"
@@ -157,11 +157,11 @@
             app:summary="@string/pref_editor_code_editor_summ_del_tab_bakspce"
             app:title="@string/pref_editor_code_editor_title_del_tab_bakspce" />
         <com.eup.codeopsstudio.ui.custom.preference.DialogEditTextPreference
-            android:defaultValue="500"
-            android:key="pref_code_editor_cursor_blnk_period"
-            android:summary="@string/pref_editor_code_editor_summ_cursor_blnk_period"
-            android:title="@string/pref_editor_code_editor_title_cursor_blnk_period"
-            app:iconSpaceReserved="false" />
+            app:defaultValue="500"
+            app:iconSpaceReserved="false"
+            app:key="pref_code_editor_cursor_blnk_period"
+            app:summary="@string/pref_editor_code_editor_summ_cursor_blnk_period"
+            app:title="@string/pref_editor_code_editor_title_cursor_blnk_period" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
             app:iconSpaceReserved="false"
@@ -191,10 +191,10 @@
         <!-- app:title="@string/pref_editor_code_editor_title_auto_save" -->
         <!--  app:summary="@string/pref_editor_code_editor_summ_auto_save" /> -->
         <ListPreference
-            android:defaultValue="First"
-            android:dialogTitle="@string/pref_editor_code_editor_title_relative_close_depth"
-            android:entries="@array/relative_close"
-            android:entryValues="@array/relative_close"
+            app:defaultValue="First"
+            app:dialogTitle="@string/pref_editor_code_editor_title_relative_close_depth"
+            app:entries="@array/relative_close"
+            app:entryValues="@array/relative_close"
             app:iconSpaceReserved="false"
             app:key="pref_code_editor_relative_close_depth"
             app:summary="@string/pref_editor_code_editor_summ_relative_close_depth"
@@ -210,21 +210,6 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/pref_editor_code_editor_panels_category_title">
-
-        <!-- <SwitchPreferenceCompat -->
-        <!-- app:defaultValue="false" -->
-        <!-- app:iconSpaceReserved="false" -->
-        <!-- app:key="pref_code_editor_symbol_panel" -->
-        <!-- app:title="@string/pref_editor_code_editor_panels_si_panel_title" -->
-        <!-- app:summary="@string/pref_editor_code_editor_panels_si_panel_summ" /> -->
-        <!-- <SwitchPreferenceCompat -->
-        <!-- app:defaultValue="false" -->
-        <!-- app:iconSpaceReserved="false" -->
-        <!-- app:key="pref_code_editor_fun_panel" -->
-        <!-- app:title="@string/pref_editor_code_editor_panels_function_title" -->
-        <!-- app:summary="@string/pref_editor_code_editor_panels_function_summ" /> -->
-
-        <!-- Breadcrumbs navigation panel -->
         <SwitchPreferenceCompat
             app:defaultValue="true"
             app:iconSpaceReserved="false"
@@ -234,4 +219,3 @@
 
     </PreferenceCategory>
 </androidx.preference.PreferenceScreen>
-

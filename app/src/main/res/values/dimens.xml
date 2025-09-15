@@ -24,4 +24,19 @@
 
 <resources>
     <dimen name="dialog_fragment_unzip_padding">16dp</dimen>
+    <!-- Change Log -->
+    <dimen name="alert_log_label_height">@dimen/dimen56dp</dimen>
+    <dimen name="alert_log_label_padding">@dimen/dimen8dp</dimen>
+    <!-- Log RecyclerView -->
+    <dimen name="log_recyclerview_left_padding">@dimen/dimen4dp</dimen>
+    <dimen name="log_recyclerview_right_padding">@dimen/dimen4dp</dimen>
+    <dimen name="log_recyclerview_top_padding">@dimen/dimen6dp</dimen>
+    <dimen name="log_recyclerview_bottom_padding">@dimen/dimen72dp</dimen>
+    <!-- Primary SideBar Navigation Rail -->
+    <dimen name="primary_sidebar_item_min_height">@dimen/dimen60dp</dimen>
+    <dimen name="primary_sidebar_icon_size">@dimen/dimen22dp</dimen>
+    <dimen name="primary_sidebar_navigation_rail_width">@dimen/dimen60dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_width">@dimen/dimen48dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_height">@dimen/dimen24dp</dimen>
+    <dimen name="primary_side_bar_item_active_indicator_margin_horizontal">@dimen/dimen4dp</dimen>
 </resources>

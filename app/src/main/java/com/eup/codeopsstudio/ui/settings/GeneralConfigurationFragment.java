@@ -27,16 +27,22 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
+import com.eup.codeopsstudio.IdeApplication;
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.manager.ThemeManager;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.transition.MaterialSharedAxis;
 
+/**
+ * @author Etido Peter
+ */
 public class GeneralConfigurationFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String TAG = GeneralConfigurationFragment.class.getSimpleName();
@@ -89,10 +95,12 @@ public class GeneralConfigurationFragment extends PreferenceFragmentCompat imple
         if (key != null) {
             switch (key) {
                 case ThemeManager.KEY_THEME:
-                    // fall-through
+                    applyTheme();
+                    break;
                 case ThemeManager.KEY_DYNAMIC_COLORS:
-                    ThemeManager.applyTheme(requireActivity().getApplication());
-                    requireActivity().recreate();
+                    applyDynamicColors();
+                    AsyncTask.runLaterOnUiThread(() -> ActivityCompat.recreate(requireActivity())
+                        , 400/*milli-sec*/);
                     break;
                 case Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE:
                     boolean checked = sharedPreferences.getBoolean(key, true);
@@ -100,6 +108,20 @@ public class GeneralConfigurationFragment extends PreferenceFragmentCompat imple
                     break;
             }
         }
+    }
+
+    private void applyTheme() {
+        IdeApplication
+            .getInstance()
+            .getThemeManager()
+            .applyTheme();
+    }
+
+    private void applyDynamicColors() {
+        IdeApplication
+            .getInstance()
+            .getThemeManager()
+            .applyDynamicColors();
     }
 
     private void syncSwitch(SwitchPreferenceCompat switchPreference, boolean checked) {

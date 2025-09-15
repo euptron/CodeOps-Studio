@@ -23,12 +23,6 @@
 
 package com.eup.codeopsstudio.ui.settings;
 
-import static com.eup.codeopsstudio.ui.settings.api.AboutAdapter.CHECK_UPDATE;
-import static com.eup.codeopsstudio.ui.settings.api.AboutAdapter.DOCUMENTATION;
-import static com.eup.codeopsstudio.ui.settings.api.AboutAdapter.OPEN_SOURCE_LICENCES;
-import static com.eup.codeopsstudio.ui.settings.api.AboutAdapter.SOCIALS;
-import static com.eup.codeopsstudio.ui.settings.api.AboutAdapter.VISIT_WEBSITE;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -40,9 +34,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.FragmentAboutBinding;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.ui.settings.api.AboutAdapter;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
@@ -50,7 +44,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.transition.MaterialSharedAxis;
 
 /**
- * Activity component resonsible for the about screen.
+ * Activity component responsible for the about screen.
  *
  * @author Etido Peter
  */
@@ -77,7 +71,7 @@ public class AboutFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         var adapter = new AboutAdapter(requireContext());
 
@@ -86,14 +80,12 @@ public class AboutFragment extends Fragment {
         binding.recyclerview.setAdapter(adapter);
 
         adapter.setOnItemClickListener((items, pos) -> {
-            if (pos == VISIT_WEBSITE) {
+            if (pos == AboutAdapter.VISIT_WEBSITE) {
                 BaseUtil.openUrlOutsideActivity(Constants.WEBSITE_URL);
-            } else if (pos == SOCIALS) {
+            } else if (pos == AboutAdapter.SOCIALS) {
                 CharSequence[] choices = getResources().getStringArray(R.array.social_handles);
-                CharSequence[] choicesIndex =
-                    getResources().getStringArray(R.array.social_handles_index);
 
-                new MaterialAlertDialogBuilder(getContext())
+                new MaterialAlertDialogBuilder(requireContext())
                     .setItems(choices, (dialog, which) -> {
                         if (which == 0) {
                             BaseUtil.openUrlOutsideActivity(Constants.TELEGRAM);
@@ -106,12 +98,12 @@ public class AboutFragment extends Fragment {
                     })
                     .setCancelable(true)
                     .show();
-            } else if (pos == OPEN_SOURCE_LICENCES) {
+            } else if (pos == AboutAdapter.OPEN_SOURCE_LICENCES) {
                 OssLicensesMenuActivity.setActivityTitle(getString(R.string.open_source_licences));
                 startActivity(new Intent(requireContext(), OssLicensesMenuActivity.class));
-            } else if (pos == CHECK_UPDATE) {
+            } else if (pos == AboutAdapter.CHECK_UPDATE) {
                 BaseUtil.openUrlOutsideActivity(Constants.CHECK_UPDATE_GITHUB_URL);
-            } else if (pos == DOCUMENTATION) {
+            } else if (pos == AboutAdapter.DOCUMENTATION) {
                 BaseUtil.openUrlOutsideActivity(Constants.DOCUMENTATION_URL);
             }
         });

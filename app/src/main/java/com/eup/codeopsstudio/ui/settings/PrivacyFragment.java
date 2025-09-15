@@ -32,7 +32,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 import com.eup.codeopsstudio.models.user.DeviceInfo;
-import com.eup.codeopsstudio.res.R;
+import com.eup.codeopsstudio.R;
 import com.google.android.material.transition.MaterialSharedAxis;
 
 import java.util.Objects;

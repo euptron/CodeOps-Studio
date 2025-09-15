@@ -23,8 +23,6 @@
 
 package com.eup.codeopsstudio.ui.editor;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -47,20 +45,20 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.models.ProjectEvent;
 import com.eup.codeopsstudio.common.util.EncodeUtils;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentBaseBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
-import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.listeners.OnPaneTabSelectedListener;
 import com.eup.codeopsstudio.models.ExtensionTable;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.ui.editor.panes.EmptyPaneWindow;
 import com.eup.codeopsstudio.ui.editor.panes.WebViewPane;
@@ -103,8 +101,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     public static final String TAG = BaseFragment.class.getSimpleName();
     public static final String LOG_TAG = "BaseInterface";
-    // TODO: Replace showTabIcons with {@link PreferencesUtils.canShowTabIcons()}
-    private final boolean showTabIcons = true;
     private final MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData =
         new MutableLiveData<>(new LinkedList<>());
     private final MutableLiveData<Pair<Integer, Pair<Tab, Pane>>> currentPaneLiveData =
@@ -117,10 +113,13 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         }
     };
     protected boolean canAutoSave = false;
+    /**
+     * TODO: Sync tab icon visibility with preference change
+     */
+    private boolean displayTabIcons = PreferencesUtils.canDisplayTabIcons();
     private BottomSheetBehavior<View> mBehavior;
     private Logger logger;
     private FragmentBaseBinding binding;
-    private ContextualCodeEditor editor;
     private PopupMenu mPopupMenu;
     private SharedPreferences sharedPreferences;
     private Observer<List<Pair<Tab, Pane>>> panesObserver;
@@ -182,7 +181,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
         mSavedStateViewModel
             .getActionSheetState()
-            .observe(this, savedState -> {
+            .observe(getViewLifecycleOwner(), savedState -> {
                 int sheet_behaviour =
                     (savedState != null) ? savedState : BottomSheetBehavior.STATE_COLLAPSED;
                 restoreViewState(sheet_behaviour);
@@ -269,22 +268,23 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     public void persistPanes() {
         List<Pair<Tab, Pane>> paneTabs = panesLiveData.getValue();
+        if (paneTabs == null) {
+            ILog.warning(TAG, "Could not persist panes, livedata is null");
+            return;
+        }
+
         final List<Pane> paneList = new LinkedList<>();
         paneTabs.forEach(pair -> paneList.add(pair.second));
 
         savePanesAsync(paneList)
-            .thenAccept(isSaved -> {
-                requireActivity().runOnUiThread(() -> {
-                    if (!isSaved) {
-                        logger.w(LOG_TAG, "Failed to persist panes properly");
-                    }
-                });
-            })
+            .thenAccept(isSaved -> requireActivity().runOnUiThread(() -> {
+                if (!isSaved) {
+                    logger.w(LOG_TAG, "Failed to persist panes properly");
+                }
+            }))
             .exceptionally(ex -> {
-                requireActivity().runOnUiThread(() -> {
-                    logger.e(LOG_TAG,
-                        "Exception during panes persistence : " + ex.getLocalizedMessage());
-                });
+                requireActivity().runOnUiThread(() -> logger.e(LOG_TAG,
+                    "Exception during panes persistence : " + ex.getLocalizedMessage()));
                 return null;
             });
     }
@@ -308,44 +308,40 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
                 var treeMap = new LinkedTreeMap<String, Object>();
                 if (pane != null) {
                     pane.persist();
-                    for (var entry : pane
-                        .getArguments()
-                        .entrySet()) {
-                        treeMap.put(entry.getKey(), entry.getValue());
-                    }
+                    treeMap.putAll(pane.getArguments());
                     treeMapList.add(treeMap);
                 }
             }
 
             String jsonString = new Gson().toJson(treeMapList);
-            editor.putString(SharedPreferenceKeys.KEY_PERSISTED_PANES,
+            editor.putString(Constants.SharedPreferenceKeys.KEY_PERSISTED_PANES,
                 EncodeUtils.base64Encode2String(jsonString.getBytes()));
             return editor.commit();
         });
     }
 
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
+    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
+        if (key == null) return;
+
         switch (key) {
-            case SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_SAVE:
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_SAVE:
                 canAutoSave = PreferencesUtils.autoSaveFiles();
                 break;
-            case SharedPreferenceKeys.KEY_CODE_EDITOR_RELATIVE_CLOSE_DEPTH:
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_RELATIVE_CLOSE_DEPTH:
                 closeTabsRelativeToFirst = PreferencesUtils.canCloseRelativeToFirstDepth();
                 break;
-            case SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES:
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES:
                 closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
+                break;
+            case Constants.SharedPreferenceKeys.KEY_DISPLAY_TAB_ICONS:
+                displayTabIcons = PreferencesUtils.canDisplayTabIcons();
                 break;
         }
     }
 
     @Override
     public void onTabSelected(@NonNull Tab tab) {
-        if (tab == null) {
-            logger.e(LOG_TAG, "Cannot find pair for a null tab!");
-            return;
-        }
-
         final int position = tab.getPosition();
         binding.paneContainer.setDisplayedChild(position);
         Pair<Tab, Pane> pair = PaneUtil.getPair(PaneUtil.getPaneTabs(panesLiveData), tab);
@@ -362,15 +358,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             .post(new CurrentPaneEvent(position, pair.second));
         currentPaneLiveData.setValue(Pair.create(position, pair));
 
-        var editorPane = PaneUtil.requireCodeEditorPane(pair.second);
-        var welcomePane = PaneUtil.requireWelcomePane(pair.second);
-
-        if (welcomePane != null) {
-            // hideActionSheet(true);
-        } else if (editorPane != null) {
-            // hideActionSheet(false);
-            editor = editorPane.getEditor();
-        }
         updateTabs();
         invalidateMainMenus();
     }
@@ -391,7 +378,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     @Override
-    public void onTabReselected(Tab tab) {
+    public void onTabReselected(@NonNull Tab tab) {
         int position = tab.getPosition();
         Pair<Tab, Pane> pair = PaneUtil.getPaneTab(panesLiveData, position);
         if (pair == null || pair.second == null) {
@@ -690,10 +677,8 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     /**
      * Creates a new Pane tab
-     *
-     * <p>TODO:
-     * <li>Replace showTabIcons with {@link PreferencesUtils.canShowTabIcons()}
      */
+    @NonNull
     private Tab createTab(Pane pane) {
         var tab = binding.tablayout.newTab();
 
@@ -715,7 +700,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             var welcome = PaneUtil.requireWelcomePane(pane);
             var settings = PaneUtil.requireSettingsPane(pane);
 
-            if (showTabIcons) {
+            if (displayTabIcons) {
                 if (editor != null) {
                     var file = editor.getFile();
                     tabIcon.setImageResource(ExtensionTable.getExtensionIcon(file.getName()));
@@ -772,8 +757,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     /**
      * Method to show the popup menu.
      *
-     * @param context  Context the popup menu is running in, through which it can access the current
-     *                 theme, resources, etc.
      * @param anchor   Anchor view for this popup. The popup will appear below the anchor if
      *                 there is
      *                 room, or above it if there is not.
@@ -813,7 +796,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     public String getJson() {
         var bytes =
-            EncodeUtils.base64Decode(sharedPreferences.getString(SharedPreferenceKeys.KEY_PERSISTED_PANES, ""));
+            EncodeUtils.base64Decode(sharedPreferences.getString(Constants.SharedPreferenceKeys.KEY_PERSISTED_PANES, ""));
         return new String(bytes);
     }
 
@@ -870,7 +853,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
                         .getUUID()
                         .toString()));
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(SharedPreferenceKeys.KEY_PERSISTED_PANES,
+                editor.putString(Constants.SharedPreferenceKeys.KEY_PERSISTED_PANES,
                     EncodeUtils.base64Encode2String(new Gson()
                     .toJson(persistedPanes)
                     .getBytes()));
@@ -895,8 +878,8 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     // Clears all persisted panes
     public void removePersistedPanes() {
-        PreferencesUtils.clearPerference(sharedPreferences,
-            SharedPreferenceKeys.KEY_PERSISTED_PANES);
+        PreferencesUtils.clearPreference(sharedPreferences,
+            Constants.SharedPreferenceKeys.KEY_PERSISTED_PANES);
     }
 
     public void restorePersistedPanes() {
@@ -904,7 +887,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     private void restorePersistedPanes(List<Pane> paneList) {
-        if (paneList != null || !paneList.isEmpty()) {
+        if (paneList != null && !paneList.isEmpty()) {
             for (Pane pane : paneList) {
                 if (pane != null) {
                     var textPane = PaneUtil.requireTextPane(pane);
@@ -1109,7 +1092,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
      * @param isEmpty True if no panes are added
      */
     private void showEmptyPaneWindow(boolean isEmpty) {
-        binding.paneContainer.setVisibility(isEmpty ? 1 : 0);
+        binding.viewFlipper.setDisplayedChild(isEmpty ? 1 : 0);
     }
 
     private void createEmptyPaneWindow() {

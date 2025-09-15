@@ -23,17 +23,17 @@
 
 package com.eup.codeopsstudio.aggregators;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.domain.FileAction;
 import com.eup.codeopsstudio.models.recents.Project;
 import com.eup.codeopsstudio.models.recents.ProjectHistory;
+import com.eup.codeopsstudio.util.FileTypeAdapter;
 import com.eup.codeopsstudio.util.Wizard;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -79,7 +79,7 @@ public class Recents {
     private Recents(Context context) {
         this.context           = context.getApplicationContext();
         this.sharedPreferences =
-            this.context.getSharedPreferences(SharedPreferenceKeys.KEY_RECENT_PROJECTS,
+            this.context.getSharedPreferences(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS,
                 Context.MODE_PRIVATE);
     }
 
@@ -106,25 +106,44 @@ public class Recents {
         return new ProjectHistory(Wizard.getTime(), action);
     }
 
-    private void set(@NonNull File file, @NonNull ProjectHistory history) {
-        if (file
-            .getPath()
-            .trim()
-            .isEmpty()) {
+    private void set(@NonNull final File file, @NonNull final ProjectHistory history) {
+        File projectFile = file;
+        String path = projectFile.getPath();
+        if (Wizard.isEmpty(path)) return;
+
+        if (path.isEmpty()) {
             ILog.error(TAG,
-                "Cannot record recent entry: File path is null or empty. File: " + file);
+                "Cannot record recent entry: File path is null or empty. File: " + projectFile);
             return;
         }
 
-        if (!file.isAbsolute()) {
+        if (!projectFile.isAbsolute()) {
             ILog.error(TAG,
-                "Cannot record recent entry: File path is not absolute. File: " + file.getPath());
+                "Cannot record recent entry: File path is not absolute. File: " + projectFile.getPath());
+            try {
+                projectFile = projectFile.getAbsoluteFile();
+            } catch (Exception e) {
+                ILog.error(TAG, "Could not get absolute file for: " + file, e);
+                return;
+            }
             return;
         }
 
         Project newProject;
         try {
-            newProject = new Project(file, history);
+            String testPath = projectFile.getAbsolutePath();
+
+            if (Wizard.isEmpty(testPath)) {
+                ILog.error(TAG,
+                    "Cannot record recent entry: File's absolute path is null or empty. File: "
+                        + file);
+                return;
+            }
+            newProject = new Project(projectFile, history);
+        } catch (NullPointerException npe) {
+            ILog.error(TAG,
+                "Failed to create Project due to invalid file path details: " + projectFile, npe);
+            return;
         } catch (IllegalArgumentException e) {
             ILog.error(TAG, "Failed to create Project for Recents: " + e.getMessage(), e);
             return;
@@ -138,11 +157,12 @@ public class Recents {
 
     private void saveRecentProjects(@NonNull List<Project> recents) {
         try {
-            Gson gson = new Gson();
+            Gson gson = FileTypeAdapter.createFileAwareGson();
+
             String newJson = gson.toJson(recents);
             sharedPreferences
                 .edit()
-                .putString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, newJson)
+                .putString(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS, newJson)
                 .apply();
         } catch (Exception e) {
             ILog.error(TAG, "Error saving recent projects to JSON", e);
@@ -151,7 +171,8 @@ public class Recents {
 
     @NonNull
     private ArrayList<Project> getRecentProjectsInternal() {
-        String json = sharedPreferences.getString(SharedPreferenceKeys.KEY_RECENT_PROJECTS, "");
+        String json =
+            sharedPreferences.getString(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS, "");
 
         if (json.isEmpty()) {
             return new ArrayList<>();
@@ -159,8 +180,8 @@ public class Recents {
 
         ArrayList<Project> loadedRecents;
         try {
-            Gson gson = new Gson();
-            TypeToken<ArrayList<Project>> typeToken = new TypeToken<ArrayList<Project>>() { };
+            Gson gson = FileTypeAdapter.createFileAwareGson();
+            TypeToken<ArrayList<Project>> typeToken = new TypeToken<>() { };
             loadedRecents = gson.fromJson(json, typeToken.getType());
         } catch (Exception e) {
             ILog.error(TAG, "Error parsing recent projects from JSON. Clearing recents.", e);
@@ -179,7 +200,7 @@ public class Recents {
         ILog.warning(TAG, "Clearing corrupted recent projects from SharedPreferences.");
         sharedPreferences
             .edit()
-            .remove(SharedPreferenceKeys.KEY_RECENT_PROJECTS)
+            .remove(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS)
             .apply();
     }
 
@@ -211,11 +232,12 @@ public class Recents {
 
         for (Project p : loadedRecents) {
             if (p == null) {
-                ILog.warning(TAG, "Skipping null project found in deserialized list.");
+                ILog.warning(TAG, "Skipping null project or project with null file in recents.");
+                listModified = true;
                 continue;
             }
 
-            File projectFile = new File(p.getPath());
+            File projectFile = p.getFile();
             if (projectFile.isAbsolute() && projectFile.exists()) {
                 validAndExistingRecents.add(p);
             } else {

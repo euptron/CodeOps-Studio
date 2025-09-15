@@ -43,7 +43,6 @@ import com.eup.codeopsstudio.editor.event.IndexingEvent;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorAutoCompletion;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorCompletionAdapter;
 import com.eup.codeopsstudio.editor.langs.widget.component.ContextualEditorTextActionWindow;
-import com.eup.codeopsstudio.res.R;
 
 import org.eclipse.tm4e.core.registry.IThemeSource;
 
@@ -139,7 +138,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     }
 
     private void updateEditorFontLiagtures() {
-        var fontligatureEnabled = PreferencesUtils.useFontLiagtures();
+        var fontligatureEnabled = PreferencesUtils.useFontLigatures();
         setLigatureEnabled(fontligatureEnabled);
     }
 
@@ -423,6 +422,9 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
             case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_PIN_LINE_NUM:
                 updateEditorPinLineNumber();
                 break;
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_ICU:
+                useICULibrary(PreferencesUtils.useICULibrary());
+                break;
             default: // Nothing
         }
     }
@@ -430,10 +432,6 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     public void gotoEnd() {
         setSelection(
             getText().getLineCount() - 1, getText().getColumnCount(getText().getLineCount() - 1));
-    }
-
-    public void useICU(boolean enabled) {
-        getProps().useICULibToSelectWords = enabled;
     }
 
     public void navigatePreviousSearch() {
@@ -505,10 +503,10 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         if (cursor.isSelected()) {
             if (hasBrackets) {
                 return "(" + (cursor.getRight() - cursor.getLeft()) + Constants.SPACE
-                    + context.getString(R.string.selected) + ")";
+                    + context.getString(R.string.editor_selected) + ")";
             } else {
                 return (cursor.getRight() - cursor.getLeft()) + Constants.SPACE
-                    + context.getString(R.string.selected);
+                    + context.getString(R.string.editor_selected);
             }
         }
         return null;
@@ -551,13 +549,13 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
         String matchText;
         if (count == 0) {
-            matchText = context.getString(R.string.no_search_match);
+            matchText = context.getString(R.string.editor_no_search_match);
         } else {
             matchText = (count == 1) ? 1 + context
                 .getResources()
-                .getQuantityString(R.plurals.search_matches, 1) : count + context
+                .getQuantityString(R.plurals.editor_search_matches, 1) : count + context
                 .getResources()
-                .getQuantityString(R.plurals.search_matches, count);
+                .getQuantityString(R.plurals.editor_search_matches, count);
         }
 
         if (idx == -1) {
@@ -568,11 +566,9 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
             }
         } else {
             if (hasBrackets) {
-                text =
-                    "(" + (idx + 1) + context.getString(R.string.of) + Constants.SPACE + matchText
-                        + ")";
+                text = "(" + (idx + 1) + Constants.SEPARATOR + matchText + ")";
             } else {
-                text = (idx + 1) + context.getString(R.string.of) + Constants.SPACE + matchText;
+                text = (idx + 1) + Constants.SEPARATOR + matchText;
             }
         }
         return text;
@@ -629,7 +625,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
                             setSelectionRegion(line, 0, line, getText().getColumnCount(line)); //
                             // reselect line
                         } else {
-                            toast(R.string.msg_unable_to_format);
+                            toast(R.string.editor_unable_to_format);
                         }
                     }));
             }
@@ -686,7 +682,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
                             setSelectionRegion(line, 0, line, getText().getColumnCount(line)); //
                             // reselect line
                         } else {
-                            toast(R.string.msg_unable_to_format);
+                            toast(R.string.editor_unable_to_format);
                         }
                     }));
             }
@@ -783,11 +779,12 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         return mFile.getAbsolutePath();
     }
 
-    public void refreshEditorLanguageSyntax(String languageExtension, String langScope, boolean autoCompleteWindowEnabled,
-        boolean enableBracketAutoClosing) {
+    public void refreshEditorLanguageSyntax(String languageExtension, String langScope,
+        boolean autoCompleteWindowEnabled, boolean enableBracketAutoClosing) {
         try {
             this.languageExtension = languageExtension;
-            setEditorLanguage(languageExtension, langScope, autoCompleteWindowEnabled, enableBracketAutoClosing, true);
+            setEditorLanguage(languageExtension, langScope, autoCompleteWindowEnabled,
+                enableBracketAutoClosing, true);
         } catch (Exception e) {
             toast(e.getLocalizedMessage());
         }
@@ -796,8 +793,9 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     /**
      * Updates and sets an editor language
      */
-    public void setEditorLanguage(String languageExtension, String langScope, boolean autoCompleteWindowEnabled,
-        boolean isAutoCompleteSymbols, boolean isRefreshing) throws Exception {
+    public void setEditorLanguage(String languageExtension, String langScope,
+        boolean autoCompleteWindowEnabled, boolean isAutoCompleteSymbols,
+        boolean isRefreshing) throws Exception {
         this.languageExtension = languageExtension;
         var lang = getEditorLanguage();
         TextMateLanguage language;

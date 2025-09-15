@@ -23,15 +23,17 @@
 
 package com.eup.codeopsstudio.util.manager;
 
+import android.app.Activity;
 import android.app.Application;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.color.DynamicColorsOptions;
+import com.google.android.material.color.HarmonizedColors;
+import com.google.android.material.color.HarmonizedColorsOptions;
 
 /**
  * This class is used to manage the theme of the application.
@@ -44,18 +46,45 @@ public class ThemeManager {
     public static final String KEY_DYNAMIC_COLORS =
         Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS;
 
-    private ThemeManager() {
-        // This class is not meant to be instantiated.
+    private final Application application;
+
+    public ThemeManager(Application application) {
+        this.application = application;
     }
 
-    public static void applyTheme(@NonNull Application application) {
-        int mode = PreferencesUtils.getCurrentTheme();
-        AppCompatDelegate.setDefaultNightMode(mode);
+    public void applyTheme() {
+        int themeMode = getCurrentTheme();
+        AppCompatDelegate.setDefaultNightMode(themeMode);
+    }
 
-        final DynamicColors.Precondition precondition = (activity, theme) ->
-            PreferencesUtils.useDynamicColors() && DynamicColors.isDynamicColorAvailable();
-        DynamicColors.applyToActivitiesIfAvailable(application, new DynamicColorsOptions.Builder()
+    public int getCurrentTheme() {
+        return PreferencesUtils.getCurrentTheme();
+    }
+
+    public void applyDynamicColors() {
+        applyDynamicColors(false);
+    }
+
+    public void applyDynamicColors(boolean harmonizeColours) {
+        final DynamicColors.Precondition precondition =
+            (activity, theme) -> isDynamicColorEnabled();
+        DynamicColorsOptions dynamicColorsOptions = new DynamicColorsOptions.Builder()
             .setPrecondition(precondition)
-            .build());
+            .setOnAppliedCallback(activity -> {
+                if (harmonizeColours) {
+                    applyColorHarmonization(activity);
+                }
+            })
+            .build();
+        DynamicColors.applyToActivitiesIfAvailable(application, dynamicColorsOptions);
+    }
+
+    private void applyColorHarmonization(Activity activity) {
+        HarmonizedColorsOptions options = HarmonizedColorsOptions.createMaterialDefaults();
+        HarmonizedColors.applyToContextIfAvailable(activity, options);
+    }
+
+    public boolean isDynamicColorEnabled() {
+        return PreferencesUtils.useDynamicColors();
     }
 }

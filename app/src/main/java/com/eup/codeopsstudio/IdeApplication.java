@@ -56,21 +56,17 @@ import java.util.concurrent.Executors;
 
 public class IdeApplication extends Application implements Thread.UncaughtExceptionHandler {
 
-    public static final String DEVICE_ARCHITECTURE_NOT_SUPPORTED = "Device Not Supported";
     public static final String TAG = IdeApplication.class.getSimpleName();
-    private static final String ARM = "armeabi-v7a";
-    private static final String AARCH64 = "arm64-v8a";
-    private static final String I686 = "x86";
-    private static final String X86_64 = "x86_64";
     private static final long SLEEP_DURATION = 2000; // milliseconds
-    private static IdeApplication applicationInstance;
+    private static IdeApplication instance;
     private final StringBuilder errorMessage = new StringBuilder();
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     private FirebaseCrashlytics crashlytics;
     private CompletableFuture<Void> editorConfigFuture;
+    private ThemeManager themeManager;
 
     public static IdeApplication getInstance() {
-        return applicationInstance;
+        return instance;
     }
 
     public static Configuration getGlobalConfiguration() {
@@ -101,7 +97,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
      * </ul>
      */
     public static Context getGlobalContext() {
-        return applicationInstance.getApplicationContext();
+        return instance.getApplicationContext();
     }
 
     public static ConnectivityManager getConnectivityManager() {
@@ -117,33 +113,8 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         return FirebaseAnalytics.getInstance(getGlobalContext());
     }
 
-    public static boolean isSupportedArch() {
-        return supportsArm32Bit() || supportsArm64Bit() || supportsX86_32Bit()
-            || supportsX86_64Bit();
-    }
-
-    public static boolean supportsArm32Bit() {
-        return Arrays
-            .asList(Build.SUPPORTED_ABIS)
-            .contains(ARM);
-    }
-
-    public static boolean supportsArm64Bit() {
-        return Arrays
-            .asList(Build.SUPPORTED_ABIS)
-            .contains(AARCH64);
-    }
-
-    public static boolean supportsX86_32Bit() {
-        return Arrays
-            .asList(Build.SUPPORTED_ABIS)
-            .contains(I686);
-    }
-
-    public static boolean supportsX86_64Bit() {
-        return Arrays
-            .asList(Build.SUPPORTED_ABIS)
-            .contains(X86_64);
+    public ThemeManager getThemeManager() {
+        return themeManager;
     }
 
     public CompletableFuture<Void> getEditorConfigFuture() {
@@ -154,10 +125,12 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     public void onCreate() {
         ILog.mode(isAppInDebugMode());
         super.onCreate();
-        applicationInstance = this;
+        instance = this;
         ContextManager.initialize(getGlobalContext());
 
-        ThemeManager.applyTheme(this);
+        themeManager = new ThemeManager(this);
+        themeManager.applyTheme();
+        themeManager.applyDynamicColors();
         crashlytics = FirebaseCrashlytics.getInstance();
         crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
         FirebaseAnalytics
@@ -187,7 +160,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     }
 
     private boolean userHasConsentedToDataSharing() {
-        return PreferencesUtils.canShareAnynomousStatistics();
+        return PreferencesUtils.canShareAnonymousStatistics();
     }
 
     @NonNull
@@ -256,17 +229,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
 
     @NonNull
     public static String getArchitecture() {
-        if (supportsArm32Bit()) {
-            return ARM;
-        } else if (supportsArm64Bit()) {
-            return AARCH64;
-        } else if (supportsX86_32Bit()) {
-            return I686;
-        } else if (supportsX86_64Bit()) {
-            return X86_64;
-        } else {
-            return DEVICE_ARCHITECTURE_NOT_SUPPORTED;
-        }
+        return SystemArchitecture.getArchitecture();
     }
 
     private void scheduleProcessTermination() {
@@ -279,5 +242,59 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
             Process.killProcess(Process.myPid());
             System.exit(1);
         }).start();
+    }
+
+    public static class SystemArchitecture {
+        public static final String DEVICE_ARCHITECTURE_NOT_SUPPORTED = "Device Not Supported";
+
+        private static final String ARM = "armeabi-v7a";
+        private static final String AARCH64 = "arm64-v8a";
+        private static final String I686 = "x86";
+        private static final String X86_64 = "x86_64";
+
+        @NonNull
+        public static String getArchitecture() {
+            if (isSupportedArch()) {
+                if (supportsArm32Bit()) {
+                    return ARM;
+                } else if (supportsArm64Bit()) {
+                    return AARCH64;
+                } else if (supportsX86_32Bit()) {
+                    return I686;
+                } else if (supportsX86_64Bit()) {
+                    return X86_64;
+                }
+            }
+            return DEVICE_ARCHITECTURE_NOT_SUPPORTED;
+        }
+
+        public static boolean isSupportedArch() {
+            return supportsArm32Bit() || supportsArm64Bit() || supportsX86_32Bit()
+                || supportsX86_64Bit();
+        }
+
+        public static boolean supportsArm32Bit() {
+            return Arrays
+                .asList(Build.SUPPORTED_ABIS)
+                .contains(ARM);
+        }
+
+        public static boolean supportsArm64Bit() {
+            return Arrays
+                .asList(Build.SUPPORTED_ABIS)
+                .contains(AARCH64);
+        }
+
+        public static boolean supportsX86_32Bit() {
+            return Arrays
+                .asList(Build.SUPPORTED_ABIS)
+                .contains(I686);
+        }
+
+        public static boolean supportsX86_64Bit() {
+            return Arrays
+                .asList(Build.SUPPORTED_ABIS)
+                .contains(X86_64);
+        }
     }
 }

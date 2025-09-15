@@ -60,7 +60,7 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <!-- Custom Styling -->
-        <item name="android:fontFamily">@font/westudio_font</item>
+        <item name="android:fontFamily">@font/codeops_studio_font</item>
         <item name="switchPreferenceCompatStyle">@style/AppTheme.SwitchPreference</item>
         <!--item name="materialAlertDialogTheme">@style/AppTheme.MaterialAlertDialog</item-->
         <!--item name="alertDialogTheme">@style/AppTheme.MaterialAlertDialog</item-->
@@ -76,9 +76,8 @@
 
     <style name="AppTheme.Splash" parent="AppTheme.NightBased.Splash">
         <item name="postSplashScreenTheme">@style/AppTheme</item>
-        <item name="android:windowSplashScreenBackground" tools:targetApi="31">
-            @color/ic_launcher_background
-        </item>
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
     </style>
 </resources>

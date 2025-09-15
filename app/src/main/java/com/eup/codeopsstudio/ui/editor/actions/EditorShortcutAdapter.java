@@ -34,8 +34,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
-import com.eup.codeopsstudio.res.R;
-import com.eup.codeopsstudio.res.databinding.LayoutEditorShortcutItemBinding;
+import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.databinding.LayoutEditorShortcutItemBinding;
 import com.eup.codeopsstudio.util.BaseUtil;
 
 import java.util.ArrayList;

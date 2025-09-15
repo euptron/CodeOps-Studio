@@ -30,14 +30,19 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.ActivityCrashBinding;
-import com.eup.codeopsstudio.res.R;
 import com.eup.codeopsstudio.util.Wizard;
+import com.eup.codeopsstudio.util.manager.ExitOnBackPressed;
 
+/**
+ * @author Etido Peter
+ */
 public class CrashActivity extends AppCompatActivity {
 
     private ActivityCrashBinding binding;
@@ -47,10 +52,14 @@ public class CrashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityCrashBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        getOnBackPressedDispatcher().addCallback(this, new ExitOnBackPressed(this));
 
         setSupportActionBar(binding.topAppBar);
         var title = getString(R.string.app_crashed, getString(R.string.app_name));
-        getSupportActionBar().setTitle(title);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(title);
+        }
 
         String error = getString(R.string.msg_app_crashed) + Constants.NEXT_LINE.repeat(2)
             + getString(R.string.msg_crash_report) + ":" + Constants.NEXT_LINE
@@ -77,12 +86,6 @@ public class CrashActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finishAffinity();
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         var close = menu.add(getString(R.string.close));
         close.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -92,11 +95,10 @@ public class CrashActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item
-            .getTitle()
-            .equals(getString(R.string.close))) {
-            finishAffinity();
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        CharSequence title = item.getTitle();
+        if (title != null && title.equals(getString(R.string.close))) {
+            getOnBackPressedDispatcher().onBackPressed();
             return true;
         }
         return false;
