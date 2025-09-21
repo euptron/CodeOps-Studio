@@ -23,9 +23,7 @@
 
 package com.eup.codeopsstudio;
 
-import static com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
-import static com.eup.codeopsstudio.common.models.MetaDocument.MimeType.ZIP;
-
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Bundle;
@@ -55,16 +53,17 @@ import androidx.lifecycle.ViewModelProvider;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.archive.ZIPArchive;
+import com.eup.codeopsstudio.common.models.MetaDocument;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentMainBinding;
+import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.ui.AllowChildInterceptDrawerLayout;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.ui.editor.panes.WebViewPane;
@@ -140,32 +139,20 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     private View rootView;
     private Logger logger;
     private MainViewModel mainViewModel;
-    private Wizard wizard;
     private ContextualLifecycleObserver lifeCycleObserver;
     private Pair<Integer, Pane> currentPanePair = Pair.create(-1, null);
     private OnBackPressedCallback onBackPressedCallback;
     private FileViewModel fileViewModel;
 
-    public static MainFragment newInstance() {
-        return new MainFragment();
-    }
-
-    public static MainFragment newInstance(@NonNull Bundle arg) {
-        final var fragment = new MainFragment();
-        fragment.setArguments(arg);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        wizard = new Wizard(requireContext());
         logger = new Logger(Logger.LogClass.IDE);
 
         mainViewModel     = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        fileViewModel     = new ViewModelProvider(getActivity()).get(FileViewModel.class);
-        lifeCycleObserver = new ContextualLifecycleObserver(getContext(),
-            getActivity().getActivityResultRegistry(), getActivity());
+        fileViewModel     = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
+        lifeCycleObserver = new ContextualLifecycleObserver(requireContext(),
+            requireActivity().getActivityResultRegistry(), requireActivity());
         getLifecycle().addObserver(lifeCycleObserver);
     }
 
@@ -185,11 +172,11 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         logger.attach(requireActivity());
-        getActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        ((MainActivity) getActivity()).ensureStoragePermissionGranted();
-        if (((MainActivity) getActivity()).isStoragePermissionGranted()) checkPlugins();
-        ((MainActivity) getActivity()).ensureNotificationPermissionGranted();
+        ((MainActivity) requireActivity()).ensureStoragePermissionGranted();
+        if (((MainActivity) requireActivity()).isStoragePermissionGranted()) checkPlugins();
+        ((MainActivity) requireActivity()).ensureNotificationPermissionGranted();
 
         mainViewModel
             .getToolbarTitle()
@@ -206,24 +193,21 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         FirebaseMessaging
             .getInstance()
             .getToken()
-            .addOnCompleteListener(new OnCompleteListener<String>() {
-                @Override
-                public void onComplete(@NonNull Task<String> task) {
-                    if (!task.isSuccessful()) {
-                        ILog.warning(TAG, "Fetching FCM registration token failed",
-                            task.getException());
-                        return;
-                    }
-
-                    // Get new FCM registration token
-                    String token = task.getResult();
-
-                    // Log and toast
-                    String msg = "Instance ID: " + token;
-                    ILog.debug(TAG, msg);
-                    logger.i(TAG, msg);
-                    BaseUtil.toastShort(msg);
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    ILog.warning(TAG, "Fetching FCM registration token failed",
+                        task.getException());
+                    return;
                 }
+
+                // Get new FCM registration token
+                String token = task.getResult();
+
+                // Log and toast
+                String msg = "Instance ID: " + token;
+                ILog.debug(TAG, msg);
+                logger.i(TAG, msg);
+                BaseUtil.toastShort(msg);
             });
 
         setUpDrawer();
@@ -279,10 +263,10 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         });
 
         fileViewModel.observePickedFiles(getViewLifecycleOwner(), file -> {
-            if (file != null && file.getPath() != null) {
+            if (file != null) {
                 if (Wizard
                     .getMimeType(requireContext(), file)
-                    .equals(ZIP.toString()) || file
+                    .equals(MetaDocument.MimeType.ZIP.toString()) || file
                     .getName()
                     .endsWith(".zip")) {
                     mainViewModel.setZipFile(file);
@@ -293,7 +277,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         });
 
         fileViewModel.observePickedFolders(getViewLifecycleOwner(), file -> {
-            if (file != null && file.getPath() != null) {
+            if (file != null) {
                 mainViewModel.setTreeViewFragmentTreeDir(file);
             }
         });
@@ -467,7 +451,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         try {
             String lastProjectPath = PreferencesUtils
                 .getLastOpenedProjectPreferences()
-                .getString(SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
+                .getString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
             if (!Wizard.isEmpty(lastProjectPath)) {
                 var projectFile = new File(lastProjectPath);
                 if (projectFile.exists() && projectFile.isDirectory()) {
@@ -477,7 +461,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         } catch (Throwable e) {
             // corrupted thus clear
             PreferencesUtils.clearPreference(PreferencesUtils.getLastOpenedProjectPreferences(),
-                SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
+                Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
             logger.e(LOG_TAG, "Failed to reopen last opened project: " + e);
         }
     }
@@ -487,6 +471,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         onPrepareToolbarOptionsMenus(menu);
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         menuInflater.inflate(R.menu.main_menu, menu);
@@ -538,7 +523,9 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             editorPane.saveEditor();
             return true;
         } else if (id == R.id.menu_findFile) {
-            editorPane.openSearchPanel(true);
+            editorPane
+                .getSearchManager()
+                .openSearchPanel(true);
             return true;
         } else if (id == R.id.menu_jump_to_line) {
             editorPane.doJumpToLine();
@@ -580,6 +567,11 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             return true;
         } else if (id == R.id.menu_reset_color_schemes) {
             editorPane.refreshEditorLanguageSyntax();
+            return true;
+        } else if (id == R.id.menu_cut_line) {
+            editorPane
+                .getEditor()
+                .cutLine();
             return true;
         }
         return false;
@@ -685,45 +677,17 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         return (current instanceof CodeEditorPane) ? (CodeEditorPane) current : null;
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEditorModificationEvent(EditorModificationEvent event) {
-        invalidateMenu();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
-        currentPanePair = Pair.create(event.index, event.pane);
-    }
-
     @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
-        switch (key) {
-            case SharedPreferenceKeys.KEY_SHARE_STATISTICS:
+    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
+        if (key != null) {
+            if (key.equals(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS)) {
                 if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
-                break;
+            }
         }
     }
 
     public void closeApp() {
         onBackPressedCallback.setEnabled(true);
-    }
-
-    public void openFolderInTreeViewFragment(File dir) {
-        // BaseFragment performs sanity check for invalid files
-        mainViewModel.setTreeViewFragmentTreeDir(dir);
-        invalidateMenu();
-    }
-
-    public void openFolderFromManager() {
-        if (lifeCycleObserver != null) lifeCycleObserver.pickFolder();
-    }
-
-    public void openFileFromManager() {
-        if (lifeCycleObserver != null) lifeCycleObserver.pickFile();
-    }
-
-    public void openZipFileFromManager() {
-        if (lifeCycleObserver != null) lifeCycleObserver.pickZipFile();
     }
 
     public void createFileFromManager() {
@@ -736,20 +700,59 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         dialogBinding.tilName.setHint(getString(R.string.prompt_file_name));
 
         builder.setPositiveButton(getString(R.string.next), (dialog, which) -> {
-            var prepName = dialogBinding.tilName
-                .getEditText()
-                .getText()
-                .toString();
-            if (prepName == null || prepName.isEmpty()) {
+            String prepName = null;
+            if (dialogBinding.tilName.getEditText() != null) {
+                prepName = dialogBinding.tilName
+                    .getEditText()
+                    .getText()
+                    .toString();
+            }
+            if (prepName != null && prepName.isEmpty()) {
                 if (lifeCycleObserver != null) {
                     lifeCycleObserver.createFile(getString(R.string.untitled));
                 }
-            } else {
-                if (lifeCycleObserver != null) lifeCycleObserver.createFile(prepName);
             }
         });
 
         builder.setNegativeButton(getString(R.string.cancel), null);
         builder.show();
+    }
+
+    public static MainFragment newInstance() {
+        return new MainFragment();
+    }
+
+    public static MainFragment newInstance(@NonNull Bundle arg) {
+        final var fragment = new MainFragment();
+        fragment.setArguments(arg);
+        return fragment;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
+        currentPanePair = Pair.create(event.index, event.pane);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEditorModificationEvent(EditorModificationEvent event) {
+        invalidateMenu();
+    }
+
+    public void openFileFromManager() {
+        if (lifeCycleObserver != null) lifeCycleObserver.pickFile();
+    }
+
+    public void openFolderFromManager() {
+        if (lifeCycleObserver != null) lifeCycleObserver.pickFolder();
+    }
+
+    public void openFolderInTreeViewFragment(File dir) {
+        // BaseFragment performs sanity check for invalid files
+        mainViewModel.setTreeViewFragmentTreeDir(dir);
+        invalidateMenu();
+    }
+
+    public void openZipFileFromManager() {
+        if (lifeCycleObserver != null) lifeCycleObserver.pickZipFile();
     }
 }

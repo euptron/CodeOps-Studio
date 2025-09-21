@@ -85,7 +85,7 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             .observe(requireActivity(), this::openZipFile);
 
         configureWelcomePaneCheckBox();
-        
+
         binding.welcomeCheckbox.setOnCheckedChangeListener((button, isChecked) -> PreferencesUtils.setCanShowWelcomePane(isChecked));
         binding.newFile.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
             "createFileFromManager"));
@@ -97,8 +97,10 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             var gitUI = new GitUI(requireContext());
             gitUI.showCloneDialog(project -> mainViewModel.setTreeViewFragmentTreeDir(project));
         });
-        binding.importZipBtn.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
-            "openZipFileFromManager"));
+        binding.importZipBtn.setOnClickListener(v -> {
+            callFragmentMethod(MainFragment.TAG,
+                "openZipFileFromManager");
+        });
         binding.recentProjectBtn.setOnClickListener(v -> {
             RecentProjectsBottomSheetDialogFragment dialogFragment =
                 new RecentProjectsBottomSheetDialogFragment();

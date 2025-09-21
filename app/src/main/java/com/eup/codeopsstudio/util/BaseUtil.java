@@ -57,12 +57,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.core.app.ShareCompat;
+import androidx.core.content.ContextCompat;
 
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.R;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.Objects;
 
 public class BaseUtil {
 
@@ -484,5 +488,139 @@ public class BaseUtil {
 
     public interface OnSoftInputChangedListener {
         void onSoftInputChanged(int height);
+    }
+
+    public static SnackBarBuilder newSnackBarBuilder() {
+        return new SnackBarBuilder();
+    }
+
+    public static class SnackBarBuilder {
+        private Context context;
+        private String message;
+        private View view;
+        private View anchorView;
+        private int messageMaxLines;
+        private DURATION duration = DURATION.SHORT;
+        private String actionDescription;
+        private View.OnClickListener actionViewOnClickListener;
+        private int messageColor, actionTextColor, backgroundTint;
+
+        private static final MorphMap<String, Integer> colors =
+            MorphMap.of(
+                "background_light",
+                android.R.color.background_light,
+                "background_dark",
+                android.R.color.background_dark,
+                "white",
+                android.R.color.white,
+                "black",
+                android.R.color.black);
+
+        public enum DURATION {
+            SHORT(Snackbar.LENGTH_SHORT),
+            LONG(Snackbar.LENGTH_LONG),
+            INDEFINITE(Snackbar.LENGTH_INDEFINITE);
+
+            private final int duration;
+
+            DURATION(final int duration) {
+                this.duration = duration;
+            }
+
+            public int get() {
+                return this.duration;
+            }
+        }
+
+        public SnackBarBuilder setContext(Context context) {
+            this.context = context;
+            return this;
+        }
+
+        public SnackBarBuilder setMessage(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public SnackBarBuilder setView(View view) {
+            this.view = view;
+            return this;
+        }
+
+        public SnackBarBuilder setAnchorView(View anchor) {
+            this.anchorView = anchor;
+            return this;
+        }
+
+        public SnackBarBuilder setDuration(DURATION duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public SnackBarBuilder setActionDescription(String description) {
+            this.actionDescription = description;
+            return this;
+        }
+
+        public SnackBarBuilder setActionClickListener(View.OnClickListener listener) {
+            this.actionViewOnClickListener = listener;
+            return this;
+        }
+
+        public SnackBarBuilder setMessageMaxLines(int messageMaxLines) {
+            this.messageMaxLines = messageMaxLines;
+            return this;
+        }
+
+        public SnackBarBuilder setMessageColor(int color) {
+            this.messageColor = color;
+            return this;
+        }
+
+        public SnackBarBuilder setActionTextColor(int color) {
+            this.actionTextColor = color;
+            return this;
+        }
+
+        public SnackBarBuilder setBackgroundTint(int tint) {
+            this.backgroundTint = tint;
+            return this;
+        }
+
+        public void create() {
+            Objects.requireNonNull(view, "No view was not set for SnackBar");
+            Objects.requireNonNull(message, "Message was not set for SnackBar");
+
+            context = context == null ? view.getContext() : context;
+            final Snackbar snackbar = Snackbar.make(context, view, message, duration.get());
+
+            if (actionDescription != null && actionViewOnClickListener == null) {
+                snackbar.setAction(actionDescription, null);
+            } else if (actionDescription != null) {
+                snackbar.setAction(actionDescription, actionViewOnClickListener);
+            }
+
+            if (anchorView != null) {
+                snackbar.setAnchorView(anchorView);
+            }
+
+            if (messageMaxLines != 0) {
+                snackbar.setTextMaxLines(messageMaxLines);
+            }
+
+            if (messageColor != 0) {
+                snackbar.setTextColor(ContextCompat.getColor(context, messageColor));
+            }
+
+            if (actionTextColor != 0) {
+                snackbar.setActionTextColor(ContextCompat.getColor(context, actionTextColor));
+            }
+
+            if (backgroundTint != 0) {
+                snackbar.setBackgroundTint(ContextCompat.getColor(context, backgroundTint));
+            }
+
+            snackbar.show();
+        }
     }
 }

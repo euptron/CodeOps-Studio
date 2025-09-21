@@ -22,21 +22,19 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?colorSurface"
-    android:paddingHorizontal="@dimen/dimen2dp"
-    android:paddingStart="0dp"
     tools:theme="@style/AppTheme">
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/top_divider"
         android:layout_width="0dp"
-        android:layout_height="@dimen/dimen1dp"
+        android:layout_height="1px"
+        android:alpha="0.8"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -47,7 +45,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:autofillHints="name"
-        android:background="@android:color/transparent"
         android:hint="@string/search"
         android:imeOptions="actionSearch"
         android:inputType="text"
@@ -70,61 +67,56 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/search_input" />
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/actions_container"
-        android:layout_width="0dp"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/prev"
+        style="@style/Widget.Material3.Button.TextButton.Icon"
+        android:layout_width="@dimen/dimen48dp"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/dimen8dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:contentDescription="@string/previous_occurrence"
+        android:tooltipText="@string/previous_occurrence"
+        app:icon="@drawable/ic_round_arrow_upward"
+        app:layout_constraintEnd_toStartOf="@id/next"
+        app:layout_constraintHorizontal_weight="0.10"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/search_input">
+        app:layout_constraintTop_toBottomOf="@id/search_input" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/prev"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="@dimen/dimen48dp"
-            android:text="@string/previous"
-            app:layout_constraintEnd_toStartOf="@id/next"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/next"
+        style="@style/Widget.Material3.Button.TextButton.Icon"
+        android:layout_width="@dimen/dimen48dp"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/next_occurrence"
+        android:tooltipText="@string/next_occurrence"
+        app:icon="@drawable/ic_round_arrow_downward"
+        app:layout_constraintEnd_toStartOf="@id/replace"
+        app:layout_constraintHorizontal_weight="0.10"
+        app:layout_constraintStart_toEndOf="@id/prev"
+        app:layout_constraintTop_toBottomOf="@id/search_input" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/next"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="@dimen/dimen48dp"
-            android:text="@string/next"
-            app:layout_constraintEnd_toStartOf="@id/replace"
-            app:layout_constraintStart_toEndOf="@id/prev"
-            app:layout_constraintTop_toTopOf="parent" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/replace"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/replace"
+        android:textAllCaps="true"
+        app:layout_constraintEnd_toStartOf="@id/search_result"
+        app:layout_constraintHorizontal_weight="0.30"
+        app:layout_constraintStart_toEndOf="@id/next"
+        app:layout_constraintTop_toBottomOf="@id/search_input" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/replace"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="@dimen/dimen48dp"
-            android:text="@string/replace"
-            app:layout_constraintEnd_toStartOf="@id/search_result"
-            app:layout_constraintStart_toEndOf="@id/next"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/search_result"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:minWidth="@dimen/dimen48dp"
-            android:textAppearance="?textAppearanceLabelLarge"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/replace"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="1/15 matches" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/search_result"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:minWidth="@dimen/dimen48dp"
+        android:textAppearance="?textAppearanceLabelLarge"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="0.50"
+        app:layout_constraintStart_toEndOf="@id/replace"
+        app:layout_constraintTop_toBottomOf="@id/search_input"
+        app:layout_constraintVertical_bias="0.45999998"
+        tools:text="1/15 matches" />
 </androidx.constraintlayout.widget.ConstraintLayout>

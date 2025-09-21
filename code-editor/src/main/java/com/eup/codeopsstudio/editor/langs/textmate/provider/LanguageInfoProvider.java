@@ -23,6 +23,8 @@
 
 package com.eup.codeopsstudio.editor.langs.textmate.provider;
 
+import java.util.Set;
+
 /**
  * Interface for providing scope-related functionality.
  *
@@ -44,5 +46,5 @@ public interface LanguageInfoProvider {
      * @param scopeEntry The scope entry.
      * @return The associated key entry or null if not found.
      */
-    String getLanguageExtension(String scopeEntry);
+    Set<String> getLanguageExtensions(String scopeEntry);
 }

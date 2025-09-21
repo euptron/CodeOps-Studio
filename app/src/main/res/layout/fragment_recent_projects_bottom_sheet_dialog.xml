@@ -30,13 +30,15 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/dimen5dp">
+        android:padding="@dimen/dimen4dp">
 
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
             android:id="@+id/drag_handle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:minHeight="@dimen/dimen24dp"
+            android:paddingTop="@dimen/dimen8dp" />
 
         <TextView
             android:id="@+id/title"

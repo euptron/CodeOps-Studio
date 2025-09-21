@@ -31,12 +31,7 @@
     android:clipToPadding="false"
     android:gravity="center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeightSmall"
-    android:paddingStart="?android:attr/listPreferredItemPaddingStart"
-    android:paddingLeft="?android:attr/listPreferredItemPaddingLeft"
-    android:paddingTop="8dp"
-    android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
-    android:paddingRight="?android:attr/listPreferredItemPaddingRight"
-    android:paddingBottom="8dp">
+    android:padding="@dimen/dimen8dp">
 
     <LinearLayout
         android:id="@+id/icon_frame"
@@ -46,10 +41,8 @@
         android:minWidth="@dimen/dimen56dp"
         android:orientation="horizontal"
         android:paddingStart="0dp"
-        android:paddingLeft="0dp"
         android:paddingTop="@dimen/dimen4dp"
         android:paddingEnd="@dimen/dimen8dp"
-        android:paddingRight="@dimen/dimen8dp"
         android:paddingBottom="@dimen/dimen4dp"
         android:visibility="gone">
 
@@ -82,7 +75,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@android:id/title"
             android:layout_alignStart="@android:id/title"
-            android:layout_alignLeft="@android:id/title"
             android:layout_gravity="start"
             android:maxLines="10"
             android:textAlignment="viewStart"

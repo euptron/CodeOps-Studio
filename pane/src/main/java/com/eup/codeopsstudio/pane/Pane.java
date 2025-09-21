@@ -24,7 +24,10 @@
 package com.eup.codeopsstudio.pane;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.os.SystemClock;
 import android.view.View;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,8 +35,10 @@ import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.pane.exception.PaneAccessException;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -72,7 +77,8 @@ import java.util.UUID;
  * <p>This class provides a foundation for custom pane implementations and includes methods to
  * create, manage, and interact with panes. Always call {@code createView()} before interacting with
  * a pane to prevent crashes. Note that this class does not support its own thread, integrate a
- * thread or leverage @link ComponentActivity.runOnUiThread(Runnable)
+ * thread or leverage {@link androidx.activity.ComponentActivity#runOnUiThread(Runnable)} or
+ * {@link #runOnUiThread(Runnable)} and {@link #runOnBackgroundThread(Runnable)}
  *
  * <p><b>CHANGE LOG</b>
  *
@@ -97,16 +103,17 @@ import java.util.UUID;
  *             androidx.activity.ComponentActivity}
  *         <li>Added support for persisting pane contents.
  *       </ul>
- *   <li>Version 0.5
+ *   <li>Version 0.6
  *       <ul>
  *         <li>Added {@link #destroy()}
  *         <li>Added {@link #onDestroyView()}
  *         <li>Revamped class for efficiency
+ *         <li>Defer heavy task to {@link #onViewLaidOut(View)}  class for efficiency
  *       </ul>
  * </ul>
  *
  * @author Etido Peter
- * @version 0.5
+ * @version 0.6
  * @see TextPane
  * @see EditorPane
  * @see FragmentPane
@@ -129,6 +136,7 @@ public abstract class Pane {
     private static final List<UUID> sGeneratedIds = new ArrayList<>();
     private final Map<String, Object> mArguments = new HashMap<>();
     private final WeakReference<Context> mContextRef; // Prevents Activity leaks
+    private long paneCreateStartTime;
     private UUID mId;
     private View mView; // Null before createView() and after destruction
     private String mTitle;
@@ -137,6 +145,8 @@ public abstract class Pane {
     private boolean mHasPerformedCreateView;
     private boolean mHasPerformedOnViewCreated;
     private PaneState mState;
+    private ViewTreeObserver.OnGlobalLayoutListener layoutListener;
+    private boolean isViewLaidOut = false;
 
     protected Pane(Context context, String title) {
         this(context, title, true);
@@ -169,34 +179,16 @@ public abstract class Pane {
         return generatedId;
     }
 
-    @NonNull
-    public static Pane deserialize(PaneFactory factory, JSONObject json) {
-        try {
-            Pane pane = factory.createPane(json);
-            pane.restore(factory.getID(json), factory.getArguments());
-            return pane;
-        } catch (Throwable unknownError) {
-            throw new PaneAccessException("Pane deserialization failed", unknownError);
-        }
-    }
-
-    public void restore(UUID existingId, Map<String, Object> savedState) {
-        if (mId == null) {
-            mId = existingId;
-            synchronized (Pane.class) {
-                sGeneratedIds.add(mId);
-            }
-        }
-        mArguments.putAll(savedState);
-    }
-
-    @Nullable
-    public UUID getUUID() {
-        return mId;
-    }
-
-    public void setUUID(UUID id) {
-        this.mId = id;
+    /**
+     * Adds arguments (data) required by the pane to function.
+     *
+     * <p>These arguments could be used in persisting data to a given pane.
+     *
+     * @param key   the placeholder used to access an argument
+     * @param value the typed value to be associated with the specified key
+     */
+    public final <V> void addArguments(final String key, final V value) {
+        mArguments.put(key, value);
     }
 
     /**
@@ -205,7 +197,8 @@ public abstract class Pane {
      * @return the view for the panes UI.
      */
     public View createView() {
-        mView = onCreateView();
+        paneCreateStartTime = millsNow();
+        mView               = onCreateView();
         if (mView != null) {
             onViewCreated(mView);
             mHasPerformedCreateView = true;
@@ -236,6 +229,114 @@ public abstract class Pane {
     public void onViewCreated(@NonNull View view) {
         mState                     = PaneState.CREATED;
         mHasPerformedOnViewCreated = true;
+
+        //--- since 0.6
+        // Check if view is already laid out (can happen in some cases)
+        if (view.getWidth() > 0 && view.getHeight() > 0) {
+            onViewLaidOut(view);
+            return;
+        }
+
+        layoutListener = () -> {
+            if (mState == PaneState.DESTROYED || getContext() == null) {
+                safelyRemoveLayoutListener(view);
+                return;
+            }
+
+            if (view.getWidth() > 0 && view.getHeight() > 0) {
+                safelyRemoveLayoutListener(view);
+                onViewLaidOut(view);
+            }
+        };
+
+        view
+            .getViewTreeObserver()
+            .addOnGlobalLayoutListener(layoutListener);
+
+        // Add a safety check in case the layout listener doesn't fire
+        view.post(() -> {
+            if (!isViewLaidOut && view.getWidth() > 0 && view.getHeight() > 0) {
+                safelyRemoveLayoutListener(view);
+                onViewLaidOut(view);
+            }
+        });
+    }
+
+    private void safelyRemoveLayoutListener(@NonNull View view) {
+        if (layoutListener != null) {
+            try {
+                final ViewTreeObserver vto = view.getViewTreeObserver();
+                if (vto.isAlive()) {
+                    vto.removeOnGlobalLayoutListener(layoutListener);
+                }
+            } catch (Exception e) {
+                ILog.warning("Pane", "Error removing layout listener", e);
+            } finally {
+                layoutListener = null;
+            }
+        }
+    }
+
+    /**
+     * Called after the view hierarchy associated with this pane has been measured and laid out.
+     *
+     * <p>This method is invoked when the view has valid dimensions (width and height greater
+     * than 0)
+     * and is the appropriate place to perform operations that require knowledge of the view's size,
+     * such as initializing components that depend on layout measurements.</p>
+     *
+     * <p>Override this method to defer heavy operations that were previously done in
+     * {@link #onViewCreated(View)}. This allows for a more fluid UI/UX by avoiding ANR
+     * (Application Not Responding)
+     * at startup time. Heavy operations such as file reading, complex view setup, or any task
+     * that might
+     * block the main thread should be performed here to ensure the UI is responsive during
+     * initial layout.</p>
+     *
+     * <p><b>Note:</b> This method includes built-in performance monitoring that logs the layout
+     * inflation time
+     * and optionally shows a debug SnackBar when {@link #enabledDebug()} returns true.</p>
+     *
+     * @param view The pane's root view that has been laid out and has valid dimensions.
+     */
+    protected void onViewLaidOut(@NonNull View view) {
+        isViewLaidOut = true;
+        long paneReadyDuration = elapsedTime(paneCreateStartTime);
+        String msg = "Layout inflation took: " + paneReadyDuration + "ms";
+        ILog.debug("Pane Startup", msg);
+        if (enabledDebug()) {
+            showSnackBar(msg);
+        }
+    }
+
+    public void showSnackBar(@NonNull String message) {
+        final Snackbar snackbar = Snackbar.make(requireContext(), requireView(), message,
+            Snackbar.LENGTH_SHORT);
+        snackbar.setTextMaxLines(3);
+        snackbar.show();
+    }
+
+    /**
+     * Return the {@link Context} this pane is currently associated with.
+     *
+     * @throws IllegalStateException if not currently associated with a context.
+     * @see #getContext()
+     */
+    @NonNull
+    public final Context requireContext() {
+        Context context = getContext();
+        if (context == null) throw new IllegalStateException(this + " not attached to a context");
+        return context;
+    }
+
+    /**
+     * Return the {@link Context} this pane is currently associated with.
+     *
+     * @see #requireContext()
+     */
+    @Nullable
+    public Context getContext() {
+        return mContextRef.get();
     }
 
     /**
@@ -263,147 +364,37 @@ public abstract class Pane {
         return mView;
     }
 
-    public boolean isPinned() {
-        return mIsPinned;
+    protected Boolean enabledDebug() {
+        return false;
     }
 
-    public void setPinned(boolean pinned) {
-        mIsPinned = pinned;
+    protected long elapsedTime(long startTime) {
+        return millsNow() - startTime;
     }
 
-    public boolean isSelected() {
-        return this.mIsSelected;
+    protected long millsNow() {
+        return SystemClock.uptimeMillis();
     }
 
-    public void setSelected(boolean select) {
-        this.mIsSelected = select;
-    }
-
-    /**
-     * Checks if the view associated with the pane is created.
-     *
-     * @return {@code true} if the view is created, {@code false} otherwise.
-     * @see #onViewCreated(View);
-     */
-    public boolean hasPerformedOnViewCreated() {
-        return mHasPerformedOnViewCreated;
-    }
-
-    /**
-     * Checks if the view associated with the pane has invoked #createView().
-     *
-     * @return {@code true} if the #createView() has been called, {@code false} otherwise.
-     * @see #createView()
-     */
-    public boolean hasPerformedCreateView() {
-        return mHasPerformedCreateView;
-    }
-
-    /**
-     * Return a localized string from the application's package's default string table.
-     *
-     * <p>For more insight see {@link Context#getString(int)}
-     *
-     * @param resId Resource id for the string
-     */
     @NonNull
-    public final String getString(@StringRes int resId) {
-        return requireContext().getString(resId);
-    }
-
-    /**
-     * Return the {@link Context} this pane is currently associated with.
-     *
-     * @throws IllegalStateException if not currently associated with a context.
-     * @see #getContext()
-     */
-    @NonNull
-    public final Context requireContext() {
-        Context context = getContext();
-        if (context == null) throw new IllegalStateException(this + " not attached to a context");
-        return context;
-    }
-
-    /**
-     * Return the {@link Context} this pane is currently associated with.
-     *
-     * @see #requireContext()
-     */
-    @Nullable
-    public Context getContext() {
-        return mContextRef.get();
-    }
-
-    /**
-     * Return a localized formatted string from the application's package's default string table.
-     *
-     * <p>For more insight see {@link Context#getString(int, Object...)}
-     *
-     * @param resId      Resource id for the format string
-     * @param formatArgs The format arguments that will be used for substitution.
-     */
-    @NonNull
-    public final String getString(@StringRes int resId, Object... formatArgs) {
-        return requireContext().getString(resId, formatArgs);
-    }
-
-    /**
-     * Retrieves the current state of the pane.
-     *
-     * @return The current state of the pane.
-     */
-    public PaneState getState() {
-        return mState;
-    }
-
-    public void onSelected() {
-        PaneState current = mState;
-        if (current == null) return;
-
-        if (current == PaneState.PAUSED) {
-            onResume();
-        } else {
-            mState = PaneState.STARTED;
+    public static Pane deserialize(PaneFactory factory, JSONObject json) {
+        try {
+            Pane pane = factory.createPane(json);
+            pane.restore(factory.getID(json), factory.getArguments());
+            return pane;
+        } catch (Throwable unknownError) {
+            throw new PaneAccessException("Pane deserialization failed", unknownError);
         }
-        mIsSelected = true;
     }
 
-    /**
-     * Transitions the pane to the RESUMED state.
-     *
-     * @throws IllegalStateException If current state is not {@link PaneState#PAUSED}
-     */
-    protected void onResume() {
-        if (mState != PaneState.PAUSED) {
-            throw new IllegalStateException("Cannot resume from state: " + mState);
+    public void restore(UUID existingId, Map<String, Object> savedState) {
+        if (mId == null) {
+            mId = existingId;
+            synchronized (Pane.class) {
+                sGeneratedIds.add(mId);
+            }
         }
-        mState = PaneState.RESUMED;
-    }
-
-    /**
-     * Called when the pane is reselected.
-     *
-     * <p>Subclasses override this to further implement unselection logic.
-     */
-    public void onUnselected() {
-        mIsSelected = false;
-        onPause();
-    }
-
-    protected void onPause() {
-        if (mState == PaneState.DESTROYED) {
-            throw new IllegalStateException("Cannot pause a destroyed pane");
-        }
-        mState = PaneState.PAUSED;
-    }
-
-    /**
-     * Called when the pane is reselected.
-     *
-     * <p>Subclasses override this to implement reselection logic
-     */
-    public void onReselected() {
-        // No-op
+        mArguments.putAll(savedState);
     }
 
     /**
@@ -495,25 +486,8 @@ public abstract class Pane {
      * <p>Called before the pane's root view is set to null.
      */
     protected void onDestroyView() {
-        // No-op (subclasses implement cleanup here)
-    }
-
-    /**
-     * Persists the state of the pane.
-     *
-     * <p>Subclasses should override this method to implement custom persistence behavior.
-     *
-     * @throws IllegalStateException if pane was destroyed or if pane has not created its view.
-     */
-    public void persist() {
-        if (mState == PaneState.DESTROYED) {
-            throw new IllegalStateException("Cannot persist a destroyed pane");
-        }
-
-        if (!mHasPerformedCreateView) {
-            throw new IllegalStateException(
-                getClass().getSimpleName() + " did not invoke createView()");
-        }
+        isViewLaidOut = false;
+        safelyRemoveLayoutListener(requireView());
     }
 
     /**
@@ -554,18 +528,6 @@ public abstract class Pane {
     }
 
     /**
-     * Adds arguments (data) required by the pane to function.
-     *
-     * <p>These arguments could be used in persisting data to a given pane.
-     *
-     * @param key   the placeholder used to access an argument
-     * @param value the typed value to be associated with the specified key
-     */
-    public final <V> void addArguments(final String key, final V value) {
-        mArguments.put(key, value);
-    }
-
-    /**
      * Get the value associated with the specified key within the pane arguments.
      *
      * @param key The key to identify the saved state.
@@ -573,6 +535,183 @@ public abstract class Pane {
      */
     public Object getArgumentValue(@NonNull String key) {
         return getArguments().get(key);
+    }
+
+    public AssetManager getAssets() {
+        return requireContext().getAssets();
+    }
+
+    /**
+     * Retrieves the current state of the pane.
+     *
+     * @return The current state of the pane.
+     */
+    public PaneState getState() {
+        return mState;
+    }
+
+    /**
+     * Return a localized string from the application's package's default string table.
+     *
+     * <p>For more insight see {@link Context#getString(int)}
+     *
+     * @param resId Resource id for the string
+     */
+    @NonNull
+    public final String getString(@StringRes int resId) {
+        return requireContext().getString(resId);
+    }
+
+    /**
+     * Return a localized formatted string from the application's package's default string table.
+     *
+     * <p>For more insight see {@link Context#getString(int, Object...)}
+     *
+     * @param resId      Resource id for the format string
+     * @param formatArgs The format arguments that will be used for substitution.
+     */
+    @NonNull
+    public final String getString(@StringRes int resId, Object... formatArgs) {
+        return requireContext().getString(resId, formatArgs);
+    }
+
+    @Nullable
+    public UUID getUUID() {
+        return mId;
+    }
+
+    public void setUUID(UUID id) {
+        this.mId = id;
+    }
+
+    /**
+     * Checks if the view associated with the pane has invoked #createView().
+     *
+     * @return {@code true} if the #createView() has been called, {@code false} otherwise.
+     * @see #createView()
+     */
+    public boolean hasPerformedCreateView() {
+        return mHasPerformedCreateView;
+    }
+
+    /**
+     * Checks if the view associated with the pane is created.
+     *
+     * @return {@code true} if the view is created, {@code false} otherwise.
+     * @see #onViewCreated(View);
+     */
+    public boolean hasPerformedOnViewCreated() {
+        return mHasPerformedOnViewCreated;
+    }
+
+    public boolean isPinned() {
+        return mIsPinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        mIsPinned = pinned;
+    }
+
+    public boolean isSelected() {
+        return this.mIsSelected;
+    }
+
+    public void setSelected(boolean select) {
+        this.mIsSelected = select;
+    }
+
+    /**
+     * Called when the pane is reselected.
+     *
+     * <p>Subclasses override this to implement reselection logic
+     */
+    public void onReselected() {
+        // No-op
+    }
+
+    public void onSelected() {
+        PaneState current = mState;
+        if (current == null) return;
+
+        if (current == PaneState.PAUSED) {
+            onResume();
+        } else {
+            mState = PaneState.STARTED;
+        }
+        mIsSelected = true;
+    }
+
+    /**
+     * Transitions the pane to the RESUMED state.
+     *
+     * @throws IllegalStateException If current state is not {@link PaneState#PAUSED}
+     */
+    protected void onResume() {
+        if (mState != PaneState.PAUSED) {
+            throw new IllegalStateException("Cannot resume from state: " + mState);
+        }
+        mState = PaneState.RESUMED;
+    }
+
+    /**
+     * Called when the pane is reselected.
+     *
+     * <p>Subclasses override this to further implement unselection logic.
+     */
+    public void onUnselected() {
+        mIsSelected = false;
+        onPause();
+    }
+
+    protected void onPause() {
+        if (mState == PaneState.DESTROYED) {
+            throw new IllegalStateException("Cannot pause a destroyed pane");
+        }
+        mState = PaneState.PAUSED;
+    }
+
+    /**
+     * Persists the state of the pane.
+     *
+     * <p>Subclasses should override this method to implement custom persistence behavior.
+     *
+     * @throws IllegalStateException if pane was destroyed or if pane has not created its view.
+     */
+    public void persist() {
+        if (mState == PaneState.DESTROYED) {
+            throw new IllegalStateException("Cannot persist a destroyed pane");
+        }
+
+        if (!mHasPerformedCreateView) {
+            throw new IllegalStateException(
+                getClass().getSimpleName() + " did not invoke createView()");
+        }
+    }
+
+    public void runOnBackgroundThread(Runnable runnable) {
+        AsyncTask.runOnBackgroundThread(runnable);
+    }
+
+    public void runOnUiThread(Runnable runnable) {
+        AsyncTask.runOnUiThread(runnable);
+    }
+
+    public JSONObject serialize() {
+        try {
+            JSONObject json = new JSONObject();
+            JSONObject argJson = new JSONObject();
+
+            for (Entry<String, Object> entry : getArguments().entrySet()) {
+                String key = entry.getKey();
+                if (key != null) argJson.put(key, entry.getValue());
+            }
+
+            json.put(KEY_ARGUMENTS, argJson);
+
+            return json;
+        } catch (JSONException e) {
+            throw new PaneAccessException("Pane serialization failed", e);
+        }
     }
 
     /**
@@ -737,24 +876,6 @@ public abstract class Pane {
             argTypes[i] = args[i].getClass();
         }
         return argTypes;
-    }
-
-    public JSONObject serialize() {
-        try {
-            JSONObject json = new JSONObject();
-            JSONObject argJson = new JSONObject();
-
-            for (Entry<String, Object> entry : getArguments().entrySet()) {
-                String key = entry.getKey();
-                if (key != null) argJson.put(key, entry.getValue());
-            }
-
-            json.put(KEY_ARGUMENTS, argJson);
-
-            return json;
-        } catch (JSONException e) {
-            throw new PaneAccessException("Pane serialization failed", e);
-        }
     }
 
     public enum PaneState {

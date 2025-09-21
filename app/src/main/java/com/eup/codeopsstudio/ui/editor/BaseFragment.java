@@ -934,6 +934,13 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
                                 .toString();
                         }, (result) -> {
                             if (!Wizard.isEmpty(result)) {
+                                String fileExtension = codeEditorPane
+                                    .getArguments()
+                                    .get("file_extension")
+                                    .toString();
+                                codeEditorPane
+                                    .getEditor()
+                                    .setLanguageExtension(fileExtension);
                                 codeEditorPane
                                     .getEditor()
                                     .setText(result);

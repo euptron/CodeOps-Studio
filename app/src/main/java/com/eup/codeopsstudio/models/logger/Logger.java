@@ -32,6 +32,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
 import com.eup.codeopsstudio.common.Constants;
+import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.domain.FormatDateUseCase;
 import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.util.Wizard;
@@ -43,6 +44,7 @@ import java.util.regex.Pattern;
 
 public class Logger {
 
+    private static final String TAG = Logger.class.getSimpleName();
     private final LogClass logClass;
     private boolean isAttached;
     private MainViewModel model;
@@ -58,6 +60,7 @@ public class Logger {
 
     public void d(@NonNull String message) {
         if (!isAttached) return;
+        ILog.debug(TAG, message);
         add(new Log(highlightNumbers(message)));
     }
 
@@ -99,6 +102,7 @@ public class Logger {
 
     public void d(String tag, String message) {
         if (!isAttached) return;
+        ILog.debug(tag, message);
         add(new Log(formatDate(), tag, getLogLevel(LogLevel.DEBUG), highlightNumbers(message)));
     }
 
@@ -120,7 +124,17 @@ public class Logger {
     }
 
     public void e(String tag, String message) {
+        e(tag, message, null);
+    }
+
+    public void e(String tag, String message, Throwable throwable) {
         if (!isAttached) return;
+
+        if (throwable == null) {
+            ILog.error(tag, message);
+        } else{
+            ILog.error(tag, message, throwable);
+        }
         add(new Log(formatDate(), tag, highlightSpan(getLogLevel(LogLevel.ERROR), 0xffff0000),
             message));
     }
@@ -135,12 +149,14 @@ public class Logger {
 
     public void i(String tag, String message) {
         if (!isAttached) return;
+        ILog.info(tag, message);
         add(new Log(formatDate(), tag, highlightSpan(getLogLevel(LogLevel.INFO), 0xFF0D47A1),
             highlightNumbers(message)));
     }
 
     public void w(String tag, String message) {
         if (!isAttached) return;
+        ILog.warning(tag, message);
         add(new Log(formatDate(), tag, highlightSpan(getLogLevel(LogLevel.WARN), 0xffff7043),
             message));
     }

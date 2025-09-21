@@ -34,7 +34,6 @@ import android.os.Process;
 
 import androidx.annotation.NonNull;
 
-import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.common.ILog;
@@ -62,7 +61,6 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     private final StringBuilder errorMessage = new StringBuilder();
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     private FirebaseCrashlytics crashlytics;
-    private CompletableFuture<Void> editorConfigFuture;
     private ThemeManager themeManager;
 
     public static IdeApplication getInstance() {
@@ -117,10 +115,6 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         return themeManager;
     }
 
-    public CompletableFuture<Void> getEditorConfigFuture() {
-        return editorConfigFuture;
-    }
-
     @Override
     public void onCreate() {
         ILog.mode(isAppInDebugMode());
@@ -140,7 +134,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         Thread.setDefaultUncaughtExceptionHandler(this);
         crashlytics.sendUnsentReports();
         validateExpirationDate();
-        editorConfigFuture = initializeEditorConfigurationsInBackground();
+        loadEditorConfigurations();
     }
 
     public static boolean isAppInDebugMode() {
@@ -163,9 +157,8 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         return PreferencesUtils.canShareAnonymousStatistics();
     }
 
-    @NonNull
-    private CompletableFuture<Void> initializeEditorConfigurationsInBackground() {
-        return CompletableFuture
+    private void loadEditorConfigurations() {
+        CompletableFuture
             .runAsync(() -> {
                 try {
                     ContextualCodeEditor.loadConfigurations(IdeApplication.this);
@@ -173,15 +166,14 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
                     throw new RuntimeException(e);
                 }
             }, backgroundExecutor)
-            .whenComplete((result, throwable) -> AsyncTask.runOnUiThread(() -> {
-                if (throwable != null) {
-                    crashlytics.recordException(throwable);
-                    ILog.error(TAG, "Failed to load code editor configurations in background",
-                        throwable);
+            .exceptionally(throwable -> {
+                if (throwable == null) {
+                    ILog.info(TAG, "Code editor configurations loaded successfully");
                 } else {
-                    ILog.info(TAG, "Code editor configurations loaded successfully.");
+                    ILog.error(TAG, "Error loading code editor configurations", throwable);
                 }
-            }));
+                return null;
+            });
     }
 
     @Override

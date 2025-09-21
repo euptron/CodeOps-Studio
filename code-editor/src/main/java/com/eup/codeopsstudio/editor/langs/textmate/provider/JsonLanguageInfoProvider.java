@@ -36,7 +36,9 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides language-scope mapping functionality for the code editor.
@@ -98,14 +100,16 @@ public class JsonLanguageInfoProvider implements LanguageInfoProvider {
     }
 
     @Override
-    public String getLanguageExtension(String scopeEntry) {
+    public Set<String> getLanguageExtensions(String scopeEntry) {
+        var extensions = new HashSet<String>();
         for (Map.Entry<String, String> entry : scopeMap.entrySet()) {
             if (entry
                 .getValue()
                 .equals(scopeEntry)) {
-                return entry.getKey();
+                extensions.add(entry.getKey());
+                return extensions;
             }
         }
-        return null;
+        return Collections.emptySet();
     }
 }

@@ -204,7 +204,6 @@ public class UnzipDialogFragment extends DialogFragment implements ZIPArchive.On
             BaseUtil.toastShort(message);
             logger.d(TAG, message);
             // open imported project in tree
-            mainViewModel.setToolbarSubTitle(FileUtil.getFileNameWithoutExtension(new File(destDirectory)));
             mainViewModel.setTreeViewFragmentTreeDir(new File(destDirectory));
         }
         if (isDialogVisible()) {

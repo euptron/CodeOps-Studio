@@ -159,15 +159,15 @@ public class PaneUtil {
                 , type);
 
             String title = treeMap
-                .get("title")
+                .get(Pane.KEY_TITLE)
                 .toString();
             String clazz = treeMap
-                .get("class_name")
+                .get(Pane.KEY_CLASS_NAME)
                 .toString();
-            boolean pinned = (boolean) treeMap.get("pinned");
-            boolean selected = (boolean) treeMap.get("selected");
+            boolean pinned = (boolean) treeMap.get(Pane.KEY_PINNED);
+            boolean selected = (boolean) treeMap.get(Pane.KEY_SELECTED);
             String identity = treeMap
-                .get("uuid")
+                .get(Pane.KEY_UUID)
                 .toString();
             UUID uuid = UUID.fromString(identity);
 

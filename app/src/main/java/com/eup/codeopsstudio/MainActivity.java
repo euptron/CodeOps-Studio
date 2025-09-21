@@ -296,8 +296,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 requestNotificationPermission();
             }
-        } else {
-            showNotificationSettingsRationaleIfAllowed();
         }
     }
 

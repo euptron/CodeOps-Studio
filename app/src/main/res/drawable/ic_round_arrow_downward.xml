@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ This file is part of CodeOps Studio.
   ~ CodeOps Studio - Code anywhere anytime
@@ -22,19 +21,16 @@
   ~ questions or need additional information. Email: etido.up@gmail.com
   -->
 
-<resources>
-    <string name="editor_selected">Selected</string>
-    <string name="editor_no_search_match">No results</string>
-    <string name="editor_unable_to_format">Unable to format sequence</string>
-    <string name="editor_clip_text_length_too_large">Text is too large to copy</string>
-    <string name="editor_conversion_failed">Conversion failed</string>
-    <string name="editor_converting_to_title">Converting to %s</string>
-    <string name="editor_upper_case">Upper case</string>
-    <string name="editor_lower_case">Lower case</string>
-    <string name="editor_select_convert_text_first">Please select the text to be converted first</string>
-    <string name="editor_applying_changes">Applying changes…</string>
-    <plurals name="editor_search_matches">
-        <item quantity="one">Match</item>
-        <item quantity="other">Matches</item>
-    </plurals>
-</resources>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:autoMirrored="true"
+    android:tint="?attr/colorControlNormal"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M11,5v11.17l-4.88,-4.88c-0.39,-0.39 -1.03,-0.39 -1.42,0 -0.39,0.39 -0.39,1.02 0,1.41l6.59,6.59c0.39,0.39 1.02,0.39 1.41,0l6.59,-6.59c0.39,-0.39 0.39,-1.02 0,-1.41 -0.39,-0.39 -1.02,-0.39 -1.41,0L13,16.17V5c0,-0.55 -0.45,-1 -1,-1s-1,0.45 -1,1z" />
+
+</vector>

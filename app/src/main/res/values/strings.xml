@@ -559,4 +559,8 @@
     <string name="toggle_release_dec">Toggle release\n\n</string>
     <string name="pref_general_config_display_tab_icon">Tab Icon</string>
     <string name="pref_general_config_display_tab_icons_summary">Display or hide the Tab icon</string>
+    <string name="msg_editor_load_configs_failed">Failed to %s editor language configurations</string>
+    <string name="load">Load</string>
+    <string name="previous_occurrence">Previous Occurrence</string>
+    <string name="next_occurrence">Next Occurrence</string>
 </resources>
