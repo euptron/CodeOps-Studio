@@ -521,18 +521,15 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         this.languageScope             = languageScope;
         this.autoCompleteWindowEnabled = autoCompleteWindowEnabled;
         this.isAutoCompleteSymbols     = isAutoCompleteSymbols;
-        var lang = getEditorLanguage();
-
-        if (!(lang instanceof TextMateLanguage)) return;
-
+        Language lang = getEditorLanguage();
         TextMateLanguage language;
-        if (isRefreshing) {
+
+        if (lang instanceof EmptyLanguage || !(lang instanceof TextMateLanguage) || !isRefreshing) {
+            language = createTextMateLanguage(languageScope, autoCompleteWindowEnabled, isAutoCompleteSymbols);
+        } else {
             ensureTextmateTheme();
             language = (TextMateLanguage) lang;
             language.updateLanguage(languageScope);
-        } else {
-            language = createTextMateLanguage(languageScope, autoCompleteWindowEnabled,
-                isAutoCompleteSymbols);
         }
 
         setEditorLanguage(language);

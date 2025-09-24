@@ -23,7 +23,15 @@
   -->
 
 <resources>
+    <string name="editor_expand_selection">Expand selection</string>
+    <string name="editor_select_all">Select all</string>
+    <string name="editor_copy_text">Copy text</string>
+    <string name="editor_paste_text">Paste text</string>
+    <string name="editor_format">Format</string>
+    <string name="editor_long_select">Long select</string>
+    <string name="editor_cut_text">Cut text</string>
     <string name="editor_selected">Selected</string>
+    <string name="editor_completion_result_item_icon">completion result item icon</string>
     <string name="editor_no_search_match">No results</string>
     <string name="editor_unable_to_format">Unable to format sequence</string>
     <string name="editor_clip_text_length_too_large">Text is too large to copy</string>

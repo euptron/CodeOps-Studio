@@ -45,7 +45,7 @@
             android:layout_height="@dimen/dimen24dp"
             android:layout_marginLeft="@dimen/dimen8dp"
             android:layout_marginRight="@dimen/dimen8dp"
-            android:contentDescription="@string/completion_result_item_icon"
+            android:contentDescription="@string/editor_completion_result_item_icon"
             android:src="@android:drawable/ic_delete" />
 
         <LinearLayout

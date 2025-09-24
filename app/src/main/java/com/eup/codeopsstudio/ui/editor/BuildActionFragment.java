@@ -66,8 +66,6 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     private final String TAG = "BuildActionFragment";
     private FragmentBuildActionBinding binding;
     private EditorShortcutAdapter shortcutAdapter;
-    private int numberOfTabs;
-    private boolean useTabs;
     private EditorShortcutWizard shortcutWizard;
     private String shortcutsJsonString;
 
@@ -118,6 +116,7 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
             LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerviewShortcuts.setHasFixedSize(true);
         binding.recyclerviewShortcuts.setAdapter(shortcutAdapter);
+        refreshShortcuts();
     }
 
     @Override
@@ -186,18 +185,17 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     @Override
     public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
         switch (Objects.requireNonNull(key)) {
-            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE:
-                numberOfTabs = PreferencesUtils.getCodeEditorTabSize();
-                refreshShortcuts();
-                break;
-            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT:
-                useTabs = PreferencesUtils.useTabIndentation();
-                refreshShortcuts();
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE,
+                 Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT:
+               refreshShortcuts();
                 break;
         }
     }
 
     private void refreshShortcuts() {
+        boolean useTabs = PreferencesUtils.useTabIndentation();
+        int numberOfTabs = PreferencesUtils.getCodeEditorTabSize();
+
         if (shortcutWizard == null) {
             ILog.debug(TAG, "ShortcutWizard is null");
             return;

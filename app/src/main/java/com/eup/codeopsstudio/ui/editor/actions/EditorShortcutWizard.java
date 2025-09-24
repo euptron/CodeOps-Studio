@@ -73,7 +73,7 @@ public class EditorShortcutWizard {
                 var indentation =
                     useTabs ? Constants.TAB.repeat(numberOfTabs) : " ".repeat(numberOfTabs);
                 action.setValue(indentation);
-                break; // Found it, we're done.
+                break;
             }
         }
         return actions;

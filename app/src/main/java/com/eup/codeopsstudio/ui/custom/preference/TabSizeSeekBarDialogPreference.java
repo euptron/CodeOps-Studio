@@ -62,14 +62,17 @@ public class TabSizeSeekBarDialogPreference extends Preference {
         super(context);
     }
 
+    private static final float MIN_SLIDER_VALUE = 1.0f;
+    private static final float MAX_SLIDER_VALUE = 12.0f;
+
     @Override
     protected void onClick() {
         super.onClick();
         var binding = LayoutMaterialSliderBinding.inflate(LayoutInflater.from(getContext()));
-        binding.slider.setValueFrom(1.0f);
-        binding.slider.setValueTo(12.0f);
+        binding.slider.setValueFrom(MIN_SLIDER_VALUE);
+        binding.slider.setValueTo(MAX_SLIDER_VALUE);
         binding.slider.setValue(getPersistedInt(DEFAULT_TAB_SIZE));
-        binding.slider.setStepSize(1.0f);
+        binding.slider.setStepSize(MIN_SLIDER_VALUE);
 
         new MaterialAlertDialogBuilder(getContext())
             .setTitle(R.string.pref_editor_code_editor_title_tab_size)
@@ -87,11 +90,8 @@ public class TabSizeSeekBarDialogPreference extends Preference {
 
     @Override
     protected boolean persistInt(int size) {
-        if ((size >= 1) && (size <= 12)) {
-            var pref = PreferencesUtils.getDefaultPreferences();
-            var editor = pref.edit();
-            editor.putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size);
-            editor.apply();
+        if ((size >= MIN_SLIDER_VALUE) && (size <= MAX_SLIDER_VALUE)) {
+            applyTab(size);
             return true;
         }
         return false;
@@ -103,10 +103,14 @@ public class TabSizeSeekBarDialogPreference extends Preference {
     }
 
     private void resetTabSize() {
+        applyTab(DEFAULT_TAB_SIZE);
+    }
+
+    private void applyTab(int size) {
         var pref = PreferencesUtils.getDefaultPreferences();
-        pref
-            .edit()
-            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, DEFAULT_TAB_SIZE)
+        var editor = pref.edit();
+        editor
+            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size)
             .apply();
     }
 }

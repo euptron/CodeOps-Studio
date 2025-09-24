@@ -536,7 +536,6 @@
     <string name="cloud_messaging_notification_channel_id">FCM Notification channel</string>
     <string name="file_watcher_desc">Monitoring file system for changes</string>
     <string name="ok_turn_on">OK Turn on</string>
-    <string name="completion_result_item_icon">completion result item icon</string>
     <string name="failed_to_init_editor">Failed to initialize the code editor</string>
     <string name="name">Name\n</string>
     <string name="breadcrumb_icon_desc">Bread Crumb</string>

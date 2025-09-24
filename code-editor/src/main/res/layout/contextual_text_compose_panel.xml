@@ -22,12 +22,13 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-
 <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/panel_root"
     android:layout_width="wrap_content"
-    android:layout_height="match_parent"
-    android:background="@drawable/contextual_magnifier_background">
+    android:layout_height="wrap_content"
+    android:background="@drawable/contextual_magnifier_background"
+    tools:theme="@style/Theme.Material3.DayNight">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -41,10 +42,11 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/expand_selection"
+            android:contentDescription="@string/editor_expand_selection"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
-            android:src="@drawable/ic_arrow_expand_all" />
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_expand_selection" />
 
         <ImageButton
             android:id="@+id/panel_btn_select_all"
@@ -52,9 +54,10 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/select_all"
+            android:contentDescription="@string/editor_select_all"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
             android:src="@drawable/ic_select_all" />
 
         <ImageButton
@@ -63,10 +66,11 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/copy_text"
+            android:contentDescription="@string/editor_copy_text"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
-            android:src="@drawable/ic_content_copy" />
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_copy_selection" />
 
         <ImageButton
             android:id="@+id/panel_btn_paste"
@@ -74,10 +78,11 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/paste_text"
+            android:contentDescription="@string/editor_paste_text"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
-            android:src="@drawable/ic_content_paste" />
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_paste_content" />
 
         <ImageButton
             android:id="@+id/panel_btn_long_select"
@@ -85,9 +90,10 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/long_select"
+            android:contentDescription="@string/editor_long_select"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
             android:src="@drawable/ic_select_drag" />
 
         <ImageButton
@@ -96,10 +102,11 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/cut_text"
+            android:contentDescription="@string/editor_cut_text"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
-            android:src="@drawable/ic_content_cut" />
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_cut_selection" />
 
         <ImageButton
             android:id="@+id/panel_btn_format"
@@ -107,11 +114,11 @@
             android:layout_height="@dimen/dimen48dp"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:contentDescription="@string/format"
+            android:contentDescription="@string/editor_format"
             android:focusable="true"
-            android:foreground="@drawable/selection_control_ripple"
-            android:gravity="center_vertical"
-            android:src="@drawable/ic_format_text"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_format_selection"
             android:visibility="gone" />
     </LinearLayout>
 </HorizontalScrollView>
