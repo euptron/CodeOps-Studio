@@ -525,7 +525,8 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         TextMateLanguage language;
 
         if (lang instanceof EmptyLanguage || !(lang instanceof TextMateLanguage) || !isRefreshing) {
-            language = createTextMateLanguage(languageScope, autoCompleteWindowEnabled, isAutoCompleteSymbols);
+            language = createTextMateLanguage(languageScope, autoCompleteWindowEnabled,
+                isAutoCompleteSymbols);
         } else {
             ensureTextmateTheme();
             language = (TextMateLanguage) lang;
@@ -778,15 +779,14 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     }
 
     public static void loadConfigurations(@NonNull Context context) throws Exception {
+        FileProviderRegistry
+            .getInstance()
+            .addFileProvider(new AssetsFileResolver(context.getAssets()));
         loadDefaultEditorLanguages();
         loadDefaultEditorThemes(context);
     }
 
     protected static void loadDefaultEditorThemes(@NonNull Context context) throws Exception {
-        FileProviderRegistry
-            .getInstance()
-            .addFileProvider(new AssetsFileResolver(context.getAssets()));
-
         String[] themes = new String[]{THEME_DARCULA, THEME_QUIET_LIGHT};
 
         for (String name : themes) {
@@ -804,14 +804,10 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         }
     }
 
-    public static void loadDefaultEditorLanguages() {
-        loadEditorLanguages(ASSETS_LANGUAGE_GRAMMAR_PATH);
-    }
-
-    public static void loadEditorLanguages(String defaultGrammarPath) {
+    private static void loadDefaultEditorLanguages() {
         GrammarRegistry
             .getInstance()
-            .loadGrammars(defaultGrammarPath);
+            .loadGrammars(ContextualCodeEditor.ASSETS_LANGUAGE_GRAMMAR_PATH);
     }
 
     public void navigateNextSearch() {

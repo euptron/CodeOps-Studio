@@ -134,7 +134,13 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         Thread.setDefaultUncaughtExceptionHandler(this);
         crashlytics.sendUnsentReports();
         validateExpirationDate();
-        loadEditorConfigurations();
+        //loadEditorConfigurations();
+
+        try {
+            ContextualCodeEditor.loadConfigurations(IdeApplication.this);
+        } catch (Exception e) {
+            ILog.error(TAG, "Error loading code editor configurations", e);
+        }
     }
 
     public static boolean isAppInDebugMode() {
