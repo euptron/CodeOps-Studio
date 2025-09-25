@@ -201,6 +201,7 @@ public abstract class Pane {
         mView               = onCreateView();
         if (mView != null) {
             onViewCreated(mView);
+            performOnViewLaidOut(mView);
             mHasPerformedCreateView = true;
         }
         return mView;
@@ -229,7 +230,9 @@ public abstract class Pane {
     public void onViewCreated(@NonNull View view) {
         mState                     = PaneState.CREATED;
         mHasPerformedOnViewCreated = true;
+    }
 
+    private void performOnViewLaidOut(@NonNull View view){
         //--- since 0.6
         // Check if view is already laid out (can happen in some cases)
         if (view.getWidth() > 0 && view.getHeight() > 0) {
@@ -253,7 +256,7 @@ public abstract class Pane {
             .getViewTreeObserver()
             .addOnGlobalLayoutListener(layoutListener);
 
-        // Add a safety check in case the layout listener doesn't fire
+        // Safety check in case the layout listener doesn't fire
         view.post(() -> {
             if (!isViewLaidOut && view.getWidth() > 0 && view.getHeight() > 0) {
                 safelyRemoveLayoutListener(view);

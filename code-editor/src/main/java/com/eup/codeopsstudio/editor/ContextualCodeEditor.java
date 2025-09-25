@@ -388,7 +388,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
     @Override
     public void undo() {
-        if (canRedo()) {
+        if (canUndo()) {
             super.undo();
         }
     }
@@ -553,7 +553,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         setColorScheme(getColorScheme());
     }
 
-    private TextMateLanguage createTextMateLanguage(String langScope,
+    private TextMateLanguage createTextMateLanguage(@NonNull String langScope,
         boolean autoCompleteWindowEnabled, boolean isAutoCompleteSymbols) {
         var tml = TextMateLanguage.create(langScope, autoCompleteWindowEnabled);
         if (isAutoCompleteSymbols) {
@@ -871,7 +871,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         ThemeRegistry
             .getInstance()
             .setTheme(themeName);
-        invalidate();
+        resetColorScheme();
     }
 
     @VisibleForTesting

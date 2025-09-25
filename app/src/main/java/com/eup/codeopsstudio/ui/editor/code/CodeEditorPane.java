@@ -240,10 +240,14 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
             String ext = languageInfo.first;
             String scope = languageInfo.second;
-            ILog.debug(TAG, String.format("Extension %s, Scope %s", ext, scope));
+            this.extension = ext;
+            ILog.debug(TAG, "File: " + file.getName());
+            ILog.debug(TAG, String.format("Extension: '%s', Scope: '%s'", ext, scope));
 
             binding.editor.setEditorLanguage(ext, scope, enableAutoComplete, autoCloseBrackets,
                 refreshing);
+            // sync theme with app UI and editor-language
+            applyEditorTheme();
         } catch (Exception e) {
             String clause = (refreshing ? getString(R.string.refresh).toLowerCase()
                 : getString(R.string.load).toLowerCase());
@@ -254,13 +258,12 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     }
 
     @Nullable
-    private Pair<String, String> getEditorLanguageInfo(File file) throws IOException {
+    private Pair<String, String> getEditorLanguageInfo(@NonNull File file) throws IOException {
         if (isInvalidContext()) return null;
 
         InputStream is = getAssets().open(LANG_SCOPE_PATH);
-
         var provider = new JsonLanguageInfoProvider(is);
-        extension = FileUtil.getFileExtension(file);
+        String extension = FileUtil.getFileExtension(file);
         String scope = provider.getScope(extension);
         Set<String> extensions = provider.getLanguageExtensions(scope);
         String scopedExtensions = Arrays.toString(extensions.toArray());
@@ -275,6 +278,16 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             return true;
         }
         return false;
+    }
+
+    private void applyEditorTheme() {
+        try {
+            binding.editor.updateTextMateTheme(
+                binding.editor.isUIDarkMode() ? ContextualCodeEditor.THEME_DARCULA
+                    : ContextualCodeEditor.THEME_QUIET_LIGHT);
+        } catch (Exception e) {
+            logger.e(TAG, e.getMessage(), e);
+        }
     }
 
     private void updateCrumbPanelVisibility() {
@@ -435,27 +448,14 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         binding.editor.undo();
     }
 
-    private void applyEditorTheme() {
-        try {
-            binding.editor.updateTextMateTheme(
-                binding.editor.isUIDarkMode() ? ContextualCodeEditor.THEME_DARCULA
-                    : ContextualCodeEditor.THEME_QUIET_LIGHT);
-        } catch (Exception e) {
-            logger.e(TAG, e.getMessage(), e);
-        }
-    }
-
     private void checkEditorConfigurations() {
-        binding.progressbar.setVisibility(View.VISIBLE);
-
         try {
+            // prevent flicker and sync theme with app UI
             applyEditorTheme();
             enableEditorFeatures();
         } catch (Exception e) {
             logger.e(TAG, getString(R.string.failed_to_init_editor), e);
             showSnackBar(getString(R.string.failed_to_init_editor) + ", Reason: " + e.getMessage());
-        } finally {
-            binding.progressbar.setVisibility(View.GONE);
         }
     }
 
