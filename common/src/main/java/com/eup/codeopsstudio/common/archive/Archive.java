@@ -33,19 +33,19 @@ public interface Archive {
     String getType();
 
     interface OnArchiveListener {
-        void onInitialize(String message);
-
-        void onStart(int totalItems);
-
-        void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft);
-
-        void onFileProgress(long bytesWritten, long totalBytes, String fileName);
-
         void onComplete(String message);
 
         void onError(Exception exception);
 
+        void onFileProgress(long bytesWritten, long totalBytes, String fileName);
+
+        void onInitialize(String message);
+
         void onSpeedUpdate(String message);
+
+        void onStart(int totalItems);
+
+        void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft);
     }
 
     public static final class NoOPListener implements OnArchiveListener {

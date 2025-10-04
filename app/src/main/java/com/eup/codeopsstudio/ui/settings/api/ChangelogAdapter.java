@@ -38,11 +38,11 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.eup.codeopsstudio.IdeApplication;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.LayoutChangeLogItemBinding;
 import com.eup.codeopsstudio.domain.FormatDateUseCase;
 import com.eup.codeopsstudio.models.user.User;
-import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 
@@ -55,17 +55,13 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
         @Override
         public boolean areItemsTheSame(@NonNull ChangelogItem oldLog,
             @NonNull ChangelogItem newLog) {
-            return oldLog
-                .getReleaseType()
-                .equals(newLog.getReleaseType());
+            return oldLog.getReleaseType().equals(newLog.getReleaseType());
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull ChangelogItem oldLog,
             @NonNull ChangelogItem newLog) {
-            return oldLog
-                .getReleaseType()
-                .equals(newLog.getReleaseType());
+            return oldLog.getReleaseType().equals(newLog.getReleaseType());
         }
     };
 
@@ -76,10 +72,21 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
         mDiffer.submitList(newData);
     }
 
-    private static void animateLayoutChanges(ViewGroup view) {
-        AutoTransition autoTransition = new AutoTransition();
-        autoTransition.setDuration((short) 300);
-        TransitionManager.beginDelayedTransition(view, autoTransition);
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new ViewHolder(LayoutChangeLogItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        ChangelogItem item = mDiffer.getCurrentList().get(position);
+        holder.bind(item, position);
+    }
+
+    @Override
+    public int getItemCount() {
+        return mDiffer.getCurrentList().size();
     }
 
     private static void addCorners(@NonNull View view) {
@@ -89,25 +96,10 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
         view.setBackground(gd);
     }
 
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutChangeLogItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ChangelogItem item = mDiffer
-            .getCurrentList()
-            .get(position);
-        holder.bind(item, position);
-    }
-
-    @Override
-    public int getItemCount() {
-        return mDiffer
-            .getCurrentList()
-            .size();
+    private static void animateLayoutChanges(ViewGroup view) {
+        AutoTransition autoTransition = new AutoTransition();
+        autoTransition.setDuration((short) 300);
+        TransitionManager.beginDelayedTransition(view, autoTransition);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -126,9 +118,7 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
             String description = item.getDescription();
             long releaseDate = item.getReleaseDate();
 
-            String title = itemView
-                .getContext()
-                .getString(R.string.release);
+            String title = itemView.getContext().getString(R.string.release);
             title += Constants.SPACE + versionName + ((release != null) ? "-" + release : "");
             binding.title.setText(title);
 
@@ -143,9 +133,9 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
                 var formatter = new FormatDateUseCase(user);
                 String date = formatter.format(releaseDate);
 
-                var summary = itemView
-                    .getContext()
-                    .getString(R.string.released_on) + ": " + date + " " + "UTC";
+                var summary =
+                    itemView.getContext().getString(R.string.released_on) + ": " + date + " "
+                        + "UTC";
                 binding.summary.setText(summary);
                 binding.summary.setVisibility(View.VISIBLE);
             } else {
@@ -158,9 +148,7 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
 
             var currentVersionName = Wizard.getAppVersionName(IdeApplication.getGlobalContext());
 
-            if (item
-                .getVersionName()
-                .equalsIgnoreCase(currentVersionName)) {
+            if (item.getVersionName().equalsIgnoreCase(currentVersionName)) {
                 // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal), FFB0F0C0
                 // (prime)
                 addCorners(binding.versionIndicator);

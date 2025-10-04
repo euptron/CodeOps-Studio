@@ -33,18 +33,18 @@ import java.util.Set;
 public interface LanguageInfoProvider {
 
     /**
-     * Find the scope associated with a key entry.
-     *
-     * @param extensionEntry The file extension.
-     * @return The associated scope or null if not found.
-     */
-    String getScope(String extensionEntry);
-
-    /**
      * Find the key entry associated with a scope entry.
      *
      * @param scopeEntry The scope entry.
      * @return The associated key entry or null if not found.
      */
     Set<String> getLanguageExtensions(String scopeEntry);
+
+    /**
+     * Find the scope associated with a key entry.
+     *
+     * @param extensionEntry The file extension.
+     * @return The associated scope or null if not found.
+     */
+    String getScope(String extensionEntry);
 }

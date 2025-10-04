@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.eup.codeopsstudio.IdeApplication;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.git.BatchProgressMonitor;
 import com.eup.codeopsstudio.git.RepoConfig;
@@ -11,7 +12,6 @@ import com.eup.codeopsstudio.git.auth.AuthProvider;
 import com.eup.codeopsstudio.git.auth.SshAuthProvider;
 import com.eup.codeopsstudio.git.auth.UsernamePasswordAuthProvider;
 import com.eup.codeopsstudio.git.listeners.CloneListener;
-import com.eup.codeopsstudio.R;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.CloneCommand;
@@ -45,13 +45,7 @@ public class CloneTask implements GitTask<Repository> {
         this.repoConfig      = config;
         this.cloneListener   = listener;
         this.progressMonitor = new BatchProgressMonitor(listener, config.getRemoteURI());
-        this.taskName        = IdeApplication
-            .getInstance()
-            .getString(R.string.msg_git_task_clone);
-    }
-
-    public RepoConfig getRepoConfig() {
-        return repoConfig;
+        this.taskName        = IdeApplication.getInstance().getString(R.string.msg_git_task_clone);
     }
 
     @Override
@@ -63,18 +57,8 @@ public class CloneTask implements GitTask<Repository> {
     }
 
     @Override
-    public boolean isTaskSuccessful() {
-        return isTaskSuccessful;
-    }
-
-    @Override
     public void cancel() {
         progressMonitor.cancel();
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return progressMonitor.isCancelled();
     }
 
     @Override
@@ -85,6 +69,16 @@ public class CloneTask implements GitTask<Repository> {
     @Override
     public TaskType getTaskType() {
         return TaskType.CLONE;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return progressMonitor.isCancelled();
+    }
+
+    @Override
+    public boolean isTaskSuccessful() {
+        return isTaskSuccessful;
     }
 
     @Nullable
@@ -98,12 +92,10 @@ public class CloneTask implements GitTask<Repository> {
 
     private Repository executeClone(@Nullable AuthProvider authProvider) throws ExecutionException {
         CloneCommand cloneCommand = Git.cloneRepository();
-        cloneCommand
-            .setURI(repoConfig.getRemoteURI())
-            .setDirectory(new File(repoConfig.getLocalURI()))
-            .setProgressMonitor(progressMonitor)
-            .setCloneAllBranches(cloneAllBranches)
-            .setCloneSubmodules(cloneRecursive);
+        cloneCommand.setURI(repoConfig.getRemoteURI())
+                    .setDirectory(new File(repoConfig.getLocalURI()))
+                    .setProgressMonitor(progressMonitor).setCloneAllBranches(cloneAllBranches)
+                    .setCloneSubmodules(cloneRecursive);
 
         if (authProvider != null) {
             authProvider.configureCommand(cloneCommand);
@@ -113,9 +105,8 @@ public class CloneTask implements GitTask<Repository> {
             return onExecute(cloneCommand);
         } catch (CancellationException e) {
             if (isCancelled()) cleanupRepository();
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_user_invoked_cancellation_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_user_invoked_cancellation_error, taskName);
             throw new ExecutionException(msg, e);
         }
     }
@@ -128,41 +119,35 @@ public class CloneTask implements GitTask<Repository> {
             ILog.debug(TAG, "Cloning from " + remoteUrl + " to " + localPath);
             return git.getRepository();
         } catch (InvalidRemoteException e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_invalid_remote_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_invalid_remote_error, taskName);
             throw new ExecutionException(msg, e);
         } catch (TransportException e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_transport_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_transport_error, taskName);
             throw new ExecutionException(msg, e);
         } catch (CancellationException e) {
             throw e;
         } catch (CanceledException e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_unexpected_canceled_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_unexpected_canceled_error,
+                                           taskName);
             throw new ExecutionException(msg, e);
         } catch (GitAPIException e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_api_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_api_error, taskName);
             throw new ExecutionException(msg, e);
         } catch (JGitInternalException e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_jgit_internal_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_jgit_internal_error, taskName);
             throw new ExecutionException(msg, e);
         } catch (OutOfMemoryError e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_of_memory_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_of_memory_error, taskName);
             throw new ExecutionException(msg, e);
         } catch (Exception e) {
-            String msg = IdeApplication
-                .getInstance()
-                .getString(R.string.msg_git_unexpected_error, taskName);
+            String msg = IdeApplication.getInstance()
+                                       .getString(R.string.msg_git_unexpected_error, taskName);
             throw new ExecutionException(msg, e);
         }
     }
@@ -175,12 +160,15 @@ public class CloneTask implements GitTask<Repository> {
                 ILog.info(TAG, "Cancelled clone cleaned up successfully");
             } catch (IOException e) {
                 ILog.error(TAG, "Cleanup failed: " + e.getMessage());
-                String msg = IdeApplication
-                    .getInstance()
-                    .getString(R.string.msg_git_delete_stale_repo_error);
+                String msg = IdeApplication.getInstance()
+                                           .getString(R.string.msg_git_delete_stale_repo_error);
                 throw new ExecutionException(msg, e);
             }
         }
+    }
+
+    public RepoConfig getRepoConfig() {
+        return repoConfig;
     }
 
     public CloneTask setCloneAllBranches(boolean cloneAllBranches) {

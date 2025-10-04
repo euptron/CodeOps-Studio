@@ -35,9 +35,9 @@ import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.pane.exception.PaneAccessException;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
@@ -56,6 +56,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A dynamic user interface element designed mainly for integration with {@code PaneWindow} to
@@ -136,6 +138,7 @@ public abstract class Pane {
     private static final List<UUID> sGeneratedIds = new ArrayList<>();
     private final Map<String, Object> mArguments = new HashMap<>();
     private final WeakReference<Context> mContextRef; // Prevents Activity leaks
+    private final ExecutorService backgroundExecutor;
     private long paneCreateStartTime;
     private UUID mId;
     private View mView; // Null before createView() and after destruction
@@ -164,6 +167,8 @@ public abstract class Pane {
         mTitle      = title;
         mState      = PaneState.INITIALIZING;
         mIsPinned   = false;
+
+        this.backgroundExecutor = Executors.newSingleThreadExecutor();
 
         if (generateUUID) {
             mId = generateUUID(); // auto-generate ID for new pane
@@ -232,7 +237,7 @@ public abstract class Pane {
         mHasPerformedOnViewCreated = true;
     }
 
-    private void performOnViewLaidOut(@NonNull View view){
+    private void performOnViewLaidOut(@NonNull View view) {
         //--- since 0.6
         // Check if view is already laid out (can happen in some cases)
         if (view.getWidth() > 0 && view.getHeight() > 0) {
@@ -252,9 +257,7 @@ public abstract class Pane {
             }
         };
 
-        view
-            .getViewTreeObserver()
-            .addOnGlobalLayoutListener(layoutListener);
+        view.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
 
         // Safety check in case the layout listener doesn't fire
         view.post(() -> {
@@ -314,7 +317,7 @@ public abstract class Pane {
 
     public void showSnackBar(@NonNull String message) {
         final Snackbar snackbar = Snackbar.make(requireContext(), requireView(), message,
-            Snackbar.LENGTH_SHORT);
+            BaseTransientBottomBar.LENGTH_SHORT);
         snackbar.setTextMaxLines(3);
         snackbar.show();
     }
@@ -367,7 +370,7 @@ public abstract class Pane {
         return mView;
     }
 
-    protected Boolean enabledDebug() {
+    protected boolean enabledDebug() {
         return false;
     }
 
@@ -385,7 +388,7 @@ public abstract class Pane {
             Pane pane = factory.createPane(json);
             pane.restore(factory.getID(json), factory.getArguments());
             return pane;
-        } catch (Throwable unknownError) {
+        } catch (Exception unknownError) {
             throw new PaneAccessException("Pane deserialization failed", unknownError);
         }
     }
@@ -464,6 +467,7 @@ public abstract class Pane {
         mHasPerformedCreateView    = false;
         mHasPerformedOnViewCreated = false;
         ILog.debug(getClassName(), getTitle() + " onDestroy called. Current state: " + mState);
+        backgroundExecutor.shutdownNow();
     }
 
     public String getTitle() {
@@ -576,6 +580,10 @@ public abstract class Pane {
     @NonNull
     public final String getString(@StringRes int resId, Object... formatArgs) {
         return requireContext().getString(resId, formatArgs);
+    }
+
+    public final String getTID() {
+        return mTitle.isEmpty() ? "NO-TITLE" : mTitle + "{" + mId.toString() + "}";
     }
 
     @Nullable
@@ -692,11 +700,44 @@ public abstract class Pane {
     }
 
     public void runOnBackgroundThread(Runnable runnable) {
-        AsyncTask.runOnBackgroundThread(runnable);
+        backgroundExecutor.submit(runnable);
     }
 
     public void runOnUiThread(Runnable runnable) {
-        AsyncTask.runOnUiThread(runnable);
+        requireActivity().runOnUiThread(runnable);
+    }
+
+    /**
+     * Return the {@link FragmentActivity} this pane is currently associated with.
+     *
+     * @throws IllegalStateException if not currently associated with an activity or if associated
+     *                               only with a context.
+     * @see #getActivity()
+     */
+    @NonNull
+    public final FragmentActivity requireActivity() {
+        FragmentActivity activity = getActivity();
+        if (activity == null) {
+            throw new IllegalStateException(this + " not attached to an activity");
+        }
+        return activity;
+    }
+
+    /**
+     * Return the {@link FragmentActivity} this fragment is currently associated with. May return
+     * {@code null} if the fragment is associated with a {@link Context} instead.
+     *
+     * @see #requireActivity()
+     */
+    @Nullable
+    public final FragmentActivity getActivity() {
+        Context c = getContext();
+
+        if (c instanceof FragmentActivity activity) {
+            return activity;
+        } else {
+            return null;
+        }
     }
 
     public JSONObject serialize() {
@@ -767,14 +808,14 @@ public abstract class Pane {
      * <pre>{@code
      * // Normal call
      * Class<?>[] paramTypes = new Class<?>[]{String.class, Integer.class};
-     * Object[] args = new Object[]{"EUP", 20};
+     * Object[] args = new Object[]{"In Memory of Dr. Peter Umoren Asanga", 65};
      * callFragmentMethod(MyFragment.TAG, "exampleMethod", paramTypes, args);
      * }</pre>
      *
      * <pre>{@code
      * // Call with null
      * Class<?>[] paramTypes = new Class<?>[]{String.class, Integer.class};
-     * Object[] args = new Object[]{"EUP", null};
+     * Object[] args = new Object[]{"I love you Dad", null};
      * callFragmentMethod(MyFragment.TAG, "exampleMethod", paramTypes, args);
      * }</pre>
      *
@@ -792,9 +833,7 @@ public abstract class Pane {
     protected void callFragmentMethod(String fragmentTag, String methodName, Class<?>[] argsTypes,
         Object... args) {
         FragmentActivity activity = requireActivity();
-        Fragment fragment = activity
-            .getSupportFragmentManager()
-            .findFragmentByTag(fragmentTag);
+        Fragment fragment = activity.getSupportFragmentManager().findFragmentByTag(fragmentTag);
 
         if (fragment == null) {
             throw new IllegalArgumentException("Fragment with tag '" + fragmentTag + "' not found");
@@ -809,14 +848,10 @@ public abstract class Pane {
                 "Fragment not attached, cannot call method: " + methodName);
         }
 
-        String fN = fragment
-            .getClass()
-            .getSimpleName();
+        String fN = fragment.getClass().getSimpleName();
 
         try {
-            Method method = fragment
-                .getClass()
-                .getMethod(methodName, argsTypes);
+            Method method = fragment.getClass().getMethod(methodName, argsTypes);
             method.invoke(fragment, args);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException("Method '" + methodName + "' not found in " + fN, e);
@@ -831,39 +866,6 @@ public abstract class Pane {
                 "Security violation accessing '" + methodName + "' in " + fN, e);
         } catch (ExceptionInInitializerError e) {
             throw new IllegalArgumentException("Class initialization failed for " + fN, e);
-        }
-    }
-
-    /**
-     * Return the {@link FragmentActivity} this pane is currently associated with.
-     *
-     * @throws IllegalStateException if not currently associated with an activity or if associated
-     *                               only with a context.
-     * @see #getActivity()
-     */
-    @NonNull
-    public final FragmentActivity requireActivity() {
-        FragmentActivity activity = getActivity();
-        if (activity == null) {
-            throw new IllegalStateException(this + " not attached to an activity");
-        }
-        return activity;
-    }
-
-    /**
-     * Return the {@link FragmentActivity} this fragment is currently associated with. May return
-     * {@code null} if the fragment is associated with a {@link Context} instead.
-     *
-     * @see #requireActivity()
-     */
-    @Nullable
-    public final FragmentActivity getActivity() {
-        Context c = getContext();
-
-        if (c instanceof FragmentActivity activity) {
-            return activity;
-        } else {
-            return null;
         }
     }
 

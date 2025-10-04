@@ -31,31 +31,6 @@ public class RepoConfig {
         return "";
     }
 
-    public String getPassphrase() {
-        return passphrase;
-    }
-
-    public void setPassphrase(String passphrase) {
-        this.passphrase = passphrase;
-    }
-
-    public File getSshKey() {
-        return sshKey;
-    }
-
-    public void setSshKey(File sshKey) {
-        this.sshKey = sshKey;
-    }
-
-    @NonNull
-    public String getName() {
-        return name == null ? "" : name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public UserConfig getAdministrator() {
         return administrator;
     }
@@ -68,6 +43,31 @@ public class RepoConfig {
         this.contributors = contributors;
     }
 
+    public String getLocalURI() {
+        return localURI;
+    }
+
+    public void setLocalURI(String localURI) {
+        this.localURI = localURI;
+    }
+
+    @NonNull
+    public String getName() {
+        return name == null ? "" : name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPassphrase() {
+        return passphrase;
+    }
+
+    public void setPassphrase(String passphrase) {
+        this.passphrase = passphrase;
+    }
+
     public String getRemoteURI() {
         return remoteURI;
     }
@@ -76,11 +76,11 @@ public class RepoConfig {
         this.remoteURI = remoteURI;
     }
 
-    public String getLocalURI() {
-        return localURI;
+    public File getSshKey() {
+        return sshKey;
     }
 
-    public void setLocalURI(String localURI) {
-        this.localURI = localURI;
+    public void setSshKey(File sshKey) {
+        this.sshKey = sshKey;
     }
 }

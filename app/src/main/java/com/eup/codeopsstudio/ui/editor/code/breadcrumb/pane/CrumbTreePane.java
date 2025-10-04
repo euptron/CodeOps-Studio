@@ -69,50 +69,6 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
     }
 
     @Override
-    protected View onCreateView() {
-        binding = LayoutCrumbTreePaneBinding.inflate(LayoutInflater.from(getContext()));
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view) {
-        super.onViewCreated(view);
-        window = new PopupWindow(getContext());
-
-        window.setWidth(BaseUtil.dp(190));
-        window.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-
-        window.setFocusable(true);
-        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        window.setElevation(5);
-
-        window.setContentView(view);
-        window.showAsDropDown(anchorView);
-        applyBackground();
-    }
-
-    @Override
-    protected void onDestroyView() {
-        super.onDestroyView();
-        window.dismiss();
-        treeView = null;
-        rootNode = null;
-        binding  = null;
-    }
-
-    private void applyBackground() {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setShape(GradientDrawable.RECTANGLE);
-        drawable.setCornerRadius(BaseUtil.dp(4));
-        drawable.setColor(SurfaceColors.SURFACE_1.getColor(requireContext()));
-        drawable.setStroke(1, MaterialColors.getColor(requireContext(),
-            com.google.android.material.R.attr.colorOutline, 0));
-        binding
-            .getRoot()
-            .setBackground(drawable);
-    }
-
-    @Override
     public void onClick(TreeNode node, Object value) {
         File file = (File) value;
 
@@ -133,9 +89,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
     }
 
     public void listNode(@NonNull TreeNode node, Runnable post) {
-        node
-            .getChildren()
-            .clear();
+        node.getChildren().clear();
         node.setExpanded(false);
         AsyncTask.runNonCancelable(() -> {
             addChildrenToNode(node);
@@ -143,9 +97,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
             // expand dir with only 1 folder
             while (parent.size() == 1) {
                 parent = parent.childAt(0);
-                if (!parent
-                    .getValue()
-                    .isDirectory()) {
+                if (!parent.getValue().isDirectory()) {
                     break;
                 }
                 addChildrenToNode(parent);
@@ -196,6 +148,48 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
     @Override
     public boolean onLongClick(TreeNode node, Object value) {
         return true;
+    }
+
+    @Override
+    protected View onCreateView() {
+        binding = LayoutCrumbTreePaneBinding.inflate(LayoutInflater.from(getContext()));
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view) {
+        super.onViewCreated(view);
+        window = new PopupWindow(getContext());
+
+        window.setWidth(BaseUtil.dp(190));
+        window.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+
+        window.setFocusable(true);
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        window.setElevation(5);
+
+        window.setContentView(view);
+        window.showAsDropDown(anchorView);
+        applyBackground();
+    }
+
+    @Override
+    protected void onDestroyView() {
+        super.onDestroyView();
+        window.dismiss();
+        treeView = null;
+        rootNode = null;
+        binding  = null;
+    }
+
+    private void applyBackground() {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setShape(GradientDrawable.RECTANGLE);
+        drawable.setCornerRadius(BaseUtil.dp(4));
+        drawable.setColor(SurfaceColors.SURFACE_1.getColor(requireContext()));
+        drawable.setStroke(1, MaterialColors.getColor(requireContext(),
+            com.google.android.material.R.attr.colorOutline, 0));
+        binding.getRoot().setBackground(drawable);
     }
 
     public void setPath(@NonNull String path) {

@@ -78,9 +78,7 @@ public abstract class AbstractFragment extends Fragment implements MenuProvider 
             }
         };
 
-        view
-            .getViewTreeObserver()
-            .addOnGlobalLayoutListener(layoutListener);
+        view.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
 
         // Add a safety check in case the layout listener doesn't fire
         view.post(() -> {
@@ -134,12 +132,8 @@ public abstract class AbstractFragment extends Fragment implements MenuProvider 
             return null;
         }
 
-        return BaseUtil
-            .newSnackBarBuilder()
-            .setMessage(message)
-            .setView(getBinding().getRoot())
-            .setMessageMaxLines(6)
-            .setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
+        return BaseUtil.newSnackBarBuilder().setMessage(message).setView(getBinding().getRoot())
+                       .setMessageMaxLines(6).setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
     }
 
     private void safelyRemoveLayoutListener(View view) {

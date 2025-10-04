@@ -776,8 +776,8 @@ public class BinaryFileChecker {
      * @return true if the file is likely binary, false otherwise
      * @throws IOException if an I/O error occurs while reading the file
      */
-    public static boolean isBinaryFile(File file, boolean useStrictPolicy, final int bufferSize) throws
-                                                                                                 IOException {
+    public static boolean isBinaryFile(File file, boolean useStrictPolicy,
+        final int bufferSize) throws IOException {
         if (file == null || file.isDirectory() || !file.exists()) {
             throw new IllegalArgumentException(
                 "Provided file is either invalid, a directory, or " + "does not exist");

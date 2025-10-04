@@ -90,35 +90,13 @@ public class Log {
      * @param message log message
      */
     public Log(CharSequence date, int icon, CharSequence tag, CharSequence level,
-               CharSequence message) {
+        CharSequence message) {
         mDateFormat = date;
         mIcon       = icon;
         mTag        = tag;
         mLogLevel   = level;
         mMessage    = message;
         this.id     = generateUUID();
-    }
-
-    public int getIcon() {
-        return mIcon;
-    }
-
-    public UUID getID() {
-        return this.id;
-    }
-
-    protected UUID generateUUID() {
-        UUID generatedId = UUID.randomUUID();
-        if (isUniqueId(generatedId)) {
-            generatedIds.add(generatedId);
-            return generatedId;
-        } else {
-            return generateUUID();
-        }
-    }
-
-    private boolean isUniqueId(UUID id) {
-        return !generatedIds.contains(id);
     }
 
     @Override
@@ -150,5 +128,27 @@ public class Log {
 
     public CharSequence getLevel() {
         return mLogLevel;
+    }
+
+    public UUID getID() {
+        return this.id;
+    }
+
+    public int getIcon() {
+        return mIcon;
+    }
+
+    protected UUID generateUUID() {
+        UUID generatedId = UUID.randomUUID();
+        if (isUniqueId(generatedId)) {
+            generatedIds.add(generatedId);
+            return generatedId;
+        } else {
+            return generateUUID();
+        }
+    }
+
+    private boolean isUniqueId(UUID id) {
+        return !generatedIds.contains(id);
     }
 }

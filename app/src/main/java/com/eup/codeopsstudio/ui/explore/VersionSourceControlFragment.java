@@ -38,13 +38,9 @@ public class VersionSourceControlFragment extends Fragment {
     public static final String TAG = VersionSourceControlFragment.class.getSimpleName();
     private FragmentVscBinding binding;
 
-    public static VersionSourceControlFragment newInstance() {
-        return new VersionSourceControlFragment();
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
         binding = FragmentVscBinding.inflate(inflater, viewgroup, false);
         return binding.getRoot();
     }
@@ -53,5 +49,9 @@ public class VersionSourceControlFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         this.binding = null;
+    }
+
+    public static VersionSourceControlFragment newInstance() {
+        return new VersionSourceControlFragment();
     }
 }

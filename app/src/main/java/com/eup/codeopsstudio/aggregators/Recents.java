@@ -83,12 +83,57 @@ public class Recents {
                 Context.MODE_PRIVATE);
     }
 
+    public Context getContext() {
+        return context;
+    }
+
+    public List<Project> getRecentProjects() {
+        ArrayList<Project> loadedRecents = getRecentProjectsInternal();
+        List<Project> validAndExistingRecents = new ArrayList<>();
+        boolean listModified = false;
+
+        for (Project p : loadedRecents) {
+            if (p == null) {
+                ILog.warning(TAG, "Skipping null project or project with null file in recents.");
+                listModified = true;
+                continue;
+            }
+
+            File projectFile = p.getFile();
+            if (projectFile.isAbsolute() && projectFile.exists()) {
+                validAndExistingRecents.add(p);
+            } else {
+                ILog.debug(TAG,
+                    "Recent project does not exist or path is invalid, removing from " + "list:"
+                        + " " + p.getPath());
+                listModified = true;
+            }
+        }
+
+        // If the list was modified due to non-existent or invalid projects, save the cleaned list
+        if (listModified) {
+            ILog.debug(TAG,
+                "Cleaning up SharedPreferences from non-existent or invalid recent " + "projects.");
+            saveRecentProjects(validAndExistingRecents);
+        }
+
+        return Collections.unmodifiableList(validAndExistingRecents);
+    }
+
+    public SharedPreferences getSharedPreferences() {
+        return this.sharedPreferences;
+    }
+
     public static Recents initialize(@NonNull Context context) {
         return new Recents(context);
     }
 
-    public Context getContext() {
-        return context;
+    public void recordFileCreation(@NonNull File file) {
+        set(file, createHistory(FileAction.CREATE_FILE));
+    }
+
+    public void recordFileOpening(@NonNull File file) {
+        set(file, createHistory(FileAction.OPEN_FILE));
     }
 
     public void recordFolderCreation(@NonNull File file) {
@@ -118,8 +163,8 @@ public class Recents {
         }
 
         if (!projectFile.isAbsolute()) {
-            ILog.error(TAG,
-                "Cannot record recent entry: File path is not absolute. File: " + projectFile.getPath());
+            ILog.error(TAG, "Cannot record recent entry: File path is not absolute. File: "
+                + projectFile.getPath());
             try {
                 projectFile = projectFile.getAbsoluteFile();
             } catch (Exception e) {
@@ -160,10 +205,9 @@ public class Recents {
             Gson gson = FileTypeAdapter.createFileAwareGson();
 
             String newJson = gson.toJson(recents);
-            sharedPreferences
-                .edit()
-                .putString(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS, newJson)
-                .apply();
+            sharedPreferences.edit()
+                             .putString(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS, newJson)
+                             .apply();
         } catch (Exception e) {
             ILog.error(TAG, "Error saving recent projects to JSON", e);
         }
@@ -198,18 +242,7 @@ public class Recents {
 
     private void clearAndSaveInvalidRecents() {
         ILog.warning(TAG, "Clearing corrupted recent projects from SharedPreferences.");
-        sharedPreferences
-            .edit()
-            .remove(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS)
-            .apply();
-    }
-
-    public void recordFileCreation(@NonNull File file) {
-        set(file, createHistory(FileAction.CREATE_FILE));
-    }
-
-    public void recordFileOpening(@NonNull File file) {
-        set(file, createHistory(FileAction.OPEN_FILE));
+        sharedPreferences.edit().remove(Constants.SharedPreferenceKeys.KEY_RECENT_PROJECTS).apply();
     }
 
     public void remove(@NonNull Project projectToRemove) {
@@ -223,42 +256,5 @@ public class Recents {
             ILog.debug(TAG,
                 "Project not found in recents for removal: " + projectToRemove.getPath());
         }
-    }
-
-    public List<Project> getRecentProjects() {
-        ArrayList<Project> loadedRecents = getRecentProjectsInternal();
-        List<Project> validAndExistingRecents = new ArrayList<>();
-        boolean listModified = false;
-
-        for (Project p : loadedRecents) {
-            if (p == null) {
-                ILog.warning(TAG, "Skipping null project or project with null file in recents.");
-                listModified = true;
-                continue;
-            }
-
-            File projectFile = p.getFile();
-            if (projectFile.isAbsolute() && projectFile.exists()) {
-                validAndExistingRecents.add(p);
-            } else {
-                ILog.debug(TAG,
-                    "Recent project does not exist or path is invalid, removing from " + "list:"
-                        + " " + p.getPath());
-                listModified = true;
-            }
-        }
-
-        // If the list was modified due to non-existent or invalid projects, save the cleaned list
-        if (listModified) {
-            ILog.debug(TAG,
-                "Cleaning up SharedPreferences from non-existent or invalid recent " + "projects.");
-            saveRecentProjects(validAndExistingRecents);
-        }
-
-        return Collections.unmodifiableList(validAndExistingRecents);
-    }
-
-    public SharedPreferences getSharedPreferences() {
-        return this.sharedPreferences;
     }
 }

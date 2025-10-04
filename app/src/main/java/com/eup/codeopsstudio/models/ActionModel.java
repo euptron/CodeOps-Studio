@@ -84,40 +84,6 @@ public class ActionModel {
         this(drawable, title, null);
     }
 
-    public int getIcon() {
-        return this.icon;
-    }
-
-    public void setIcon(int icon) {
-        this.icon = icon;
-    }
-
-    public Drawable getDrawable() {
-        return drawable;
-    }
-
-    public void setDrawable(Drawable drawable) {
-        this.drawable = drawable;
-    }
-
-    public UUID getID() {
-        return this.id;
-    }
-
-    protected UUID generateUUID() {
-        UUID generatedId = UUID.randomUUID();
-        if (isUniqueId(generatedId)) {
-            generatedIds.add(generatedId);
-            return generatedId;
-        } else {
-            return generateUUID();
-        }
-    }
-
-    private boolean isUniqueId(UUID id) {
-        return !generatedIds.contains(id);
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(buttonText, drawable, summary, title);
@@ -140,12 +106,32 @@ public class ActionModel {
             + '}';
     }
 
-    public String getTitle() {
-        return this.title;
+    public String getButtonText() {
+        return this.buttonText;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setButtonText(String text) {
+        this.buttonText = text;
+    }
+
+    public Drawable getDrawable() {
+        return drawable;
+    }
+
+    public void setDrawable(Drawable drawable) {
+        this.drawable = drawable;
+    }
+
+    public UUID getID() {
+        return this.id;
+    }
+
+    public int getIcon() {
+        return this.icon;
+    }
+
+    public void setIcon(int icon) {
+        this.icon = icon;
     }
 
     public String getSummary() {
@@ -156,11 +142,25 @@ public class ActionModel {
         this.summary = summary;
     }
 
-    public String getButtonText() {
-        return this.buttonText;
+    public String getTitle() {
+        return this.title;
     }
 
-    public void setButtonText(String text) {
-        this.buttonText = text;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    protected UUID generateUUID() {
+        UUID generatedId = UUID.randomUUID();
+        if (isUniqueId(generatedId)) {
+            generatedIds.add(generatedId);
+            return generatedId;
+        } else {
+            return generateUUID();
+        }
+    }
+
+    private boolean isUniqueId(UUID id) {
+        return !generatedIds.contains(id);
     }
 }

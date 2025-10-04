@@ -38,22 +38,14 @@ public class ChangelogItem {
     private boolean supportsHtml = false;
     private ReleaseType releaseType;
 
-    public ChangelogItem(String version, String description, long releaseDate,
-                         boolean isVersioned, ReleaseType releaseType) {
+    public ChangelogItem(String version, String description, long releaseDate, boolean isVersioned,
+        ReleaseType releaseType) {
         this.version     = version;
         this.description = description;
         this.releaseDate = releaseDate;
         this.isVersioned = isVersioned;
         this.isExpanded  = isExpanded;
         this.releaseType = releaseType;
-    }
-
-    public String getVersionName() {
-        return this.version.trim();
-    }
-
-    public void setVersionName(String version) {
-        this.version = version;
     }
 
     public String getDescription() {
@@ -64,6 +56,14 @@ public class ChangelogItem {
         this.description = description;
     }
 
+    public boolean getIsExpanded() {
+        return this.isExpanded;
+    }
+
+    public void setIsExpanded(boolean isExpanded) {
+        this.isExpanded = isExpanded;
+    }
+
     public long getReleaseDate() {
         return this.releaseDate;
     }
@@ -72,20 +72,12 @@ public class ChangelogItem {
         this.releaseDate = releaseDate;
     }
 
-    public boolean hasVersionName() {
-        return this.isVersioned;
+    public ReleaseType getReleaseType() {
+        return this.releaseType;
     }
 
-    public void hasVersionName(boolean isVersioned) {
-        this.isVersioned = isVersioned;
-    }
-
-    public boolean getIsExpanded() {
-        return this.isExpanded;
-    }
-
-    public void setIsExpanded(boolean isExpanded) {
-        this.isExpanded = isExpanded;
+    public void setReleaseType(ReleaseType releaseType) {
+        this.releaseType = releaseType;
     }
 
     public boolean getSupportsHtml() {
@@ -96,12 +88,20 @@ public class ChangelogItem {
         this.supportsHtml = supportsHtml;
     }
 
-    public ReleaseType getReleaseType() {
-        return this.releaseType;
+    public String getVersionName() {
+        return this.version.trim();
     }
 
-    public void setReleaseType(ReleaseType releaseType) {
-        this.releaseType = releaseType;
+    public void setVersionName(String version) {
+        this.version = version;
+    }
+
+    public void hasVersionName(boolean isVersioned) {
+        this.isVersioned = isVersioned;
+    }
+
+    public boolean hasVersionName() {
+        return this.isVersioned;
     }
 
     /**
@@ -144,6 +144,11 @@ public class ChangelogItem {
             this.releaseName = releaseName;
         }
 
+        @Override
+        public String toString() {
+            return releaseName;
+        }
+
         public static ReleaseType get(String name) {
             if (name == null) return ALPHA;
 
@@ -153,11 +158,6 @@ public class ChangelogItem {
                 }
             }
             return ALPHA;
-        }
-
-        @Override
-        public String toString() {
-            return releaseName;
         }
     }
 }

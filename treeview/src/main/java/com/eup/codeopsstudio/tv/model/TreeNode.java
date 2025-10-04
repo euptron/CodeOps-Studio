@@ -71,20 +71,6 @@ public class TreeNode {
         mValue   = value;
     }
 
-    public static TreeNode root() {
-        return root(null);
-    }
-
-    public static TreeNode root(File value) {
-        TreeNode root = new TreeNode(value);
-        root.setSelectable(false);
-        return root;
-    }
-
-    private static int getType(File o) {
-        return o.isDirectory() ? 1 : 2;
-    }
-
     public TreeNode addChildren(TreeNode... nodes) {
         for (TreeNode n : nodes) {
             addChild(n);
@@ -135,50 +121,36 @@ public class TreeNode {
             : children;
     }
 
+    public TreeNodeClickListener getClickListener() {
+        return this.mClickListener;
+    }
+
+    public TreeNode setClickListener(TreeNodeClickListener listener) {
+        mClickListener = listener;
+        return this;
+    }
+
+    public int getLevel() {
+        int level = 0;
+        TreeNode root = this;
+        while (root.mParent != null) {
+            root = root.mParent;
+            level++;
+        }
+        return level;
+    }
+
+    public TreeNodeLongClickListener getLongClickListener() {
+        return mLongClickListener;
+    }
+
+    public TreeNode setLongClickListener(TreeNodeLongClickListener listener) {
+        mLongClickListener = listener;
+        return this;
+    }
+
     public TreeNode getParent() {
         return mParent;
-    }
-
-    public boolean isLeaf() {
-        return size() == 0;
-    }
-
-    public int size() {
-        return children == null ? 0 : children.size();
-    }
-
-    public File getValue() {
-        return mValue;
-    }
-
-    public TreeNode setValue(File value) {
-        this.mValue = value;
-        return this;
-    }
-
-    public boolean isExpanded() {
-        return mExpanded;
-    }
-
-    public TreeNode setExpanded(boolean expanded) {
-        mExpanded = expanded;
-        return this;
-    }
-
-    public boolean isSelected() {
-        return mSelectable && mSelected;
-    }
-
-    public void setSelected(boolean selected) {
-        mSelected = selected;
-    }
-
-    public boolean isSelectable() {
-        return mSelectable;
-    }
-
-    public void setSelectable(boolean selectable) {
-        mSelectable = selectable;
     }
 
     public String getPath() {
@@ -198,14 +170,50 @@ public class TreeNode {
         return mId;
     }
 
-    public int getLevel() {
-        int level = 0;
+    public TreeNode getRoot() {
         TreeNode root = this;
         while (root.mParent != null) {
             root = root.mParent;
-            level++;
         }
-        return level;
+        return root;
+    }
+
+    public File getValue() {
+        return mValue;
+    }
+
+    public TreeNode setValue(File value) {
+        this.mValue = value;
+        return this;
+    }
+
+    public BaseNodeViewHolder getViewHolder() {
+        return mViewHolder;
+    }
+
+    public TreeNode setViewHolder(BaseNodeViewHolder viewHolder) {
+        mViewHolder = viewHolder;
+        if (viewHolder != null) {
+            viewHolder.mNode = this;
+        }
+        return this;
+    }
+
+    public boolean isExpanded() {
+        return mExpanded;
+    }
+
+    public TreeNode setExpanded(boolean expanded) {
+        mExpanded = expanded;
+        return this;
+    }
+
+    public boolean isFirstChild() {
+        if (!isRoot()) {
+            List<TreeNode> parentChildren = mParent.children;
+            return parentChildren.get(0).mId == mId;
+        }
+        return false;
     }
 
     public boolean isLastChild() {
@@ -223,50 +231,42 @@ public class TreeNode {
         return mParent == null;
     }
 
-    public TreeNodeClickListener getClickListener() {
-        return this.mClickListener;
+    public boolean isLeaf() {
+        return size() == 0;
     }
 
-    public TreeNode setClickListener(TreeNodeClickListener listener) {
-        mClickListener = listener;
-        return this;
+    public int size() {
+        return children == null ? 0 : children.size();
     }
 
-    public TreeNodeLongClickListener getLongClickListener() {
-        return mLongClickListener;
+    public boolean isSelectable() {
+        return mSelectable;
     }
 
-    public TreeNode setLongClickListener(TreeNodeLongClickListener listener) {
-        mLongClickListener = listener;
-        return this;
+    public boolean isSelected() {
+        return mSelectable && mSelected;
     }
 
-    public BaseNodeViewHolder getViewHolder() {
-        return mViewHolder;
+    public void setSelected(boolean selected) {
+        mSelected = selected;
     }
 
-    public TreeNode setViewHolder(BaseNodeViewHolder viewHolder) {
-        mViewHolder = viewHolder;
-        if (viewHolder != null) {
-            viewHolder.mNode = this;
-        }
-        return this;
+    public static TreeNode root() {
+        return root(null);
     }
 
-    public boolean isFirstChild() {
-        if (!isRoot()) {
-            List<TreeNode> parentChildren = mParent.children;
-            return parentChildren.get(0).mId == mId;
-        }
-        return false;
-    }
-
-    public TreeNode getRoot() {
-        TreeNode root = this;
-        while (root.mParent != null) {
-            root = root.mParent;
-        }
+    public static TreeNode root(File value) {
+        TreeNode root = new TreeNode(value);
+        root.setSelectable(false);
         return root;
+    }
+
+    public void setSelectable(boolean selectable) {
+        mSelectable = selectable;
+    }
+
+    private static int getType(File o) {
+        return o.isDirectory() ? 1 : 2;
     }
 
     public interface TreeNodeClickListener {
@@ -286,14 +286,6 @@ public class TreeNode {
 
         public BaseNodeViewHolder(Context context) {
             this.context = context;
-        }
-
-        public void setTreeViev(AndroidTreeView treeViev) {
-            this.tView = treeViev;
-        }
-
-        public AndroidTreeView getTreeView() {
-            return tView;
         }
 
         public ViewGroup getNodeItemsView() {
@@ -327,8 +319,16 @@ public class TreeNode {
             containerStyle = style;
         }
 
+        public AndroidTreeView getTreeView() {
+            return tView;
+        }
+
         public boolean isInitialized() {
             return mView != null;
+        }
+
+        public void setTreeViev(AndroidTreeView treeViev) {
+            this.tView = treeViev;
         }
 
         public void toggle(boolean active) {

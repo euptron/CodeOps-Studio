@@ -25,12 +25,15 @@ package com.eup.codeopsstudio.ui.editor.code;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.Editable;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.util.Pair;
 
 import com.eup.codeopsstudio.R;
@@ -39,6 +42,7 @@ import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
+import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.LayoutCodeEditorBinding;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
@@ -93,6 +97,11 @@ import io.github.rosemoe.sora.event.SelectionChangeEvent;
 public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String TAG = "CodeEditorPane";
+    public static final String KEY_LEFT_COLUMN = "left_column";
+    public static final String KEY_LEFT_LINE = "left_line";
+    public static final String KEY_FILE_PATH = "file_path";
+    public static final String KEY_FILE_EXTENSION = "file_extension";
+    public static final String KEY_EDITOR_CONTENT = "editor_content";
     private static final String LANG_SCOPE_PATH = "editor/textmate/language_scopes.json";
     private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
     private final Logger logger = new Logger(Logger.LogClass.IDE);
@@ -121,9 +130,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
         logger.attach(requireActivity());
-        PreferencesUtils
-            .getDefaultPreferences()
-            .registerOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
 
         searchManager = new SearchManager(requireContext(), binding);
         searchManager.applyPanelClickListeners();
@@ -133,9 +140,8 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
         binding.breadCrumbBar.setFile(mEditorFile);
         if (binding.breadCrumbBar.getAdapter() != null) {
-            binding.breadCrumbBar
-                .getAdapter()
-                .setOnItemClickListener((anchorView, crumb, position) -> new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
+            binding.breadCrumbBar.getAdapter()
+                                 .setOnItemClickListener((anchorView, crumb, position) -> new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
         }
 
         setLoading(true);
@@ -173,9 +179,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        PreferencesUtils
-            .getDefaultPreferences()
-            .unregisterOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
         binding.editor.release();
         binding = null;
     }
@@ -190,13 +194,11 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public void persist() {
         super.persist();
         var cursor = binding.editor.getCursor();
-        addArguments("left_column", cursor.getLeftColumn());
-        addArguments("left_line", cursor.getLeftLine());
-        addArguments("file_path", mEditorFile.getAbsolutePath());
-        addArguments("file_extension", extension);
-        addArguments("editor_content", binding.editor
-            .getText()
-            .toString());
+        addArguments(KEY_LEFT_COLUMN, cursor.getLeftColumn());
+        addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
+        addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
+        addArguments(KEY_FILE_EXTENSION, extension);
+        addArguments(KEY_EDITOR_CONTENT, binding.editor.getText().toString());
     }
 
     public BaseUtil.SnackBarBuilder showSnackBarInternal(@NonNull String message) {
@@ -205,12 +207,8 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             return null;
         }
 
-        return BaseUtil
-            .newSnackBarBuilder()
-            .setMessage(message)
-            .setView(binding.editor)
-            .setMessageMaxLines(6)
-            .setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
+        return BaseUtil.newSnackBarBuilder().setMessage(message).setView(binding.editor)
+                       .setMessageMaxLines(6).setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
     }
 
     @Override
@@ -312,38 +310,49 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
         var hint = String.format("%s...%s", 1, totalLineCount);
         final var inflate = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
-
-        var dialog = new MaterialAlertDialogBuilder(Objects.requireNonNull(getContext()));
-        dialog.setView(inflate.getRoot());
-        dialog.setTitle(R.string.menu_jump_to_line);
-        dialog.setNegativeButton(R.string.cancel, null);
-        dialog.setCancelable(false);
-
         inflate.tilName.setHint(hint);
-        Objects
-            .requireNonNull(inflate.tilName.getEditText())
-            .setInputType(InputType.TYPE_CLASS_NUMBER);
+        Objects.requireNonNull(inflate.tilName.getEditText())
+               .setInputType(InputType.TYPE_CLASS_NUMBER);
 
-        dialog.setOnDismissListener(di -> {
-            var str = inflate.tilName
-                .getEditText()
-                .getText()
-                .toString();
-            if (!Wizard.isEmpty(str) && Integer.parseInt(str) <= totalLineCount) {
-                di.dismiss();
+        var builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setView(inflate.getRoot());
+        builder.setTitle(R.string.menu_jump_to_line);
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.setCancelable(false);
+
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(d -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            positiveButton.setEnabled(false);
+
+            if (inflate.tilName.getEditText() != null) {
+                inflate.tilName.getEditText().addTextChangedListener(new TextWatcherAdapter() {
+                    @Override
+                    public void afterTextChanged(@NonNull Editable editable) {
+                        if (Wizard.isEmpty(editable.toString())) return;
+
+                        var lineToJump = Integer.parseInt(editable.toString());
+
+                        if (lineToJump < totalLineCount || lineToJump > totalLineCount) {
+                            positiveButton.setEnabled(false);
+                            inflate.tilName.setError(getString(R.string.msg_invalid_jump_line));
+                            inflate.tilName.setErrorEnabled(true);
+                            inflate.tilName.getEditText().requestFocus();
+                        } else {
+                            positiveButton.setEnabled(true);
+                            inflate.tilName.setErrorEnabled(false);
+                        }
+                    }
+                });
             }
-        });
-        dialog.setPositiveButton(R.string.ok, (d, which) -> {
-            var lineToJump = Integer.parseInt(inflate.tilName
-                .getEditText()
-                .getText()
-                .toString());
-            if (lineToJump > totalLineCount) {
-                inflate.tilName.setError(getString(R.string.msg_invalid_jump_line));
-            } else {
-                inflate.tilName.setErrorEnabled(false);
-                binding.editor.jumpToLine((lineToJump == 0) ? lineToJump : lineToJump - 1);
-            }
+
+            positiveButton.setOnClickListener(v -> {
+                if (inflate.tilName.getEditText() != null) {
+                    var jumpText = inflate.tilName.getEditText().getText().toString();
+                    var lineToJump = Wizard.isEmpty(jumpText) ? 0 : Integer.parseInt(jumpText);
+                    binding.editor.jumpToLine((lineToJump == 0) ? lineToJump : lineToJump - 1);
+                }
+            });
         });
         dialog.show();
     }
@@ -354,6 +363,10 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
     public void setFile(File file) {
         this.mEditorFile = file;
+    }
+
+    public String getFilePath() {
+        return mEditorFile.getAbsolutePath();
     }
 
     public SearchManager getSearchManager() {
@@ -414,9 +427,8 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                 logger.i(TAG, "File recreated for " + getTitle() + " editor");
             }
 
-            fileOperationsManager.saveEditorContent(mEditorFile, binding.editor
-                .getText()
-                .toString());
+            fileOperationsManager.saveEditorContent(mEditorFile, binding.editor.getText()
+                                                                               .toString());
             return null;
         }, (result, throwable) -> {
             if (throwable == null) {
@@ -438,9 +450,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
     public void setModified(boolean modified) {
         isModified = modified;
-        EventBus
-            .getDefault()
-            .post(new EditorModificationEvent(modified));
+        EventBus.getDefault().post(new EditorModificationEvent(modified));
     }
 
     public void undo() {
@@ -477,9 +487,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             }
 
             AsyncTask.runNonCancelable(() -> {
-                String editorContent = binding.editor
-                    .getText()
-                    .toString();
+                String editorContent = binding.editor.getText().toString();
                 int bufferSize = PreferencesUtils.getCurrentBufferSize();
                 var cs = EncodingDetector.detectFileEncoding(bufferSize, mEditorFile);
                 var originalFileContent = FileUtils.readFileToString(mEditorFile, cs);

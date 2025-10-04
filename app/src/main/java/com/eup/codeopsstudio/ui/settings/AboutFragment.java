@@ -52,10 +52,6 @@ public class AboutFragment extends Fragment {
     public static final String TAG = AboutFragment.class.getSimpleName();
     private FragmentAboutBinding binding;
 
-    public static AboutFragment newInstance() {
-        return new AboutFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,9 +91,7 @@ public class AboutFragment extends Fragment {
                             BaseUtil.openUrlOutsideActivity(Constants.FACEBOOK_URL);
                         }
                         dialog.dismiss();
-                    })
-                    .setCancelable(true)
-                    .show();
+                    }).setCancelable(true).show();
             } else if (pos == AboutAdapter.OPEN_SOURCE_LICENCES) {
                 OssLicensesMenuActivity.setActivityTitle(getString(R.string.open_source_licences));
                 startActivity(new Intent(requireContext(), OssLicensesMenuActivity.class));
@@ -113,5 +107,9 @@ public class AboutFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         this.binding = null;
+    }
+
+    public static AboutFragment newInstance() {
+        return new AboutFragment();
     }
 }

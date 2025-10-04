@@ -48,6 +48,25 @@ public class CrashActivity extends AppCompatActivity {
     private ActivityCrashBinding binding;
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        var close = menu.add(getString(R.string.close));
+        close.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        close.setIcon(AppCompatResources.getDrawable(this, R.drawable.ic_close));
+        close.setContentDescription(getString(R.string.close_app));
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        CharSequence title = item.getTitle();
+        if (title != null && title.equals(getString(R.string.close))) {
+            getOnBackPressedDispatcher().onBackPressed();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityCrashBinding.inflate(getLayoutInflater());
@@ -83,25 +102,6 @@ public class CrashActivity extends AppCompatActivity {
             Process.killProcess(Process.myPid());
             System.exit(0);
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        var close = menu.add(getString(R.string.close));
-        close.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        close.setIcon(AppCompatResources.getDrawable(this, R.drawable.ic_close));
-        close.setContentDescription(getString(R.string.close_app));
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        CharSequence title = item.getTitle();
-        if (title != null && title.equals(getString(R.string.close))) {
-            getOnBackPressedDispatcher().onBackPressed();
-            return true;
-        }
-        return false;
     }
 
     @Override

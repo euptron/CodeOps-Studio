@@ -60,13 +60,9 @@ public class FileWatcherServiceConnection implements ServiceConnection {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         boundService = ((FileWatcherService.LocalBinder) service).getService();
-        boundService
-            .getBinder()
-            .addListener(listener);
+        boundService.getBinder().addListener(listener);
         if (fileToWatch != null) {
-            boundService
-                .getBinder()
-                .startMonitoring(fileToWatch);
+            boundService.getBinder().startMonitoring(fileToWatch);
         }
         isConnected = true;
     }
@@ -74,24 +70,20 @@ public class FileWatcherServiceConnection implements ServiceConnection {
     @Override
     public void onServiceDisconnected(ComponentName name) {
         if (boundService != null) {
-            boundService
-                .getBinder()
-                .removeListener(listener);
-            boundService
-                .getBinder()
-                .stopMonitoring();
+            boundService.getBinder().removeListener(listener);
+            boundService.getBinder().stopMonitoring();
             boundService = null;
         }
         isConnected = false;
     }
 
-    public void setFileToWatch(File file) {
-        this.fileToWatch = file;
-        if (isConnected && boundService != null) {
-            boundService
-                .getBinder()
-                .startMonitoring(file); // already connected (post-bound)
-        }
+    /**
+     * Gets the bound instance of {@link FileWatcherService}.
+     *
+     * @return The bound service instance, or {@code null} if not connected.
+     */
+    public FileWatcherService getBoundService() {
+        return this.boundService;
     }
 
     public File getMonitoredFile() {
@@ -102,12 +94,10 @@ public class FileWatcherServiceConnection implements ServiceConnection {
         return this.isConnected;
     }
 
-    /**
-     * Gets the bound instance of {@link FileWatcherService}.
-     *
-     * @return The bound service instance, or {@code null} if not connected.
-     */
-    public FileWatcherService getBoundService() {
-        return this.boundService;
+    public void setFileToWatch(File file) {
+        this.fileToWatch = file;
+        if (isConnected && boundService != null) {
+            boundService.getBinder().startMonitoring(file); // already connected (post-bound)
+        }
     }
 }

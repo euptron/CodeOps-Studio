@@ -38,13 +38,9 @@ public class DiagnosticsFragment extends Fragment {
     public static final String TAG = DiagnosticsFragment.class.getSimpleName();
     private FragmentDiagnosticsBinding binding;
 
-    public static DiagnosticsFragment newInstance() {
-        return new DiagnosticsFragment();
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
         binding = FragmentDiagnosticsBinding.inflate(inflater, viewgroup, false);
         return binding.getRoot();
     }
@@ -53,5 +49,9 @@ public class DiagnosticsFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         this.binding = null;
+    }
+
+    public static DiagnosticsFragment newInstance() {
+        return new DiagnosticsFragment();
     }
 }

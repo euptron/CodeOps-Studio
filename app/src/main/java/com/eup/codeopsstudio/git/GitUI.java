@@ -111,14 +111,12 @@ public class GitUI {
         positiveButton.setEnabled(false);
 
         if (inputBinding.tilOther.getEditText() != null) {
-            inputBinding.tilOther
-                .getEditText()
-                .addTextChangedListener(new TextWatcherAdapter() {
-                    @Override
-                    public void afterTextChanged(@NonNull Editable editable) {
-                        validatePathExistence(positiveButton, editable);
-                    }
-                });
+            inputBinding.tilOther.getEditText().addTextChangedListener(new TextWatcherAdapter() {
+                @Override
+                public void afterTextChanged(@NonNull Editable editable) {
+                    validatePathExistence(positiveButton, editable);
+                }
+            });
         }
         positiveButton.setOnClickListener(v -> startCloneOperation(dialog));
     }
@@ -150,10 +148,9 @@ public class GitUI {
 
     @Nullable
     private String getUrl() {
-        return inputBinding.tilName.getEditText() != null ? inputBinding.tilName
-            .getEditText()
-            .getText()
-            .toString() : null;
+        return inputBinding.tilName.getEditText() != null ? inputBinding.tilName.getEditText()
+                                                                                .getText()
+                                                                                .toString() : null;
     }
 
     private void requestFocus(@Nullable EditText editText) {
@@ -184,19 +181,19 @@ public class GitUI {
         }
 
         String url = getUrl();
-        if (url == null){
+        if (url == null) {
             ILog.debug(TAG, "Aborting since url == null");
             return;
         }
         String directory = getPath();
 
         Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        EditText saveLocationEditText =inputBinding.tilOther.getEditText();
+        EditText saveLocationEditText = inputBinding.tilOther.getEditText();
 
-         if (saveLocationEditText == null){
-             ILog.debug(TAG, "Aborting since SaveLocation edittext == null");
-             return;
-         }
+        if (saveLocationEditText == null) {
+            ILog.debug(TAG, "Aborting since SaveLocation edittext == null");
+            return;
+        }
         Editable editable = saveLocationEditText.getText();
 
         if (validatePathExistence(positiveButton, editable)) return;
@@ -215,12 +212,10 @@ public class GitUI {
         logSheetBinding.loggingList.setAdapter(logAdapter);
         sheetDialog.show();
 
-        model
-            .getIDELogs()
-            .observe(lifecycleOwner, data -> {
-                logAdapter.submitList(data);
-                scrollToLastItem();
-            });
+        model.getIDELogs().observe(lifecycleOwner, data -> {
+            logAdapter.submitList(data);
+            scrollToLastItem();
+        });
 
         CloneListener listener = new CloneListener() {
             @Override
@@ -235,23 +230,21 @@ public class GitUI {
                 AsyncTask.runOnUiThread(() -> {
                     new MaterialAlertDialogBuilder(context)
                         .setTitle(context.getString(R.string.msg_failed_to_clone_git_repo))
-                        .setMessage(e)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .setCancelable(false)
-                        .show();
+                        .setMessage(e).setPositiveButton(android.R.string.ok, null)
+                        .setCancelable(false).show();
                     logger.e(TAG, context.getString(R.string.msg_failed_to_clone_git_repo) + " ["
                         + context.getString(R.string.cause) + "] " + e);
                 });
             }
 
             @Override
-            public void onUpdateMessage(String message) {
-                AsyncTask.runOnUiThread(() -> logger.d(TAG, message));
+            public void onProgress(int progress) {
+                AsyncTask.runOnUiThread(() -> logSheetBinding.progressbar.setProgressCompat(progress, true));
             }
 
             @Override
-            public void onProgress(int progress) {
-                AsyncTask.runOnUiThread(() -> logSheetBinding.progressbar.setProgressCompat(progress, true));
+            public void onUpdateMessage(String message) {
+                AsyncTask.runOnUiThread(() -> logger.d(TAG, message));
             }
         };
 
@@ -280,9 +273,7 @@ public class GitUI {
             if (throwable != null) {
                 listener.onCloneFailed(throwable.getMessage());
             } else if (result != null) {
-                var repoName = cloneTask
-                    .getRepoConfig()
-                    .getName();
+                var repoName = cloneTask.getRepoConfig().getName();
                 var repoLocalPath = output.getAbsolutePath();
                 var msg = context.getString(R.string.msg_git_clone_success, repoName,
                     repoLocalPath);
@@ -305,10 +296,10 @@ public class GitUI {
 
     @Nullable
     private String getPath() {
-        return inputBinding.tilOther.getEditText() != null ? inputBinding.tilOther
-            .getEditText()
-            .getText()
-            .toString() : null;
+        return inputBinding.tilOther.getEditText() != null ? inputBinding.tilOther.getEditText()
+                                                                                  .getText()
+                                                                                  .toString()
+            : null;
     }
 
     private boolean isValidUrl() {
@@ -340,9 +331,7 @@ public class GitUI {
 
     private void openFolderPicker() {
         MainActivity mainActivity = (MainActivity) activity;
-        mainActivity
-            .getLifecycleObserver()
-            .pickFolder();
+        mainActivity.getLifecycleObserver().pickFolder();
     }
 
     private void setupValidation(@NonNull MaterialAlertDialogBuilder builder) {
@@ -360,9 +349,7 @@ public class GitUI {
 
     private void handlePickedFolder(@NonNull File file) {
         String folderPath = file.getAbsolutePath();
-        Objects
-            .requireNonNull(inputBinding.tilOther.getEditText())
-            .setText(folderPath);
+        Objects.requireNonNull(inputBinding.tilOther.getEditText()).setText(folderPath);
         logger.d(TAG, context.getString(R.string.folder_selection_success));
     }
 

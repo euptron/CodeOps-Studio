@@ -42,15 +42,9 @@ public class BatchProgressMonitor extends BatchingProgressMonitor {
     private static final String SECONDS;
 
     static {
-        COMPLETE     = IdeApplication
-            .getInstance()
-            .getString(R.string.complete);
-        COMPLETED_IN = IdeApplication
-            .getInstance()
-            .getString(R.string.completed_in);
-        SECONDS      = IdeApplication
-            .getInstance()
-            .getString(R.string.seconds);
+        COMPLETE     = IdeApplication.getInstance().getString(R.string.complete);
+        COMPLETED_IN = IdeApplication.getInstance().getString(R.string.completed_in);
+        SECONDS      = IdeApplication.getInstance().getString(R.string.seconds);
     }
 
     private final String url;

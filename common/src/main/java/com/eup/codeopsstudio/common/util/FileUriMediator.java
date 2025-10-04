@@ -96,26 +96,39 @@ public class FileUriMediator {
         }
     }
 
-    @NonNull
-    public static FileUriMediator resolveTree(@NonNull Uri uri, @NonNull Context context) {
-        Uri treeUri = Objects
-            .requireNonNull(DocumentFile.fromTreeUri(context, uri))
-            .getUri();
-        return new FileUriMediator(treeUri, context);
+    public String getAbsoluteRelativePath() {
+        var path = getRelativePath();
+        if (path == null) return "";
+        return path.startsWith(File.separator) ? path : File.separator + path;
     }
 
-    public static FileUriMediator resolveDocument(Uri uri, Context context) {
-        if (!DocumentsContract.isDocumentUri(context, uri)) {
-            throw new IllegalArgumentException("Invalid URI: Not a document URI");
+    public String getAuthority() {
+        return uri.getAuthority();
+    }
+
+    /**
+     * Retrieves the display name from the URI. This name is provider-specific and may differ
+     * from the
+     * actual file name.
+     *
+     * @return String representing the display name, or null if not available
+     */
+    public String getDisplayName() {
+        try (Cursor cursor = query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (!cursor.isNull(nameIndex) && nameIndex != -1) {
+                    return cursor.getString(nameIndex);
+                }
+            }
+        } catch (Exception e) {
+            // ignore
         }
+        return null;
+    }
 
-        DocumentFile documentFile = DocumentFile.fromSingleUri(context, uri);
-
-        if (documentFile == null || !documentFile.exists()) {
-            throw new IllegalArgumentException("Invalid URI: Document does not exist");
-        }
-
-        return new FileUriMediator(documentFile.getUri(), context);
+    public DocumentFile getDocumentFile() {
+        return this.documentFile;
     }
 
     public static String getDocumentId(Uri uri, boolean isTreeDocUri) {
@@ -123,35 +136,8 @@ public class FileUriMediator {
         return DocumentsContract.getDocumentId(uri);
     }
 
-    public static boolean isAllowedAuthority(String authority) {
-        return StorageVolumeAuthority
-            .getAllowedAuthorities()
-            .contains(authority);
-    }
-
-    public static ArrayList<File> getSearchVolumes() {
-        /*
-         * Search directories
-         *  /storage/emulated/0/
-         *  /storage/
-         */
-        ArrayList<File> files = new ArrayList<>();
-        files.add(Environment.getExternalStorageDirectory());
-        files.add(getStorageDirectory());
-        return files;
-    }
-
-    /**
-     * Adopted from {@link Environment#getStorageDirectory()}
-     *
-     * @return the storage directory
-     */
-    @NonNull
-    private static File getStorageDirectory() {
-        final String ENV_EXTERNAL_STORAGE = "EXTERNAL_STORAGE";
-        final String storagePath = "/storage";
-        String path = System.getenv(ENV_EXTERNAL_STORAGE);
-        return path == null ? new File(storagePath) : new File(path);
+    public String getDocumentId() {
+        return getDocumentId(uri, isTreeUri);
     }
 
     /**
@@ -180,138 +166,35 @@ public class FileUriMediator {
         }
     }
 
-    private File handleExternalStorageAuth() {
-        String storageType = getStorageType();
-        String relativePath = getAbsoluteRelativePath();
-
-        if (getDocumentId().contains(":")) {
-            if (hasColonSuffix(getSplit())) {
-                return switch (storageType.toLowerCase()) {
-                    case "primary" -> new File(
-                        Environment.getExternalStorageDirectory() + relativePath);
-                    case "home" -> new File(
-                        Environment.getExternalStorageDirectory() + File.separator
-                            + Environment.DIRECTORY_DOCUMENTS + relativePath);
-                    default -> new File(getStorageDirectory(), storageType + relativePath);
-                };
-            } else {
-                return switch (storageType.toLowerCase()) {
-                    case "primary" -> Environment.getExternalStorageDirectory();
-                    case
-                        "home" -> new File(Environment.getExternalStorageDirectory(),
-                        Environment.DIRECTORY_DOCUMENTS);
-                    default -> new File(getStorageDirectory(), storageType);
-                };
-            }
-        }
-        return new File(Environment.getExternalStorageDirectory(), getDocumentId());
-    }
-
-    private File handleDownloadStorageAuth() {
-        String id = getDocumentId();
-
-        if (!TextUtils.isEmpty(id)) {
-            if (id.startsWith("raw:")) {
-                var file = new File(id.replaceFirst("raw:", ""));
-                if (file.exists()) return file;
-            } else if (id.startsWith("msf:")) {
-                // Android 11+
-                id = getStorageType();
-            }
-
-            String[] segments = new String[]{
-                "content://downloads/public_downloads",
-                "content://downloads/my_downloads",
-                "content://downloads/all_downloads"
-            };
-
-            for (String segment : segments) {
-                try {
-                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse(segment),
-                        Long.parseLong(id));
-                    File file = new File(getDataColumn(contentUri));
-                    if (file.exists()) return file;
-                } catch (Exception e) {
-                    String path = Objects.requireNonNull(uri.getPath());
-                    // Ignore because in Android 8 and 9 the id is not a number
-                    File file = new File(path
-                        .replaceFirst("^/document/raw:", "")
-                        .replaceFirst("^raw:", ""));
-                    if (file.exists()) return file;
-                }
-            }
-        }
-
-        // final fallback, this search may be time consuming
-        return FileUtil.findInVolumes(getSearchVolumes(),
-            Environment.DIRECTORY_DOWNLOADS + File.separator + getFileName());
-    }
-
-    private File handleMediaStorageAuth() {
-        final String type = getStorageType();
-
-        Uri contentUri = null;
-
-        if ("image".equals(type)) {
-            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        } else if ("video".equals(type)) {
-            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        } else if ("audio".equals(type)) {
-            contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        } else if ("document".equals(type)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                contentUri = MediaStore.Files.getContentUri(MediaStore.getVolumeName(uri));
-            }
-        } else {
-            // Catch the case for pdfs and other "document" files.
-            contentUri = MediaStore.Files.getContentUri("external");
-        }
-
-        final String selection = BaseColumns._ID + "=?";
-        final String[] selectionArgs = new String[]{getRelativePath()};
-
-        return new File(Objects.requireNonNull(getDataColumn(contentUri, selection,
-            selectionArgs)));
-    }
-
-    @NonNull
-    private File handleFileStorageAuth() {
-        String path = Objects.requireNonNull(uri.getPath());
-        return new File(path);
-    }
-
-    @Nullable
-    private File handleContentStorageAuth() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? null : new File(getDataColumn(uri));
-    }
-
-    public boolean isTreeUri() {
-        return this.isTreeUri;
-    }
-
-    public String getAuthority() {
-        return uri.getAuthority();
-    }
-
-    public String getDocumentId() {
-        return getDocumentId(uri, isTreeUri);
-    }
-
     /**
-     * Determines the storage type from the document ID.
+     * Retrieves the file name from the URI. Falls back to parsing the URI path if the display
+     * name is
+     * not available.
      *
-     * @return String representing the storage type ("primary", "home", or external storage
-     * identifier)
+     * @return String representing the file name
      */
-    public String getStorageType() {
-        String type = getSplit()[0];
-        return (type == null || type.isEmpty()) ? "" : type;
+    public String getFileName() {
+        String name = isContentUri() ? getDisplayName() : null;
+        if (name != null) return name;
+
+        String path = Objects.requireNonNull(uri.getPath());
+        int lastSlash = path.lastIndexOf('/');
+        return lastSlash != -1 ? path.substring(lastSlash + 1) : path;
     }
 
-    public String getAbsoluteRelativePath() {
-        var path = getRelativePath();
-        if (path == null) return "";
-        return path.startsWith(File.separator) ? path : File.separator + path;
+    public String getMimeType() {
+        if (isContentUri()) {
+            return context.getContentResolver().getType(uri);
+        }
+
+        String path = Objects.requireNonNull(uri.getPath());
+        String extension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(path))
+                                                                  .toString());
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+    }
+
+    private boolean isContentUri() {
+        return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme());
     }
 
     /**
@@ -331,9 +214,7 @@ public class FileUriMediator {
             if (getDocumentId().contains(":")) {
                 if (!hasColonSuffix(split)) {
                     if (getStorageType().equalsIgnoreCase("primary")) {
-                        return Environment
-                            .getExternalStorageDirectory()
-                            .getPath();
+                        return Environment.getExternalStorageDirectory().getPath();
                     } else if (getStorageType().equalsIgnoreCase("home")) {
                         return new File(Environment.getExternalStorageDirectory() + File.separator
                             + Environment.DIRECTORY_DOCUMENTS).getPath();
@@ -349,41 +230,16 @@ public class FileUriMediator {
         return "";
     }
 
-    /**
-     * Retrieves the display name from the URI. This name is provider-specific and may differ
-     * from the
-     * actual file name.
-     *
-     * @return String representing the display name, or null if not available
-     */
-    public String getDisplayName() {
-        try (Cursor cursor = query(uri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                if (!cursor.isNull(nameIndex) && nameIndex != -1) {
-                    return cursor.getString(nameIndex);
-                }
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-        return null;
-    }
-
-    /**
-     * Retrieves the file name from the URI. Falls back to parsing the URI path if the display
-     * name is
-     * not available.
-     *
-     * @return String representing the file name
-     */
-    public String getFileName() {
-        String name = isContentUri() ? getDisplayName() : null;
-        if (name != null) return name;
-
-        String path = Objects.requireNonNull(uri.getPath());
-        int lastSlash = path.lastIndexOf('/');
-        return lastSlash != -1 ? path.substring(lastSlash + 1) : path;
+    public static ArrayList<File> getSearchVolumes() {
+        /*
+         * Search directories
+         *  /storage/emulated/0/
+         *  /storage/
+         */
+        ArrayList<File> files = new ArrayList<>();
+        files.add(Environment.getExternalStorageDirectory());
+        files.add(getStorageDirectory());
+        return files;
     }
 
     /**
@@ -413,47 +269,51 @@ public class FileUriMediator {
      * @param projection Column projection array
      */
     private Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs) {
-        return context
-            .getContentResolver()
-            .query(uri, projection, selection, selectionArgs, /*sortOrder*/ null);
+        return context.getContentResolver()
+                      .query(uri, projection, selection, selectionArgs, /*sortOrder*/ null);
     }
 
-    public String getMimeType() {
-        if (isContentUri()) {
-            return context
-                .getContentResolver()
-                .getType(uri);
-        }
-
-        String path = Objects.requireNonNull(uri.getPath());
-        String extension = MimeTypeMap.getFileExtensionFromUrl(Uri
-            .fromFile(new File(path))
-            .toString());
-        return MimeTypeMap
-            .getSingleton()
-            .getMimeTypeFromExtension(extension.toLowerCase());
-    }
-
-    private boolean isContentUri() {
-        return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme());
+    /**
+     * Determines the storage type from the document ID.
+     *
+     * @return String representing the storage type ("primary", "home", or external storage
+     * identifier)
+     */
+    public String getStorageType() {
+        String type = getSplit()[0];
+        return (type == null || type.isEmpty()) ? "" : type;
     }
 
     public Uri getUri() {
         return this.uri;
     }
 
-    private String[] getSplit() {
-        return getDocumentId().split(":");
+    public static boolean isAllowedAuthority(String authority) {
+        return StorageVolumeAuthority.getAllowedAuthorities().contains(authority);
     }
 
-    /**
-     * Checks if the split document ID has a non-empty suffix after the colon.
-     *
-     * @param entry Split document ID array
-     * @return boolean indicating if a non-empty suffix exists
-     */
-    private boolean hasColonSuffix(String[] entry) {
-        return entry.length > 1 && !TextUtils.isEmpty(entry[1]);
+    public boolean isTreeUri() {
+        return this.isTreeUri;
+    }
+
+    public static FileUriMediator resolveDocument(Uri uri, Context context) {
+        if (!DocumentsContract.isDocumentUri(context, uri)) {
+            throw new IllegalArgumentException("Invalid URI: Not a document URI");
+        }
+
+        DocumentFile documentFile = DocumentFile.fromSingleUri(context, uri);
+
+        if (documentFile == null || !documentFile.exists()) {
+            throw new IllegalArgumentException("Invalid URI: Document does not exist");
+        }
+
+        return new FileUriMediator(documentFile.getUri(), context);
+    }
+
+    @NonNull
+    public static FileUriMediator resolveTree(@NonNull Uri uri, @NonNull Context context) {
+        Uri treeUri = Objects.requireNonNull(DocumentFile.fromTreeUri(context, uri)).getUri();
+        return new FileUriMediator(treeUri, context);
     }
 
     private String getDataColumn(Uri uri) {
@@ -487,15 +347,141 @@ public class FileUriMediator {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e
-                .getClass()
-                .getSimpleName() + "Error querying data column: " + e.getMessage());
+            throw new RuntimeException(
+                e.getClass().getSimpleName() + "Error querying data column: " + e.getMessage());
         }
         return null;
     }
 
-    public DocumentFile getDocumentFile() {
-        return this.documentFile;
+    private String[] getSplit() {
+        return getDocumentId().split(":");
+    }
+
+    /**
+     * Adopted from {@link Environment#getStorageDirectory()}
+     *
+     * @return the storage directory
+     */
+    @NonNull
+    private static File getStorageDirectory() {
+        final String ENV_EXTERNAL_STORAGE = "EXTERNAL_STORAGE";
+        final String storagePath = "/storage";
+        String path = System.getenv(ENV_EXTERNAL_STORAGE);
+        return path == null ? new File(storagePath) : new File(path);
+    }
+
+    @Nullable
+    private File handleContentStorageAuth() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? null : new File(getDataColumn(uri));
+    }
+
+    private File handleDownloadStorageAuth() {
+        String id = getDocumentId();
+
+        if (!TextUtils.isEmpty(id)) {
+            if (id.startsWith("raw:")) {
+                var file = new File(id.replaceFirst("raw:", ""));
+                if (file.exists()) return file;
+            } else if (id.startsWith("msf:")) {
+                // Android 11+
+                id = getStorageType();
+            }
+
+            String[] segments = new String[]{
+                "content://downloads/public_downloads",
+                "content://downloads/my_downloads",
+                "content://downloads/all_downloads"
+            };
+
+            for (String segment : segments) {
+                try {
+                    final Uri contentUri = ContentUris.withAppendedId(Uri.parse(segment),
+                        Long.parseLong(id));
+                    File file = new File(getDataColumn(contentUri));
+                    if (file.exists()) return file;
+                } catch (Exception e) {
+                    String path = Objects.requireNonNull(uri.getPath());
+                    // Ignore because in Android 8 and 9 the id is not a number
+                    File file = new File(path.replaceFirst("^/document/raw:", "")
+                                             .replaceFirst("^raw:", ""));
+                    if (file.exists()) return file;
+                }
+            }
+        }
+
+        // final fallback, this search may be time consuming
+        return FileUtil.findInVolumes(getSearchVolumes(),
+            Environment.DIRECTORY_DOWNLOADS + File.separator + getFileName());
+    }
+
+    private File handleExternalStorageAuth() {
+        String storageType = getStorageType();
+        String relativePath = getAbsoluteRelativePath();
+
+        if (getDocumentId().contains(":")) {
+            if (hasColonSuffix(getSplit())) {
+                return switch (storageType.toLowerCase()) {
+                    case "primary" -> new File(
+                        Environment.getExternalStorageDirectory() + relativePath);
+                    case "home" -> new File(
+                        Environment.getExternalStorageDirectory() + File.separator
+                            + Environment.DIRECTORY_DOCUMENTS + relativePath);
+                    default -> new File(getStorageDirectory(), storageType + relativePath);
+                };
+            } else {
+                return switch (storageType.toLowerCase()) {
+                    case "primary" -> Environment.getExternalStorageDirectory();
+                    case
+                        "home" -> new File(Environment.getExternalStorageDirectory(),
+                        Environment.DIRECTORY_DOCUMENTS);
+                    default -> new File(getStorageDirectory(), storageType);
+                };
+            }
+        }
+        return new File(Environment.getExternalStorageDirectory(), getDocumentId());
+    }
+
+    @NonNull
+    private File handleFileStorageAuth() {
+        String path = Objects.requireNonNull(uri.getPath());
+        return new File(path);
+    }
+
+    private File handleMediaStorageAuth() {
+        final String type = getStorageType();
+
+        Uri contentUri = null;
+
+        if ("image".equals(type)) {
+            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        } else if ("video".equals(type)) {
+            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        } else if ("audio".equals(type)) {
+            contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        } else if ("document".equals(type)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentUri = MediaStore.Files.getContentUri(MediaStore.getVolumeName(uri));
+            }
+        } else {
+            // Catch the case for pdfs and other "document" files.
+            contentUri = MediaStore.Files.getContentUri("external");
+        }
+
+        final String selection = BaseColumns._ID + "=?";
+        final String[] selectionArgs = new String[]{getRelativePath()};
+
+        return new File(Objects.requireNonNull(getDataColumn(contentUri, selection,
+            selectionArgs)));
+    }
+
+    /**
+     * Checks if the split document ID has a non-empty suffix after the colon.
+     *
+     * @param entry Split document ID array
+     * @return boolean indicating if a non-empty suffix exists
+     */
+    private boolean hasColonSuffix(String[] entry) {
+        return entry.length > 1 && !TextUtils.isEmpty(entry[1]);
     }
 
     public static class StorageVolumeAuthority {

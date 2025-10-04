@@ -41,6 +41,7 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.transition.TransitionManager;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.adapters.template.ProjectTemplateAdapter;
 import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.AsyncTask;
@@ -54,7 +55,6 @@ import com.eup.codeopsstudio.databinding.FragmentTemplateBinding;
 import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.models.template.ProjectTemplateModel;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
-import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
@@ -96,10 +96,6 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     private TextInputLayout mNameLayout;
     private TextInputLayout mSaveLocationLayout;
 
-    public static TemplateFragment newInstance() {
-        return new TemplateFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -131,9 +127,8 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         logger.attach(this);
-        requireActivity()
-            .getOnBackPressedDispatcher()
-            .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
+        requireActivity().getOnBackPressedDispatcher()
+                         .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
 
         adapter = new ProjectTemplateAdapter();
 
@@ -157,117 +152,8 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         onBackPressedCallback.setEnabled(false);
     }
 
-    private void handlePickedFolder(File file) {
-        if (file != null) {
-            String folderPath = file.getAbsolutePath();
-            mSaveLocationLayout
-                .getEditText()
-                .setText(folderPath);
-            logger.d(LOG_TAG, getString(R.string.folder_selection_success));
-        }
-    }
-
-    private void logFileSelectionError(Pair<Exception, String> pair) {
-        String message = pair.second;
-
-        if (message == null) return;
-
-        logger.e(LOG_TAG,
-            getString(R.string.folder_selection_error) + " [" + getString(R.string.cause) + "] "
-                + message);
-    }
-
-    private void navigatePrevious() {
-        if (!previous) {
-            getParentFragmentManager().popBackStack();
-        } else {
-            showTemplatesView();
-            previous = false;
-            if (binding.loadingLayout
-                .getRoot()
-                .getVisibility() == View.VISIBLE) {
-                binding.loadingLayout
-                    .getRoot()
-                    .setVisibility(View.GONE);
-            }
-        }
-    }
-
-    private void openFolder() {
-        lifecycleObserver.pickFolder();
-    }
-
-    private void navigateNext(View view) {
-        if (!previous) {
-            showTemplatesDetails();
-            previous = true;
-        } else {
-            createProjectAsync();
-        }
-    }
-
-    private void showTemplatesView() {
-        binding.dynamicList.setVisibility(View.GONE);
-
-        MaterialSharedAxis sharedAxis = new MaterialSharedAxis(MaterialSharedAxis.X, false);
-        TransitionManager.beginDelayedTransition((ViewGroup) requireView(), sharedAxis);
-        binding.projectDetails
-            .getRoot()
-            .setVisibility(View.GONE);
-        binding.dynamicList.setVisibility(View.VISIBLE);
-        binding.footer.finish.setVisibility(View.GONE);
-        binding.footer.previous.setVisibility(View.GONE);
-        // binding.footer.finish.setText(R.string.next);
-        binding.footer.previous.setText(R.string.previous);
-        binding.title.setText(R.string.create_project_template_title);
-    }
-
-    private void initalizeTemplateDetails() {
-        mNameLayout = binding.projectDetails.tilProjectName;
-        mNameLayout
-            .getEditText()
-            .addTextChangedListener(new TextWatcherAdapter() {
-                @Override
-                public void afterTextChanged(Editable editable) {
-                    verifyDetails(editable);
-                }
-            });
-
-        mSaveLocationLayout = binding.projectDetails.tilSaveLocation;
-        mSaveLocationLayout
-            .getEditText()
-            .setText(PreferenceManager
-                .getDefaultSharedPreferences(requireContext())
-                .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
-                    .getExternalFilesDir("Projects")
-                    .getAbsolutePath()));
-        initializeSaveLocation();
-
-        mSaveLocationLayout
-            .getEditText()
-            .addTextChangedListener(new TextWatcherAdapter() {
-                @Override
-                public void afterTextChanged(Editable editable) {
-                    verifySaveLocation(editable);
-                }
-            });
-    }
-
-    private void showTemplatesDetails() {
-        binding.loadingLayout
-            .getRoot()
-            .setVisibility(View.GONE);
-        MaterialSharedAxis sharedAxis = new MaterialSharedAxis(MaterialSharedAxis.X, true);
-        TransitionManager.beginDelayedTransition((ViewGroup) requireView(), sharedAxis);
-        binding.projectDetails
-            .getRoot()
-            .setVisibility(View.VISIBLE);
-        binding.dynamicList.setVisibility(View.GONE);
-        binding.footer.finish.setText(R.string.create_project);
-        binding.footer.finish.setVisibility(View.VISIBLE);
-        binding.footer.previous.setVisibility(View.VISIBLE);
-        binding.footer.previous.setText(R.string.previous);
-        binding.title.setText(mCurrentTemplate.getName());
+    public static TemplateFragment newInstance() {
+        return new TemplateFragment();
     }
 
     /**
@@ -278,10 +164,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     @WorkerThread
     private void createProject() throws IOException {
 
-        File projectRoot = new File(mSaveLocationLayout
-            .getEditText()
-            .getText()
-            .toString());
+        File projectRoot = new File(mSaveLocationLayout.getEditText().getText().toString());
         if (!projectRoot.exists()) {
             if (!projectRoot.mkdirs()) {
                 throw new IOException("Unable to create directory");
@@ -292,106 +175,15 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         FileUtils.copyDirectory(sourcesDir, projectRoot);
     }
 
-    private void initializeSaveLocation() {
-        // mSaveLocationLayout.getEditText().setText(requireContext().getExternalFilesDir
-        // ("Projects").getAbsolutePath());
-        // mSaveLocationLayout.getEditText().setInputType(InputType.TYPE_NULL);
-        mSaveLocationLayout.setEndIconOnClickListener(view -> {
-            openFolder();
-        });
-    }
-
-    private boolean validateDetails() {
-        requireActivity().runOnUiThread(() -> {
-            verifyDetails(mNameLayout
-                .getEditText()
-                .getText());
-            verifySaveLocation(mSaveLocationLayout
-                .getEditText()
-                .getText());
-        });
-        var templateName = mNameLayout
-            .getEditText()
-            .getText();
-
-        if (mNameLayout.isErrorEnabled() || (templateName != null
-            && TextUtils.isEmpty(templateName))) {
-            return false;
-        }
-        if (mSaveLocationLayout.isErrorEnabled()) {
-            return false;
-        }
-        return mCurrentTemplate != null;
-    }
-
-    private void verifyDetails(Editable editable) {
-        String name = editable.toString();
-        if (TextUtils.isEmpty(name)) {
-            mNameLayout.setError(getString(R.string.cp_error_project_name_empty));
-            return;
-        } else if (name.contains(File.pathSeparator) || name.contains(File.separator)) {
-            mNameLayout.setError(getString(R.string.cp_error_project_name_illegal));
-            return;
-        } else {
-            mNameLayout.setErrorEnabled(false);
-        }
-        File file = new File(PreferenceManager
-            .getDefaultSharedPreferences(requireContext())
-            .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
-                .getExternalFilesDir("Projects")
-                .getAbsolutePath()) + "/" + editable);
-
-        String path = file.getAbsolutePath();
-
-        if (file.exists()) {
-            mNameLayout.setError(getString(R.string.msg_folder_exists));
-        } else {
-            mNameLayout.setErrorEnabled(false);
-            mSaveLocationLayout
-                .getEditText()
-                .setText(path);
-        }
-    }
-
-    /**
-     * Checks if #Input in project save location is valid
-     */
-    private void verifySaveLocation(Editable editable) {
-        if (editable
-            .toString()
-            .length() >= 240) {
-            mSaveLocationLayout.setError(getString(R.string.cp_path_exceeds));
-            return;
-        } else {
-            mSaveLocationLayout.setErrorEnabled(false);
-        }
-
-        File file = new File(editable.toString());
-        if (file.getParentFile() == null || !file
-            .getParentFile()
-            .canWrite()) {
-            mSaveLocationLayout.setError(getString(R.string.cp_file_not_writable));
-        } else {
-            mSaveLocationLayout.setErrorEnabled(false);
-        }
-    }
-
     private void createProjectAsync() {
         TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
             new MaterialFadeThrough());
         binding.dynamicList.setVisibility(View.GONE);
-        binding.projectDetails
-            .getRoot()
-            .setVisibility(View.GONE);
-        binding.loadingLayout
-            .getRoot()
-            .setVisibility(View.VISIBLE);
+        binding.projectDetails.getRoot().setVisibility(View.GONE);
+        binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
 
         AsyncTask.runOnBackgroundThread(() -> {
-            String savePath = mSaveLocationLayout
-                .getEditText()
-                .getText()
-                .toString();
+            String savePath = mSaveLocationLayout.getEditText().getText().toString();
             try {
                 if (validateDetails()) {
                     createProject();
@@ -418,100 +210,13 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         });
     }
 
-    private void loadTemplates() {
-        TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
-            new MaterialFadeThrough());
-        binding.loadingLayout
-            .getRoot()
-            .setVisibility(View.VISIBLE);
-        binding.dynamicList.setVisibility(View.GONE);
-
-        AsyncTask.runOnBackgroundThread(() -> {
-            List<ProjectTemplateModel> templates = getTemplates();
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
-                        new MaterialFadeThrough());
-                    binding.loadingLayout
-                        .getRoot()
-                        .setVisibility(View.GONE);
-                    binding.dynamicList.setVisibility(View.VISIBLE);
-
-                    adapter.submitTemplateList(templates);
-
-                    adapter.setOnTemplateClickListener((item, position) -> {
-                        mCurrentTemplate = item;
-                        navigateNext(binding.footer.finish);
-                    });
-
-                    adapter.setOnTemplateLongClickListener((v, model) -> {
-                        String msg =
-                            "Name: " + model.getName() + "\n" + "Type: " + model.getProjectType()
-                                + "\n" + "Author: " + model.getAuthor() + "\n" + "Released: "
-                                + model.getCreationDate() + "\n" + "Description : "
-                                + model.getDescription() + "\n" + "Version Code: "
-                                + model.getVersion() + "\n" + "Version Name: "
-                                + model.getVersionName();
-
-                        new MaterialAlertDialogBuilder(requireContext())
-                            .setTitle(R.string.about_template)
-                            .setMessage(msg)
-                            .setPositiveButton(R.string.cancel, null)
-                            .setCancelable(true)
-                            .show();
-                        return true;
-                    });
-                });
-            }
-        });
-    }
-
-    /**
-     * @Param getTemplates The project templates gotten from a directory
-     */
-    private List<ProjectTemplateModel> getTemplates() {
-        try {
-            File file = requireContext().getExternalFilesDir("templates");
-            extractTemplatesMaybe();
-
-            File[] templateFiles = file.listFiles();
-            if (templateFiles == null) {
-                return Collections.emptyList();
-            }
-            if (templateFiles.length == 0) {
-                extractTemplatesMaybe();
-            }
-            templateFiles = file.listFiles();
-            if (templateFiles == null) {
-                return Collections.emptyList();
-            }
-
-            List<ProjectTemplateModel> templates = new ArrayList<>();
-            for (File child : templateFiles) {
-                ProjectTemplateModel template = ProjectTemplateModel.fromFile(child);
-                if (template != null) {
-                    templates.add(template);
-                }
-            }
-            return templates;
-        } catch (IOException e) {
-            logger.e(LOG_TAG,
-                getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause)
-                    + "] " + e.getMessage());
-            return Collections.emptyList();
-        }
-    }
-
     private void extractTemplatesMaybe() throws IOException {
         File hashFile = new File(requireContext().getExternalFilesDir("templates"), "hash");
         if (!hashFile.exists()) {
             extractZipFiles();
         } else {
             logger.d(LOG_TAG, getString(R.string.checking_templates));
-            InputStream newIs = requireContext()
-                .getAssets()
-                .open("templates.zip");
+            InputStream newIs = requireContext().getAssets().open("templates.zip");
             String newIsMd5 = FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), newIs);
             String oldMd5 = FileUtils.readFileToString(hashFile, Charset.defaultCharset());
 
@@ -551,8 +256,162 @@ public class TemplateFragment extends BottomSheetDialogFragment {
 
         FileUtils.writeStringToFile(hashFile,
             FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), requireContext()
-            .getAssets()
-            .open("templates.zip")), Charset.defaultCharset());
+            .getAssets().open("templates.zip")), Charset.defaultCharset());
+    }
+
+    /**
+     * @Param getTemplates The project templates gotten from a directory
+     */
+    private List<ProjectTemplateModel> getTemplates() {
+        try {
+            File file = requireContext().getExternalFilesDir("templates");
+            extractTemplatesMaybe();
+
+            File[] templateFiles = file.listFiles();
+            if (templateFiles == null) {
+                return Collections.emptyList();
+            }
+            if (templateFiles.length == 0) {
+                extractTemplatesMaybe();
+            }
+            templateFiles = file.listFiles();
+            if (templateFiles == null) {
+                return Collections.emptyList();
+            }
+
+            List<ProjectTemplateModel> templates = new ArrayList<>();
+            for (File child : templateFiles) {
+                ProjectTemplateModel template = ProjectTemplateModel.fromFile(child);
+                if (template != null) {
+                    templates.add(template);
+                }
+            }
+            return templates;
+        } catch (IOException e) {
+            logger.e(LOG_TAG,
+                getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause)
+                    + "] " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    private void handlePickedFolder(File file) {
+        if (file != null) {
+            String folderPath = file.getAbsolutePath();
+            mSaveLocationLayout.getEditText().setText(folderPath);
+            logger.d(LOG_TAG, getString(R.string.folder_selection_success));
+        }
+    }
+
+    private void initalizeTemplateDetails() {
+        mNameLayout = binding.projectDetails.tilProjectName;
+        mNameLayout.getEditText().addTextChangedListener(new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable editable) {
+                verifyDetails(editable);
+            }
+        });
+
+        mSaveLocationLayout = binding.projectDetails.tilSaveLocation;
+        mSaveLocationLayout.getEditText()
+                           .setText(PreferenceManager.getDefaultSharedPreferences(requireContext())
+                                                     .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
+                                                         .getExternalFilesDir("Projects")
+                                                         .getAbsolutePath()));
+        initializeSaveLocation();
+
+        mSaveLocationLayout.getEditText().addTextChangedListener(new TextWatcherAdapter() {
+            @Override
+            public void afterTextChanged(Editable editable) {
+                verifySaveLocation(editable);
+            }
+        });
+    }
+
+    private void initializeSaveLocation() {
+        // mSaveLocationLayout.getEditText().setText(requireContext().getExternalFilesDir
+        // ("Projects").getAbsolutePath());
+        // mSaveLocationLayout.getEditText().setInputType(InputType.TYPE_NULL);
+        mSaveLocationLayout.setEndIconOnClickListener(view -> {
+            openFolder();
+        });
+    }
+
+    private void loadTemplates() {
+        TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
+            new MaterialFadeThrough());
+        binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
+        binding.dynamicList.setVisibility(View.GONE);
+
+        AsyncTask.runOnBackgroundThread(() -> {
+            List<ProjectTemplateModel> templates = getTemplates();
+
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
+                        new MaterialFadeThrough());
+                    binding.loadingLayout.getRoot().setVisibility(View.GONE);
+                    binding.dynamicList.setVisibility(View.VISIBLE);
+
+                    adapter.submitTemplateList(templates);
+
+                    adapter.setOnTemplateClickListener((item, position) -> {
+                        mCurrentTemplate = item;
+                        navigateNext(binding.footer.finish);
+                    });
+
+                    adapter.setOnTemplateLongClickListener((v, model) -> {
+                        String msg =
+                            "Name: " + model.getName() + "\n" + "Type: " + model.getProjectType()
+                                + "\n" + "Author: " + model.getAuthor() + "\n" + "Released: "
+                                + model.getCreationDate() + "\n" + "Description : "
+                                + model.getDescription() + "\n" + "Version Code: "
+                                + model.getVersion() + "\n" + "Version Name: "
+                                + model.getVersionName();
+
+                        new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.about_template).setMessage(msg)
+                            .setPositiveButton(R.string.cancel, null).setCancelable(true).show();
+                        return true;
+                    });
+                });
+            }
+        });
+    }
+
+    private void logFileSelectionError(Pair<Exception, String> pair) {
+        String message = pair.second;
+
+        if (message == null) return;
+
+        logger.e(LOG_TAG,
+            getString(R.string.folder_selection_error) + " [" + getString(R.string.cause) + "] "
+                + message);
+    }
+
+    private void navigateNext(View view) {
+        if (!previous) {
+            showTemplatesDetails();
+            previous = true;
+        } else {
+            createProjectAsync();
+        }
+    }
+
+    private void navigatePrevious() {
+        if (!previous) {
+            getParentFragmentManager().popBackStack();
+        } else {
+            showTemplatesView();
+            previous = false;
+            if (binding.loadingLayout.getRoot().getVisibility() == View.VISIBLE) {
+                binding.loadingLayout.getRoot().setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void openFolder() {
+        lifecycleObserver.pickFolder();
     }
 
     private void openProject(File file) {
@@ -560,5 +419,94 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             mainViewModel.setTreeViewFragmentTreeDir(file);
         }
         dismiss();
+    }
+
+    private void showTemplatesDetails() {
+        binding.loadingLayout.getRoot().setVisibility(View.GONE);
+        MaterialSharedAxis sharedAxis = new MaterialSharedAxis(MaterialSharedAxis.X, true);
+        TransitionManager.beginDelayedTransition((ViewGroup) requireView(), sharedAxis);
+        binding.projectDetails.getRoot().setVisibility(View.VISIBLE);
+        binding.dynamicList.setVisibility(View.GONE);
+        binding.footer.finish.setText(R.string.create_project);
+        binding.footer.finish.setVisibility(View.VISIBLE);
+        binding.footer.previous.setVisibility(View.VISIBLE);
+        binding.footer.previous.setText(R.string.previous);
+        binding.title.setText(mCurrentTemplate.getName());
+    }
+
+    private void showTemplatesView() {
+        binding.dynamicList.setVisibility(View.GONE);
+
+        MaterialSharedAxis sharedAxis = new MaterialSharedAxis(MaterialSharedAxis.X, false);
+        TransitionManager.beginDelayedTransition((ViewGroup) requireView(), sharedAxis);
+        binding.projectDetails.getRoot().setVisibility(View.GONE);
+        binding.dynamicList.setVisibility(View.VISIBLE);
+        binding.footer.finish.setVisibility(View.GONE);
+        binding.footer.previous.setVisibility(View.GONE);
+        // binding.footer.finish.setText(R.string.next);
+        binding.footer.previous.setText(R.string.previous);
+        binding.title.setText(R.string.create_project_template_title);
+    }
+
+    private boolean validateDetails() {
+        requireActivity().runOnUiThread(() -> {
+            verifyDetails(mNameLayout.getEditText().getText());
+            verifySaveLocation(mSaveLocationLayout.getEditText().getText());
+        });
+        var templateName = mNameLayout.getEditText().getText();
+
+        if (mNameLayout.isErrorEnabled() || (templateName != null
+            && TextUtils.isEmpty(templateName))) {
+            return false;
+        }
+        if (mSaveLocationLayout.isErrorEnabled()) {
+            return false;
+        }
+        return mCurrentTemplate != null;
+    }
+
+    private void verifyDetails(Editable editable) {
+        String name = editable.toString();
+        if (TextUtils.isEmpty(name)) {
+            mNameLayout.setError(getString(R.string.cp_error_project_name_empty));
+            return;
+        } else if (name.contains(File.pathSeparator) || name.contains(File.separator)) {
+            mNameLayout.setError(getString(R.string.cp_error_project_name_illegal));
+            return;
+        } else {
+            mNameLayout.setErrorEnabled(false);
+        }
+        File file = new File(PreferenceManager.getDefaultSharedPreferences(requireContext())
+                                              .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
+                                                  .getExternalFilesDir("Projects")
+                                                  .getAbsolutePath()) + "/" + editable);
+
+        String path = file.getAbsolutePath();
+
+        if (file.exists()) {
+            mNameLayout.setError(getString(R.string.msg_folder_exists));
+        } else {
+            mNameLayout.setErrorEnabled(false);
+            mSaveLocationLayout.getEditText().setText(path);
+        }
+    }
+
+    /**
+     * Checks if #Input in project save location is valid
+     */
+    private void verifySaveLocation(Editable editable) {
+        if (editable.toString().length() >= 240) {
+            mSaveLocationLayout.setError(getString(R.string.cp_path_exceeds));
+            return;
+        } else {
+            mSaveLocationLayout.setErrorEnabled(false);
+        }
+
+        File file = new File(editable.toString());
+        if (file.getParentFile() == null || !file.getParentFile().canWrite()) {
+            mSaveLocationLayout.setError(getString(R.string.cp_file_not_writable));
+        } else {
+            mSaveLocationLayout.setErrorEnabled(false);
+        }
     }
 }

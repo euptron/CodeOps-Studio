@@ -59,55 +59,30 @@ public class PaneUtil {
     public static void addPaneTab(final Pair<Tab, Pane> pair,
         MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
         final List<Pair<Tab, Pane>> panes = panesLiveData.getValue();
-        Objects
-            .requireNonNull(panes)
-            .add(new Pair<>(pair.first, pair.second));
+        Objects.requireNonNull(panes).add(new Pair<>(pair.first, pair.second));
         panesLiveData.setValue(panes);
     }
 
-    /**
-     * Gets the current Pane and Tab opened in the editor
-     *
-     * @return The opened Pane and Tab pair
-     */
-    public static Pair<Tab, Pane> getPaneTab(MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData,
-        final int position) {
-        return Objects
-            .requireNonNull(panesLiveData.getValue())
-            .get(position);
+    public static boolean containsPane(List<Pair<Tab, Pane>> paneTabs, Pane pane) {
+        if (paneTabs != null) {
+            for (Pair<Tab, Pane> temp : paneTabs) {
+                if (temp.second.equals(pane)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
-    /**
-     * Gets the current size of all opened Pane and TabLayout.Tab
-     *
-     * @return The size of opened Pane Tabs Pair of the editor
-     */
-    public static int getPaneTabSize(MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
-        return Objects.requireNonNull(panesLiveData
-            .getValue()
-            .size());
-    }
-
-    /**
-     * Gets a {@code List} of the opened Pane and TabLayout.Tab pair of the editor
-     *
-     * @return The {@code List} {@code Pair} of opened Pane and TabLayout.Tab
-     */
-    @NonNull
-    public static List<Pair<Tab, Pane>> getPaneTabs(
-        MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
-        return panesLiveData.getValue() == null ? new ArrayList<>() : panesLiveData.getValue();
-    }
-
-    /**
-     * Check if no Pane and TabLayout.Tab pair exist in the editor
-     *
-     * @return true if no Pane and TabLayout.Tab pair exist and false if there exists
-     */
-    public static boolean isPaneTabsEmpty(MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
-        return panesLiveData.getValue() == null || panesLiveData
-            .getValue()
-            .isEmpty();
+    public static boolean containsPane(List<Pair<Tab, Pane>> paneTabs, Class<?> pane) {
+        if (paneTabs != null) {
+            for (Pair<Tab, Pane> temp : paneTabs) {
+                if (temp.second.getClass().getName().equals(pane.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static void destroyPanes(List<Pair<Tab, Pane>> paneTabs) {
@@ -120,106 +95,13 @@ public class PaneUtil {
         }
     }
 
-    /**
-     * @return A list of loaded panes from persisted json
-     */
-    public static LinkedList<Pane> loadPanes(String json, Context context, LifecycleOwner owner) {
-        if (json == null || context == null || owner == null) return new LinkedList<Pane>();
+    public static int findTabIndex(List<Pair<Tab, Pane>> paneTabs, Tab tab) {
+        if (paneTabs == null || tab == null) return -1;
 
-        Gson gson = new Gson();
-        LinkedList<Pane> loadedPanes = new LinkedList<>();
-        Type type = new TypeToken<List<LinkedTreeMap<String, Object>>>() { }.getType();
-
-        List<LinkedTreeMap<String, Object>> linkedTreeMapList = gson.fromJson(json, type);
-
-        if (linkedTreeMapList != null && !linkedTreeMapList.isEmpty()) {
-            for (LinkedTreeMap<String, Object> treeMap : linkedTreeMapList) {
-                String identifier = treeMap
-                    .get("uuid")
-                    .toString();
-                String jsonArguments = new Gson().toJson(treeMap);
-
-                loadedPanes.add(createPane(context, owner, new RandomAccessPane(jsonArguments,
-                    identifier)));
-            }
+        for (int i = 0; i < paneTabs.size(); i++) {
+            if (paneTabs.get(0).first == tab) return i;
         }
-        return loadedPanes;
-    }
-
-    /**
-     * @author Etido Peter
-     */
-    public static Pane createPane(Context context, LifecycleOwner owner,
-        RandomAccessPane randomAccessPane) {
-        Pane pane = null;
-        try {
-            Gson gson = new Gson();
-            Type type = new TypeToken<LinkedTreeMap<String, Object>>() { }.getType();
-            LinkedTreeMap<String, Object> treeMap = gson.fromJson(randomAccessPane.getArguments()
-                , type);
-
-            String title = treeMap
-                .get(Pane.KEY_TITLE)
-                .toString();
-            String clazz = treeMap
-                .get(Pane.KEY_CLASS_NAME)
-                .toString();
-            boolean pinned = (boolean) treeMap.get(Pane.KEY_PINNED);
-            boolean selected = (boolean) treeMap.get(Pane.KEY_SELECTED);
-            String identity = treeMap
-                .get(Pane.KEY_UUID)
-                .toString();
-            UUID uuid = UUID.fromString(identity);
-
-            if (clazz.equals(TextPane.class.getSimpleName())) {
-                TextPane textPane = new TextPane(context, title, false);
-                textPane.addArguments(Pane.PaneConstants.TEXT_PANE_ARGUMENT_KEY, treeMap
-                    .get(Pane.PaneConstants.TEXT_PANE_ARGUMENT_KEY)
-                    .toString());
-                pane = textPane;
-            } else if (clazz.equals(EditorPane.class.getSimpleName())) {
-                EditorPane editorPane = new EditorPane(context, title, false);
-                editorPane.addArguments(Pane.PaneConstants.EDITOR_PANE_ARGUMENT_KEY, treeMap
-                    .get(Pane.PaneConstants.EDITOR_PANE_ARGUMENT_KEY)
-                    .toString());
-                pane = editorPane;
-            } else if (clazz.equals(SettingsPane.class.getSimpleName())) {
-                SettingsPane sp = new SettingsPane(context, title, false,
-                    PreferencesFragment.newInstance());
-                // invoke before Pane#createView()
-                sp.attach(owner);
-                pane = sp;
-            } else if (clazz.equals(WelcomePane.class.getSimpleName())) {
-                pane = new WelcomePane(context, title, false);
-            } else if (clazz.equals(WebViewPane.class.getSimpleName())) {
-                WebViewPane webViewPane = new WebViewPane(context, title, false);
-                webViewPane.addArguments("preview_file_path", treeMap
-                    .get("preview_file_path")
-                    .toString());
-                webViewPane.addArguments("isZoomAble", (boolean) treeMap.get("isZoomAble"));
-                webViewPane.addArguments("isDeskTopMode", (boolean) treeMap.get("isDeskTopMode"));
-                pane = webViewPane;
-            } else if (clazz.equals(CodeEditorPane.class.getSimpleName())) {
-                CodeEditorPane codeEditorPane = new CodeEditorPane(context, title, false);
-                codeEditorPane.setFile(new File(treeMap
-                    .get("file_path")
-                    .toString()));
-                codeEditorPane.addArguments("left_column", treeMap.get("left_column"));
-                codeEditorPane.addArguments("left_line", treeMap.get("left_line"));
-                codeEditorPane.addArguments("editor_content", treeMap
-                    .get("editor_content")
-                    .toString());
-                pane = codeEditorPane;
-            }
-            pane.setPinned(pinned);
-            pane.setSelected(selected);
-            pane.setUUID(uuid);
-            return pane;
-        } catch (RuntimeException e) {
-            BaseUtil.toastShort(e.getLocalizedMessage());
-            throw e;
-        }
-        //return null;
+        return -1; // Tab not found
     }
 
     public static Pair<Tab, Pane> getPair(List<Pair<Tab, Pane>> paneTabs, Tab tab) {
@@ -250,35 +132,47 @@ public class PaneUtil {
         return found;
     }
 
-    public static int findTabIndex(List<Pair<Tab, Pane>> paneTabs, Tab tab) {
-        if (paneTabs == null || tab == null) return -1;
-
-        for (int i = 0; i < paneTabs.size(); i++) {
-            if (paneTabs.get(0).first == tab) return i;
-        }
-        return -1; // Tab not found
+    /**
+     * Gets the current Pane and Tab opened in the editor
+     *
+     * @return The opened Pane and Tab pair
+     */
+    public static Pair<Tab, Pane> getPaneTab(MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData,
+        final int position) {
+        return Objects.requireNonNull(panesLiveData.getValue()).get(position);
     }
 
-    public static String getUniqueTabTitle(List<Pair<Tab, Pane>> paneTabs,
-        @NonNull File currentFile) {
-        if (currentFile == null) return null;
+    /**
+     * Gets the current size of all opened Pane and TabLayout.Tab
+     *
+     * @return The size of opened Pane Tabs Pair of the editor
+     */
+    public static int getPaneTabSize(MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
+        return Objects.requireNonNull(panesLiveData.getValue().size());
+    }
 
+    /**
+     * Gets a {@code List} of the opened Pane and TabLayout.Tab pair of the editor
+     *
+     * @return The {@code List} {@code Pair} of opened Pane and TabLayout.Tab
+     */
+    @NonNull
+    public static List<Pair<Tab, Pane>> getPaneTabs(
+        MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
+        return panesLiveData.getValue() == null ? new ArrayList<>() : panesLiveData.getValue();
+    }
+
+    public static String getUniqueTabTitle(@NonNull List<Pane> panes, @NonNull File currentFile) {
         int sameFileNameCount = 0;
         PathResolver<File> builder = new PathResolver<>("", "/");
 
-        for (Pair<Tab, Pane> pair : Objects.requireNonNull(paneTabs)) {
-            if (pair != null) {
-                var editor = requireCodeEditorPane(pair.second);
-
-                if (editor != null) {
-                    File openFile = editor.getFile();
-                    if (openFile
-                        .getName()
-                        .equals(currentFile.getName())) {
-                        sameFileNameCount++;
-                    }
-                    builder.addPath(openFile, openFile.getPath());
+        for (var pane : Objects.requireNonNull(panes)) {
+            if (pane instanceof CodeEditorPane editor) {
+                File openFile = editor.getFile();
+                if (openFile.getName().equals(currentFile.getName())) {
+                    sameFileNameCount++;
                 }
+                builder.addPath(openFile, openFile.getPath());
             }
         }
 
@@ -289,16 +183,109 @@ public class PaneUtil {
         }
     }
 
+    /**
+     * Check if no Pane and TabLayout.Tab pair exist in the editor
+     *
+     * @return true if no Pane and TabLayout.Tab pair exist and false if there exists
+     */
+    public static boolean isPaneTabsEmpty(MutableLiveData<List<Pair<Tab, Pane>>> panesLiveData) {
+        return panesLiveData.getValue() == null || panesLiveData.getValue().isEmpty();
+    }
+
+    /**
+     * @return A list of loaded panes from persisted json
+     */
+    public static LinkedList<Pane> loadPanes(String json, Context context, LifecycleOwner owner) {
+        if (json == null || context == null || owner == null) return new LinkedList<Pane>();
+
+        Gson gson = new Gson();
+        LinkedList<Pane> loadedPanes = new LinkedList<>();
+        Type type = new TypeToken<List<LinkedTreeMap<String, Object>>>() { }.getType();
+
+        List<LinkedTreeMap<String, Object>> linkedTreeMapList = gson.fromJson(json, type);
+
+        if (linkedTreeMapList != null && !linkedTreeMapList.isEmpty()) {
+            for (LinkedTreeMap<String, Object> treeMap : linkedTreeMapList) {
+                String identifier = treeMap.get("uuid").toString();
+                String jsonArguments = new Gson().toJson(treeMap);
+
+                loadedPanes.add(createPane(context, owner, new RandomAccessPane(jsonArguments,
+                    identifier)));
+            }
+        }
+        return loadedPanes;
+    }
+
+    /**
+     * @author Etido Peter
+     */
+    public static Pane createPane(Context context, LifecycleOwner owner,
+        RandomAccessPane randomAccessPane) {
+        Pane pane = null;
+        try {
+            Gson gson = new Gson();
+            Type type = new TypeToken<LinkedTreeMap<String, Object>>() { }.getType();
+            LinkedTreeMap<String, Object> treeMap = gson.fromJson(randomAccessPane.getArguments()
+                , type);
+
+            String title = treeMap.get(Pane.KEY_TITLE).toString();
+            String clazz = treeMap.get(Pane.KEY_CLASS_NAME).toString();
+            boolean pinned = (boolean) treeMap.get(Pane.KEY_PINNED);
+            boolean selected = (boolean) treeMap.get(Pane.KEY_SELECTED);
+            String identity = treeMap.get(Pane.KEY_UUID).toString();
+            UUID uuid = UUID.fromString(identity);
+
+            if (clazz.equals(TextPane.class.getSimpleName())) {
+                TextPane textPane = new TextPane(context, title, false);
+                textPane.addArguments(Pane.PaneConstants.TEXT_PANE_ARGUMENT_KEY, treeMap
+                    .get(Pane.PaneConstants.TEXT_PANE_ARGUMENT_KEY).toString());
+                pane = textPane;
+            } else if (clazz.equals(EditorPane.class.getSimpleName())) {
+                EditorPane editorPane = new EditorPane(context, title, false);
+                editorPane.addArguments(Pane.PaneConstants.EDITOR_PANE_ARGUMENT_KEY, treeMap
+                    .get(Pane.PaneConstants.EDITOR_PANE_ARGUMENT_KEY).toString());
+                pane = editorPane;
+            } else if (clazz.equals(SettingsPane.class.getSimpleName())) {
+                SettingsPane sp = new SettingsPane(context, title, false,
+                    PreferencesFragment.newInstance());
+                // invoke before Pane#createView()
+                sp.attach(owner);
+                pane = sp;
+            } else if (clazz.equals(WelcomePane.class.getSimpleName())) {
+                pane = new WelcomePane(context, title, false);
+            } else if (clazz.equals(WebViewPane.class.getSimpleName())) {
+                WebViewPane webViewPane = new WebViewPane(context, title, false);
+                webViewPane.addArguments("preview_file_path", treeMap.get("preview_file_path")
+                                                                     .toString());
+                webViewPane.addArguments("isZoomAble", (boolean) treeMap.get("isZoomAble"));
+                webViewPane.addArguments("isDeskTopMode", (boolean) treeMap.get("isDeskTopMode"));
+                pane = webViewPane;
+            } else if (clazz.equals(CodeEditorPane.class.getSimpleName())) {
+                CodeEditorPane codeEditorPane = new CodeEditorPane(context, title, false);
+                codeEditorPane.setFile(new File(treeMap.get("file_path").toString()));
+                codeEditorPane.addArguments("left_column", treeMap.get("left_column"));
+                codeEditorPane.addArguments("left_line", treeMap.get("left_line"));
+                codeEditorPane.addArguments("editor_content", treeMap.get("editor_content")
+                                                                     .toString());
+                pane = codeEditorPane;
+            }
+            pane.setPinned(pinned);
+            pane.setSelected(selected);
+            pane.setUUID(uuid);
+            return pane;
+        } catch (RuntimeException e) {
+            BaseUtil.toastShort(e.getLocalizedMessage());
+            throw e;
+        }
+        //return null;
+    }
+
     public static CodeEditorPane requireCodeEditorPane(Pane pane) {
         return (pane instanceof CodeEditorPane) ? (CodeEditorPane) pane : null;
     }
 
-    public static WebViewPane requireWebViewPane(Pane pane) {
-        return (pane instanceof WebViewPane) ? (WebViewPane) pane : null;
-    }
-
-    public static WelcomePane requireWelcomePane(Pane pane) {
-        return (pane instanceof WelcomePane) ? (WelcomePane) pane : null;
+    public static EditorPane requireEditorPane(Pane pane) {
+        return (pane instanceof EditorPane) ? (EditorPane) pane : null;
     }
 
     public static SettingsPane requireSettingsPane(Pane pane) {
@@ -309,32 +296,11 @@ public class PaneUtil {
         return (pane instanceof TextPane) ? (TextPane) pane : null;
     }
 
-    public static EditorPane requireEditorPane(Pane pane) {
-        return (pane instanceof EditorPane) ? (EditorPane) pane : null;
+    public static WebViewPane requireWebViewPane(Pane pane) {
+        return (pane instanceof WebViewPane) ? (WebViewPane) pane : null;
     }
 
-    public static boolean containsPane(List<Pair<Tab, Pane>> paneTabs, Pane pane) {
-        if (paneTabs != null) {
-            for (Pair<Tab, Pane> temp : paneTabs) {
-                if (temp.second.equals(pane)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static boolean containsPane(List<Pair<Tab, Pane>> paneTabs, Class<?> pane) {
-        if (paneTabs != null) {
-            for (Pair<Tab, Pane> temp : paneTabs) {
-                if (temp.second
-                    .getClass()
-                    .getName()
-                    .equals(pane.getName())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public static WelcomePane requireWelcomePane(Pane pane) {
+        return (pane instanceof WelcomePane) ? (WelcomePane) pane : null;
     }
 }

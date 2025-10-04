@@ -53,12 +53,12 @@ public abstract class FragmentPane extends Pane {
     private FragmentTransaction fragmentTransaction;
 
     protected FragmentPane(@NonNull Context context, @Nullable String title,
-                           @NonNull Fragment fragment) {
+        @NonNull Fragment fragment) {
         this(context, title, true, fragment);
     }
 
-    protected FragmentPane(@NonNull Context context, @Nullable String title, boolean generateUUID
-        , @NonNull Fragment fragment) {
+    protected FragmentPane(@NonNull Context context, @Nullable String title, boolean generateUUID,
+        @NonNull Fragment fragment) {
         super(context, title, generateUUID);
         this.fragment = fragment;
         // Generate a unique container ID for each instance of this class
@@ -77,12 +77,8 @@ public abstract class FragmentPane extends Pane {
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
         if (fragment != null) {
-            fragmentTransaction = requireActivity()
-                .getSupportFragmentManager()
-                .beginTransaction();
-            final String name = fragment
-                .getClass()
-                .getSimpleName();
+            fragmentTransaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            final String name = fragment.getClass().getSimpleName();
             fragmentTransaction.replace(containerId, fragment, name);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.setPrimaryNavigationFragment(fragment);
@@ -103,11 +99,11 @@ public abstract class FragmentPane extends Pane {
         ILog.debug(TAG, getTitle() + " persisted");
     }
 
-    public Fragment getFragment() {
-        return fragment;
-    }
-
     public int getContainerId() {
         return this.containerId;
+    }
+
+    public Fragment getFragment() {
+        return fragment;
     }
 }

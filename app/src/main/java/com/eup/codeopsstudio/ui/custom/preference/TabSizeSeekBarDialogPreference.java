@@ -43,6 +43,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 public class TabSizeSeekBarDialogPreference extends Preference {
 
     private static final int DEFAULT_TAB_SIZE = 4;
+    private static final float MIN_SLIDER_VALUE = 1.0f;
+    private static final float MAX_SLIDER_VALUE = 12.0f;
 
     public TabSizeSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs,
         int defStyleAttr, int defStyleRes) {
@@ -57,13 +59,9 @@ public class TabSizeSeekBarDialogPreference extends Preference {
     public TabSizeSeekBarDialogPreference(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
-
     public TabSizeSeekBarDialogPreference(@NonNull Context context) {
         super(context);
     }
-
-    private static final float MIN_SLIDER_VALUE = 1.0f;
-    private static final float MAX_SLIDER_VALUE = 12.0f;
 
     @Override
     protected void onClick() {
@@ -80,12 +78,9 @@ public class TabSizeSeekBarDialogPreference extends Preference {
                 int codeEditorTabSize = (int) binding.slider.getValue();
                 persistInt(codeEditorTabSize);
                 notifyChanged();
-            })
-            .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
-            .setNeutralButton(R.string.reset, (d, w) -> resetTabSize())
-            .setView(binding.getRoot())
-            .setCancelable(false)
-            .show();
+            }).setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
+            .setNeutralButton(R.string.reset, (d, w) -> resetTabSize()).setView(binding.getRoot())
+            .setCancelable(false).show();
     }
 
     @Override
@@ -102,15 +97,13 @@ public class TabSizeSeekBarDialogPreference extends Preference {
         return PreferencesUtils.getCodeEditorTabSize(size);
     }
 
-    private void resetTabSize() {
-        applyTab(DEFAULT_TAB_SIZE);
-    }
-
     private void applyTab(int size) {
         var pref = PreferencesUtils.getDefaultPreferences();
         var editor = pref.edit();
-        editor
-            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size)
-            .apply();
+        editor.putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE, size).apply();
+    }
+
+    private void resetTabSize() {
+        applyTab(DEFAULT_TAB_SIZE);
     }
 }

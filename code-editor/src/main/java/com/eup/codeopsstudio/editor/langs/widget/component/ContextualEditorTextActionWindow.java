@@ -85,9 +85,8 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
         handler     = editor.getEventHandler();
 
         // Since popup window does provide decor view, we have to pass null to this method
-        @SuppressLint("InflateParams") View root = LayoutInflater
-            .from(editor.getContext())
-            .inflate(R.layout.contextual_text_compose_panel, null);
+        @SuppressLint("InflateParams") View root = LayoutInflater.from(editor.getContext())
+                                                                 .inflate(R.layout.contextual_text_compose_panel, null);
 
         pasteBtn           = root.findViewById(R.id.panel_btn_paste);
         copyBtn            = root.findViewById(R.id.panel_btn_copy);
@@ -129,15 +128,9 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
             }
         }));
         editor.subscribeEvent(LongPressEvent.class, ((event, unsubscribe) -> {
-            if (editor
-                .getCursor()
-                .isSelected() && lastCause == SelectionChangeEvent.CAUSE_SEARCH) {
+            if (editor.getCursor().isSelected() && lastCause == SelectionChangeEvent.CAUSE_SEARCH) {
                 int idx = event.getIndex();
-                if (idx >= editor
-                    .getCursor()
-                    .getLeft() && idx <= editor
-                    .getCursor()
-                    .getRight()) {
+                if (idx >= editor.getCursor().getLeft() && idx <= editor.getCursor().getRight()) {
                     lastCause = 0;
                     displayWindow();
                 }
@@ -145,25 +138,18 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
             }
         }));
         editor.subscribeEvent(HandleStateChangeEvent.class, ((event, unsubscribe) -> {
-            if (!event
-                .getEditor()
-                .getCursor()
-                .isSelected() && event.getHandleType() == HandleStateChangeEvent.HANDLE_TYPE_INSERT
+            if (!event.getEditor().getCursor().isSelected()
+                && event.getHandleType() == HandleStateChangeEvent.HANDLE_TYPE_INSERT
                 && !event.isHeld()) {
                 displayWindow();
                 // Also, post to hide the window on handle disappearance
                 editor.postDelayedInLifecycle(new Runnable() {
                     @Override
                     public void run() {
-                        if (!editor
-                            .getEventHandler()
-                            .shouldDrawInsertHandle() && !editor
-                            .getCursor()
-                            .isSelected()) {
+                        if (!editor.getEventHandler().shouldDrawInsertHandle() && !editor
+                            .getCursor().isSelected()) {
                             dismiss();
-                        } else if (!editor
-                            .getCursor()
-                            .isSelected()) {
+                        } else if (!editor.getCursor().isSelected()) {
                             editor.postDelayedInLifecycle(this, 100);
                         }
                     }
@@ -210,7 +196,7 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
             return;
         }
         lastCause = event.getCause();
-        
+
         if (event.isSelected()) {
             // Always post show. See #193
             if (event.getCause() != SelectionChangeEvent.CAUSE_SEARCH) {
@@ -222,9 +208,9 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
         } else {
             boolean show = false;
             if (event.getCause() == SelectionChangeEvent.CAUSE_TAP
-                && event.getLeft().index == lastPosition && !isShowing() && !editor
-                .getText()
-                .isInBatchEdit() && editor.isEditable()) {
+                && event.getLeft().index == lastPosition && !isShowing() && !editor.getText()
+                                                                                   .isInBatchEdit()
+                && editor.isEditable()) {
                 editor.postInLifecycle(this::displayWindow);
                 show = true;
             } else {
@@ -253,16 +239,10 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
             top = selectTopRect(editor.getInsertHandleDescriptor().position);
         }
         top = Math.max(0, Math.min(top, editor.getHeight() - getHeight() - 5));
-        float handleLeftX = editor.getOffset(editor
-            .getCursor()
-            .getLeftLine(), editor
-            .getCursor()
-            .getLeftColumn());
-        float handleRightX = editor.getOffset(editor
-            .getCursor()
-            .getRightLine(), editor
-            .getCursor()
-            .getRightColumn());
+        float handleLeftX = editor.getOffset(editor.getCursor().getLeftLine(), editor.getCursor()
+                                                                                     .getLeftColumn());
+        float handleRightX = editor.getOffset(editor.getCursor().getRightLine(), editor.getCursor()
+                                                                                       .getRightColumn());
         int panelX = (int) ((handleLeftX + handleRightX) / 2f - rootView.getMeasuredWidth() / 2f);
         setLocationAbsolutely(panelX, top);
         show();
@@ -282,19 +262,14 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
      */
     private void updateButtonState() {
         pasteBtn.setEnabled(editor.hasClip());
-        copyBtn.setVisibility(editor
-            .getCursor()
-            .isSelected() ? View.VISIBLE : View.GONE);
-        cutBtn.setVisibility((editor
-            .getCursor()
-            .isSelected() && editor.isEditable()) ? View.VISIBLE : View.GONE);
+        copyBtn.setVisibility(editor.getCursor().isSelected() ? View.VISIBLE : View.GONE);
+        cutBtn.setVisibility(
+            (editor.getCursor().isSelected() && editor.isEditable()) ? View.VISIBLE : View.GONE);
         pasteBtn.setVisibility(editor.isEditable() ? View.VISIBLE : View.GONE);
-        longSelectBtn.setVisibility((!editor
-            .getCursor()
-            .isSelected() && editor.isEditable()) ? View.VISIBLE : View.GONE);
-        expandSelectionBtn.setVisibility((editor
-            .getCursor()
-            .isSelected()) ? View.VISIBLE : View.GONE);
+        longSelectBtn.setVisibility(
+            (!editor.getCursor().isSelected() && editor.isEditable()) ? View.VISIBLE : View.GONE);
+        expandSelectionBtn.setVisibility(
+            (editor.getCursor().isSelected()) ? View.VISIBLE : View.GONE);
         rootView.measure(View.MeasureSpec.makeMeasureSpec(1000000, View.MeasureSpec.AT_MOST),
             View.MeasureSpec.makeMeasureSpec(100000, View.MeasureSpec.AT_MOST));
         setSize(Math.min(rootView.getMeasuredWidth(), (int) (editor.getDpUnit()
@@ -303,9 +278,7 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
 
     @Override
     public void show() {
-        if (!enabled || editor
-            .getSnippetController()
-            .isInSnippet()) {
+        if (!enabled || editor.getSnippetController().isInSnippet()) {
             return;
         }
         super.show();
@@ -320,27 +293,19 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
             return;
         } else if (id == R.id.panel_btn_cut) {
             attachTooltip(cutBtn, "Cut");
-            if (editor
-                .getCursor()
-                .isSelected()) {
+            if (editor.getCursor().isSelected()) {
                 editor.cutText();
             }
         } else if (id == R.id.panel_btn_paste) {
             attachTooltip(pasteBtn, "Paste");
             editor.pasteText();
-            editor.setSelection(editor
-                .getCursor()
-                .getRightLine(), editor
-                .getCursor()
-                .getRightColumn());
+            editor.setSelection(editor.getCursor().getRightLine(), editor.getCursor()
+                                                                         .getRightColumn());
         } else if (id == R.id.panel_btn_copy) {
             attachTooltip(copyBtn, "Copy");
             editor.copyText();
-            editor.setSelection(editor
-                .getCursor()
-                .getRightLine(), editor
-                .getCursor()
-                .getRightColumn());
+            editor.setSelection(editor.getCursor().getRightLine(), editor.getCursor()
+                                                                         .getRightColumn());
         } else if (id == R.id.panel_btn_long_select) {
             attachTooltip(longSelectBtn, "Long select");
             editor.beginLongSelect();
@@ -362,33 +327,29 @@ public class ContextualEditorTextActionWindow extends EditorTextActionWindow {
         TooltipCompat.setTooltipText(anchor, text);
     }
 
+    public void setWindowCornerRadius(final int radius) {
+        windowCornerRadius = radius;
+    }
+
     private void runPostDisplay() {
         if (!isShowing()) {
             return;
         }
         dismiss();
-        if (!editor
-            .getCursor()
-            .isSelected()) {
+        if (!editor.getCursor().isSelected()) {
             return;
         }
         editor.postDelayedInLifecycle(new Runnable() {
             @Override
             public void run() {
-                if (!handler.hasAnyHeldHandle() && !editor
-                    .getSnippetController()
-                    .isInSnippet() && System.currentTimeMillis() - lastScroll > DELAY && editor
-                    .getScroller()
-                    .isFinished()) {
+                if (!handler.hasAnyHeldHandle() && !editor.getSnippetController().isInSnippet()
+                    && System.currentTimeMillis() - lastScroll > DELAY && editor.getScroller()
+                                                                                .isFinished()) {
                     displayWindow();
                 } else {
                     editor.postDelayedInLifecycle(this, DELAY);
                 }
             }
         }, DELAY);
-    }
-
-    public void setWindowCornerRadius(final int radius) {
-        windowCornerRadius = radius;
     }
 }

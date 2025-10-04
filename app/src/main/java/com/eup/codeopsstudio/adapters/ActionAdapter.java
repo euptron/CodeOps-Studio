@@ -48,14 +48,6 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
     private OnItemClickListener mListener;
     private OnButtonClickListener buttonClickListener;
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        mListener = listener;
-    }
-
-    public void setOnButtonClickListener(OnButtonClickListener listener) {
-        buttonClickListener = listener;
-    }
-
     @NonNull
     @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -65,26 +57,16 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
 
     @Override
     public void onBindViewHolder(VH holder, int position) {
-        String title = items
-            .get(position)
-            .getTitle();
-        String summary = items
-            .get(position)
-            .getSummary();
-        String buttonText = items
-            .get(position)
-            .getButtonText();
+        String title = items.get(position).getTitle();
+        String summary = items.get(position).getSummary();
+        String buttonText = items.get(position).getButtonText();
 
         holder.title.setText(title);
-        holder.icon.setImageResource(items
-            .get(position)
-            .getIcon());
+        holder.icon.setImageResource(items.get(position).getIcon());
 
         if (summary != null) {
             holder.summary.setVisibility(View.VISIBLE);
-            holder.summary.setText(items
-                .get(position)
-                .getSummary());
+            holder.summary.setText(items.get(position).getSummary());
         } else {
             holder.summary.setVisibility(View.GONE);
         }
@@ -113,6 +95,21 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
         return items.size();
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    public void refresh(List<ActionModel> actions) {
+        items.clear();
+        items.addAll(actions);
+        notifyDataSetChanged();
+    }
+
+    public void setOnButtonClickListener(OnButtonClickListener listener) {
+        buttonClickListener = listener;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        mListener = listener;
+    }
+
     public void submitList(@NonNull List<ActionModel> payloads) {
         computeDifference(items, payloads, () -> {
             // update items before dispatching updates
@@ -123,7 +120,7 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
 
     @SuppressLint("NotifyDataSetChanged")
     private void computeDifference(@NonNull List<ActionModel> oldItems,
-                                   @NonNull List<ActionModel> newItems, Runnable task) {
+        @NonNull List<ActionModel> newItems, Runnable task) {
 
         DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
@@ -160,13 +157,6 @@ public class ActionAdapter extends RecyclerView.Adapter<ActionAdapter.VH> {
         } catch (IndexOutOfBoundsException e) {
             notifyDataSetChanged();
         }
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void refresh(List<ActionModel> actions) {
-        items.clear();
-        items.addAll(actions);
-        notifyDataSetChanged();
     }
 
     public interface OnItemClickListener {

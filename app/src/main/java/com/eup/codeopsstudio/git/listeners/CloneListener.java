@@ -40,8 +40,8 @@ public interface CloneListener {
 
     void onCloneFailed(String e);
 
-    void onUpdateMessage(String message);
-
     void onProgress(int progress);
+
+    void onUpdateMessage(String message);
 }
 

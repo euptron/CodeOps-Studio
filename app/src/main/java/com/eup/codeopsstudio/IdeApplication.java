@@ -29,7 +29,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
-import android.os.Build;
 import android.os.Process;
 
 import androidx.annotation.NonNull;
@@ -37,6 +36,7 @@ import androidx.annotation.NonNull;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ContextManager;
 import com.eup.codeopsstudio.common.ILog;
+import com.eup.codeopsstudio.common.SystemArchitecture;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.ThrowableUtils;
@@ -46,7 +46,6 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.CustomKeysAndValues;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.CompletableFuture;
@@ -63,16 +62,63 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     private FirebaseCrashlytics crashlytics;
     private ThemeManager themeManager;
 
-    public static IdeApplication getInstance() {
-        return instance;
+    @Override
+    public void onCreate() {
+        ILog.mode(isAppInDebugMode());
+        super.onCreate();
+        instance = this;
+        ContextManager.initialize(getGlobalContext());
+
+        themeManager = new ThemeManager(this);
+        themeManager.applyTheme();
+        themeManager.applyDynamicColors();
+        crashlytics = FirebaseCrashlytics.getInstance();
+        crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
+        FirebaseAnalytics.getInstance(this)
+                         .setAnalyticsCollectionEnabled(userHasConsentedToDataSharing());
+
+        Thread.setDefaultUncaughtExceptionHandler(this);
+        crashlytics.sendUnsentReports();
+
+        validateExpirationDate();
+        loadEditorConfigurations();
     }
 
-    public static Configuration getGlobalConfiguration() {
-        return getGlobalResources().getConfiguration();
+    public static boolean isAppInDebugMode() {
+        return BuildConfig.DEBUG;
     }
 
-    public static Resources getGlobalResources() {
-        return getGlobalContext().getResources();
+    private void validateExpirationDate() {
+        var currentDate = Calendar.getInstance();
+        var fixedFutureDate = new GregorianCalendar(Constants.EXPIRATION_YEAR,
+            Constants.EXPIRATION_MONTH, Constants.EXPIRATION_DAY);
+
+        if (currentDate.after(fixedFutureDate)) {
+            var msg = "This version of CodeOps Studio is outdated. Please download the latest "
+                + "version from Git Hub: " + Constants.GITHUB_URL;
+            throw new RuntimeException(msg);
+        }
+    }
+
+    private boolean userHasConsentedToDataSharing() {
+        return PreferencesUtils.canShareAnonymousStatistics();
+    }
+
+    private void loadEditorConfigurations() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                ContextualCodeEditor.loadConfigurations(IdeApplication.this);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, backgroundExecutor).exceptionally(throwable -> {
+            if (throwable == null) {
+                ILog.info(TAG, "Code editor configurations loaded successfully");
+            } else {
+                ILog.error(TAG, "Error loading code editor configurations", throwable);
+            }
+            return null;
+        });
     }
 
     /**
@@ -98,100 +144,11 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         return instance.getApplicationContext();
     }
 
-    public static ConnectivityManager getConnectivityManager() {
-        return (ConnectivityManager) getGlobalSystemService(Context.CONNECTIVITY_SERVICE);
-    }
-
-    public static Object getGlobalSystemService(String name) {
-        return getGlobalContext().getSystemService(name);
-    }
-
-    @NonNull
-    public static FirebaseAnalytics getAnalytics() {
-        return FirebaseAnalytics.getInstance(getGlobalContext());
-    }
-
-    public ThemeManager getThemeManager() {
-        return themeManager;
-    }
-
-    @Override
-    public void onCreate() {
-        ILog.mode(isAppInDebugMode());
-        super.onCreate();
-        instance = this;
-        ContextManager.initialize(getGlobalContext());
-
-        themeManager = new ThemeManager(this);
-        themeManager.applyTheme();
-        themeManager.applyDynamicColors();
-        crashlytics = FirebaseCrashlytics.getInstance();
-        crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
-        FirebaseAnalytics
-            .getInstance(this)
-            .setAnalyticsCollectionEnabled(userHasConsentedToDataSharing());
-
-        Thread.setDefaultUncaughtExceptionHandler(this);
-        crashlytics.sendUnsentReports();
-        validateExpirationDate();
-        //loadEditorConfigurations();
-
-        try {
-            ContextualCodeEditor.loadConfigurations(IdeApplication.this);
-        } catch (Exception e) {
-            ILog.error(TAG, "Error loading code editor configurations", e);
-        }
-    }
-
-    public static boolean isAppInDebugMode() {
-        return BuildConfig.DEBUG;
-    }
-
-    private void validateExpirationDate() {
-        var currentDate = Calendar.getInstance();
-        var fixedFutureDate = new GregorianCalendar(Constants.EXPIRATION_YEAR,
-            Constants.EXPIRATION_MONTH, Constants.EXPIRATION_DAY);
-
-        if (currentDate.after(fixedFutureDate)) {
-            var msg = "This version of CodeOps Studio is outdated. Please download the latest "
-                + "version from Git Hub: " + Constants.GITHUB_URL;
-            throw new RuntimeException(msg);
-        }
-    }
-
-    private boolean userHasConsentedToDataSharing() {
-        return PreferencesUtils.canShareAnonymousStatistics();
-    }
-
-    private void loadEditorConfigurations() {
-        CompletableFuture
-            .runAsync(() -> {
-                try {
-                    ContextualCodeEditor.loadConfigurations(IdeApplication.this);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }, backgroundExecutor)
-            .exceptionally(throwable -> {
-                if (throwable == null) {
-                    ILog.info(TAG, "Code editor configurations loaded successfully");
-                } else {
-                    ILog.error(TAG, "Error loading code editor configurations", throwable);
-                }
-                return null;
-            });
-    }
-
     @Override
     public void uncaughtException(Thread thread, @NonNull Throwable throwable) {
         errorMessage.append(ThrowableUtils.getFullStackTrace(throwable));
-        final var crashDate = Calendar
-            .getInstance()
-            .getTime()
-            .toString();
-        errorMessage
-            .append(crashDate)
-            .append(Constants.NEXT_LINE.repeat(2));
+        final var crashDate = Calendar.getInstance().getTime().toString();
+        errorMessage.append(crashDate).append(Constants.NEXT_LINE.repeat(2));
 
         crashlytics.setUserId(Wizard.getUserID(getGlobalContext()));
         CustomKeysAndValues keysAndValues = new CustomKeysAndValues.Builder()
@@ -204,9 +161,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
             .putString("App Package Name", Wizard.getAppPackageName(getGlobalContext()))
             .putString("App Version " + "Name", Wizard.getAppVersionName(getGlobalContext()))
             .putString("App " + "Version Code", Wizard.getAppVersionCode(getGlobalContext()))
-            .putString("Error", errorMessage.toString())
-            .putString("Crash Date", crashDate)
-            .build();
+            .putString("Error", errorMessage.toString()).putString("Crash Date", crashDate).build();
         crashlytics.setCustomKeys(keysAndValues);
 
         crashlytics.log("Uncaught exception in thread: " + thread.getName());
@@ -242,57 +197,32 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         }).start();
     }
 
-    public static class SystemArchitecture {
-        public static final String DEVICE_ARCHITECTURE_NOT_SUPPORTED = "Device Not Supported";
+    @NonNull
+    public static FirebaseAnalytics getAnalytics() {
+        return FirebaseAnalytics.getInstance(getGlobalContext());
+    }
 
-        private static final String ARM = "armeabi-v7a";
-        private static final String AARCH64 = "arm64-v8a";
-        private static final String I686 = "x86";
-        private static final String X86_64 = "x86_64";
+    public static ConnectivityManager getConnectivityManager() {
+        return (ConnectivityManager) getGlobalSystemService(Context.CONNECTIVITY_SERVICE);
+    }
 
-        @NonNull
-        public static String getArchitecture() {
-            if (isSupportedArch()) {
-                if (supportsArm32Bit()) {
-                    return ARM;
-                } else if (supportsArm64Bit()) {
-                    return AARCH64;
-                } else if (supportsX86_32Bit()) {
-                    return I686;
-                } else if (supportsX86_64Bit()) {
-                    return X86_64;
-                }
-            }
-            return DEVICE_ARCHITECTURE_NOT_SUPPORTED;
-        }
+    public static Object getGlobalSystemService(String name) {
+        return getGlobalContext().getSystemService(name);
+    }
 
-        public static boolean isSupportedArch() {
-            return supportsArm32Bit() || supportsArm64Bit() || supportsX86_32Bit()
-                || supportsX86_64Bit();
-        }
+    public static Configuration getGlobalConfiguration() {
+        return getGlobalResources().getConfiguration();
+    }
 
-        public static boolean supportsArm32Bit() {
-            return Arrays
-                .asList(Build.SUPPORTED_ABIS)
-                .contains(ARM);
-        }
+    public static Resources getGlobalResources() {
+        return getGlobalContext().getResources();
+    }
 
-        public static boolean supportsArm64Bit() {
-            return Arrays
-                .asList(Build.SUPPORTED_ABIS)
-                .contains(AARCH64);
-        }
+    public static IdeApplication getInstance() {
+        return instance;
+    }
 
-        public static boolean supportsX86_32Bit() {
-            return Arrays
-                .asList(Build.SUPPORTED_ABIS)
-                .contains(I686);
-        }
-
-        public static boolean supportsX86_64Bit() {
-            return Arrays
-                .asList(Build.SUPPORTED_ABIS)
-                .contains(X86_64);
-        }
+    public ThemeManager getThemeManager() {
+        return themeManager;
     }
 }

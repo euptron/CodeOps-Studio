@@ -64,15 +64,6 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
     private String zipPath;
     private FileViewModel fileViewModel;
 
-    @NonNull
-    public static ZIPFilePickerDialogFragment newInstance(String selectedZIPFilePath) {
-        ZIPFilePickerDialogFragment fragment = new ZIPFilePickerDialogFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString(KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH, selectedZIPFilePath);
-        fragment.setArguments(arguments);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,28 +87,20 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
         dialogTextInputBinding.inputDescription.setVisibility(View.VISIBLE);
         dialogTextInputBinding.inputDescription.setText(R.string.msg_unzip_project_into_dir_based_on_project_name);
         dialogTextInputBinding.tilName.setHint(getString(R.string.project_name));
-        Objects
-            .requireNonNull(dialogTextInputBinding.tilName.getEditText())
-            .setText(FileUtil.getFileNameWithoutExtension(zipFile));
+        Objects.requireNonNull(dialogTextInputBinding.tilName.getEditText())
+               .setText(FileUtil.getFileNameWithoutExtension(zipFile));
         dialogTextInputBinding.tilOther.setHint(getString(R.string.save_location));
         dialogTextInputBinding.tilOther.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
         dialogTextInputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
         dialogTextInputBinding.tilOther.setEndIconOnClickListener(v -> {
             MainActivity mainActivity = (MainActivity) requireActivity();
-            mainActivity
-                .getLifecycleObserver()
-                .pickFolder();
+            mainActivity.getLifecycleObserver().pickFolder();
         });
 
         builder.setPositiveButton(getString(R.string.create), (dialog, which) -> {
-            String projectName = dialogTextInputBinding.tilName
-                .getEditText()
-                .getText()
-                .toString();
+            String projectName = dialogTextInputBinding.tilName.getEditText().getText().toString();
             String destDirPath = Objects
-                .requireNonNull(dialogTextInputBinding.tilOther.getEditText())
-                .getText()
-                .toString();
+                .requireNonNull(dialogTextInputBinding.tilOther.getEditText()).getText().toString();
             // show unzip dialog
             File destDir = new File(destDirPath, projectName);
             int bufferSize = PreferencesUtils.getCurrentBufferSize();
@@ -139,48 +122,46 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
         positiveButton.setEnabled(false);
         Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText());
 
-        dialogTextInputBinding.tilOther
-            .getEditText()
-            .addTextChangedListener(new TextWatcherAdapter() {
-                @Override
-                public void afterTextChanged(@NonNull Editable editable) {
-                    final File output = new File(editable.toString());
-                    if (!output.exists()) {
-                        positiveButton.setEnabled(false);
-                        dialogTextInputBinding.tilOther.setErrorEnabled(true);
-                        dialogTextInputBinding.tilOther.setError(getString(R.string.msg_dir_not_exist));
-                    } else {
-                        positiveButton.setEnabled(true);
-                        if (dialogTextInputBinding.tilOther.isErrorEnabled()) {
-                            dialogTextInputBinding.tilOther.setErrorEnabled(false);
-                        }
-                    }
-                }
-            });
+        dialogTextInputBinding.tilOther.getEditText()
+                                       .addTextChangedListener(new TextWatcherAdapter() {
+                                           @Override
+                                           public void afterTextChanged(
+                                               @NonNull Editable editable) {
+                                               final File output = new File(editable.toString());
+                                               if (!output.exists()) {
+                                                   positiveButton.setEnabled(false);
+                                                   dialogTextInputBinding.tilOther.setErrorEnabled(true);
+                                                   dialogTextInputBinding.tilOther.setError(getString(R.string.msg_dir_not_exist));
+                                               } else {
+                                                   positiveButton.setEnabled(true);
+                                                   if (dialogTextInputBinding.tilOther.isErrorEnabled()) {
+                                                       dialogTextInputBinding.tilOther.setErrorEnabled(false);
+                                                   }
+                                               }
+                                           }
+                                       });
 
         Objects.requireNonNull(dialogTextInputBinding.tilName.getEditText());
-        dialogTextInputBinding.tilName
-            .getEditText()
-            .addTextChangedListener(new TextWatcherAdapter() {
-                @Override
-                public void afterTextChanged(@NonNull Editable editable) {
-                    String projectName = dialogTextInputBinding.tilName
-                        .getEditText()
-                        .getText()
-                        .toString();
-                    final File output = new File(editable.toString(), projectName);
-                    if (output.exists()) {
-                        positiveButton.setEnabled(false);
-                        dialogTextInputBinding.tilName.setErrorEnabled(true);
-                        dialogTextInputBinding.tilName.setError(getString(R.string.msg_dir_does_exist));
-                    } else {
-                        positiveButton.setEnabled(true);
-                        if (dialogTextInputBinding.tilName.isErrorEnabled()) {
-                            dialogTextInputBinding.tilName.setErrorEnabled(false);
-                        }
-                    }
-                }
-            });
+        dialogTextInputBinding.tilName.getEditText()
+                                      .addTextChangedListener(new TextWatcherAdapter() {
+                                          @Override
+                                          public void afterTextChanged(@NonNull Editable editable) {
+                                              String projectName = dialogTextInputBinding.tilName
+                                                  .getEditText().getText().toString();
+                                              final File output = new File(editable.toString(),
+                                                  projectName);
+                                              if (output.exists()) {
+                                                  positiveButton.setEnabled(false);
+                                                  dialogTextInputBinding.tilName.setErrorEnabled(true);
+                                                  dialogTextInputBinding.tilName.setError(getString(R.string.msg_dir_does_exist));
+                                              } else {
+                                                  positiveButton.setEnabled(true);
+                                                  if (dialogTextInputBinding.tilName.isErrorEnabled()) {
+                                                      dialogTextInputBinding.tilName.setErrorEnabled(false);
+                                                  }
+                                              }
+                                          }
+                                      });
     }
 
     @Override
@@ -193,9 +174,7 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
                 dismiss();
             }
 
-            if (!zipFile
-                .getName()
-                .endsWith(".zip")) {
+            if (!zipFile.getName().endsWith(".zip")) {
                 String msg = getString(R.string.msg_selected_file_not_valid_type,
                     getString(R.string.zip));
                 BaseUtil.toastShort(msg);
@@ -209,14 +188,21 @@ public class ZIPFilePickerDialogFragment extends DialogFragment {
         if (file.exists()) {
             var folderPath = file.getAbsolutePath();
             Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText());
-            dialogTextInputBinding.tilOther
-                .getEditText()
-                .setText(folderPath);
+            dialogTextInputBinding.tilOther.getEditText().setText(folderPath);
             logger.d(TAG, getString(R.string.folder_selection_success));
         }
     }
 
     private boolean isDialogVisible() {
         return getDialog() != null && getDialog().isShowing();
+    }
+
+    @NonNull
+    public static ZIPFilePickerDialogFragment newInstance(String selectedZIPFilePath) {
+        ZIPFilePickerDialogFragment fragment = new ZIPFilePickerDialogFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH, selectedZIPFilePath);
+        fragment.setArguments(arguments);
+        return fragment;
     }
 }

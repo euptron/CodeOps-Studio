@@ -128,9 +128,9 @@ public class ShareLayout extends LinearLayout {
         LinearLayout shareLinear;
         LinearLayout root;
         uiBuilder = new UiBuilder(context);
-        TypedArray a = context
-            .getTheme()
-            .obtainStyledAttributes(attrs, R.styleable.ShareLayout, defStyle, DEF_STYLE_RES);
+        TypedArray a = context.getTheme()
+                              .obtainStyledAttributes(attrs, R.styleable.ShareLayout, defStyle,
+                                  DEF_STYLE_RES);
         int layoutColor;
         String titleText;
         String summaryText;
@@ -271,8 +271,7 @@ public class ShareLayout extends LinearLayout {
 
     @Nullable
     public static ColorStateList getColorStateList(@NonNull Context context,
-                                                   @NonNull TypedArray attributes,
-                                                   @StyleableRes int index) {
+        @NonNull TypedArray attributes, @StyleableRes int index) {
         if (attributes.hasValue(index)) {
             int resourceId = attributes.getResourceId(index, 0);
             if (resourceId != 0) {
@@ -296,6 +295,10 @@ public class ShareLayout extends LinearLayout {
         return attributes.getColorStateList(index);
     }
 
+    public TextView getSharePrompt() {
+        return sharePrompt;
+    }
+
     public boolean isShowProgressBar() {
         return mShowProgressBar;
     }
@@ -315,6 +318,25 @@ public class ShareLayout extends LinearLayout {
         mListener = listener;
     }
 
+    /**
+     * Sets the
+     */
+    public void setShareButtonText(String text) {
+        shareButton.setText(text);
+    }
+
+    public void setSharePromptText(String text) {
+        sharePrompt.setText(text);
+    }
+
+    public void setSummaryText(String text) {
+        summary.setText(text);
+    }
+
+    public void setTitleText(String text) {
+        title.setText(text);
+    }
+
     void setCornerRadius(int cornerRadius) {
         // If cornerRadius wasn't set in the style, it would have a default value of -1.
         // Therefore, for
@@ -325,33 +347,12 @@ public class ShareLayout extends LinearLayout {
         }
     }
 
-    public void setTitleText(String text) {
-        title.setText(text);
-    }
-
-    public void setSummaryText(String text) {
-        summary.setText(text);
-    }
-
-    public void setSharePromptText(String text) {
-        sharePrompt.setText(text);
-    }
-
-    public TextView getSharePrompt() {
-        return sharePrompt;
-    }
-
-    /**
-     * Sets the
-     */
-    public void setShareButtonText(String text) {
-        shareButton.setText(text);
-    }
-
     /**
      * Interface definition for a callback to be invoked when the progress bar state changes.
      */
     public interface OnCheckProgressListener {
+        void onEndProgress(ProgressBar progressBar, boolean isVisible);
+
         /**
          * Called when the checked state of a MaterialButton has changed.
          *
@@ -359,8 +360,6 @@ public class ShareLayout extends LinearLayout {
          * @param isVisible   The new visibility state of the ProgressBar.
          */
         void onStartProgress(ProgressBar progressBar, boolean isVisible);
-
-        void onEndProgress(ProgressBar progressBar, boolean isVisible);
     }
 
     public interface OnItemClickListener {

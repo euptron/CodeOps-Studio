@@ -53,7 +53,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * logged in");}. Listeners can be added via {@link #addLogListener(LogListener)} to forward logs to
  * other destinations like files or UI components.
  *
- * @author EUP
+ * @author Etido Peter
  * @since 1.0.3 beta
  */
 public final class ILog {
@@ -72,8 +72,53 @@ public final class ILog {
             "This is a utility class and cannot be " + "instantiated");
     }
 
+    public static void addLogListener(@NonNull LogListener listener) {
+        if (!logListeners.contains(Objects.requireNonNull(listener))) {
+            logListeners.add(listener);
+        }
+    }
+
+    public static void clearLogListeners() {
+        logListeners.clear();
+    }
+
+    public static void debug(@NonNull String tag, @NonNull String msg) {
+        debug(tag, msg, null);
+    }
+
+    public static void debug(@NonNull String tag, @NonNull String msg,
+        @Nullable Throwable throwable) {
+        logInternal(Log.DEBUG, tag, msg, throwable);
+    }
+
+    public static void error(@NonNull String tag, @NonNull String msg) {
+        error(tag, msg, null);
+    }
+
+    public static void error(@NonNull String tag, @NonNull String msg,
+        @Nullable Throwable throwable) {
+        logInternal(Log.ERROR, tag, msg, throwable);
+    }
+
+    public static int getLogListenersCount() {
+        return logListeners.size();
+    }
+
+    public static void info(@NonNull String tag, @NonNull String msg) {
+        info(tag, msg, null);
+    }
+
+    public static void info(@NonNull String tag, @NonNull String msg,
+        @Nullable Throwable throwable) {
+        logInternal(Log.INFO, tag, msg, throwable);
+    }
+
     public static void mode(boolean isInDebugMode) {
         ILog.isInDebugMode = isInDebugMode;
+    }
+
+    public static void removeLogListener(@NonNull LogListener listener) {
+        logListeners.remove(Objects.requireNonNull(listener));
     }
 
     public static void verbose(@NonNull String tag, @NonNull String msg) {
@@ -163,24 +208,6 @@ public final class ILog {
         };
     }
 
-    public static void debug(@NonNull String tag, @NonNull String msg) {
-        debug(tag, msg, null);
-    }
-
-    public static void debug(@NonNull String tag, @NonNull String msg,
-        @Nullable Throwable throwable) {
-        logInternal(Log.DEBUG, tag, msg, throwable);
-    }
-
-    public static void info(@NonNull String tag, @NonNull String msg) {
-        info(tag, msg, null);
-    }
-
-    public static void info(@NonNull String tag, @NonNull String msg,
-        @Nullable Throwable throwable) {
-        logInternal(Log.INFO, tag, msg, throwable);
-    }
-
     public static void warning(@NonNull String tag, @NonNull String msg) {
         warning(tag, msg, null);
     }
@@ -188,33 +215,6 @@ public final class ILog {
     public static void warning(@NonNull String tag, @NonNull String msg,
         @Nullable Throwable throwable) {
         logInternal(Log.WARN, tag, msg, throwable);
-    }
-
-    public static void error(@NonNull String tag, @NonNull String msg) {
-        error(tag, msg, null);
-    }
-
-    public static void error(@NonNull String tag, @NonNull String msg,
-        @Nullable Throwable throwable) {
-        logInternal(Log.ERROR, tag, msg, throwable);
-    }
-
-    public static void addLogListener(@NonNull LogListener listener) {
-        if (!logListeners.contains(Objects.requireNonNull(listener))) {
-            logListeners.add(listener);
-        }
-    }
-
-    public static void removeLogListener(@NonNull LogListener listener) {
-        logListeners.remove(Objects.requireNonNull(listener));
-    }
-
-    public static void clearLogListeners() {
-        logListeners.clear();
-    }
-
-    public static int getLogListenersCount() {
-        return logListeners.size();
     }
 
     public interface LogListener {

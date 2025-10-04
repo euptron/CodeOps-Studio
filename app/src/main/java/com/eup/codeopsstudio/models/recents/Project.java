@@ -64,50 +64,6 @@ public class Project {
         this.history      = history;
     }
 
-    public String getName() {
-        return this.file.getName();
-    }
-
-    public boolean isDirectory() {
-        return this.file.isDirectory();
-    }
-
-    public boolean isFile() {
-        return this.file.isFile();
-    }
-
-    @NonNull
-    public File getFile() {
-        return this.file;
-    }
-
-    public boolean isBookMarked() {
-        return this.isBookmarked;
-    }
-
-    public void setBookMarked(boolean enabled) {
-        isBookmarked = enabled;
-    }
-
-    @Nullable
-    public ProjectHistory getHistory() {
-        return this.history;
-    }
-
-    public long getLastModified() {
-        return file.lastModified();
-    }
-
-    public boolean exists() {
-        try {
-            return this.file.exists();
-        } catch (SecurityException se) {
-            ILog.error(TAG,
-                "SecurityException while checking if file exists: " + this.file.getPath(), se);
-            return false;
-        }
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(getPath());
@@ -136,5 +92,49 @@ public class Project {
     public String toString() {
         return "Project{" + "file=" + (file != null ? getPath() : "null_file_ref") + ", "
             + "isBookmarked=" + isBookmarked + ", history=" + history + '}';
+    }
+
+    public boolean exists() {
+        try {
+            return this.file.exists();
+        } catch (SecurityException se) {
+            ILog.error(TAG,
+                "SecurityException while checking if file exists: " + this.file.getPath(), se);
+            return false;
+        }
+    }
+
+    @NonNull
+    public File getFile() {
+        return this.file;
+    }
+
+    @Nullable
+    public ProjectHistory getHistory() {
+        return this.history;
+    }
+
+    public long getLastModified() {
+        return file.lastModified();
+    }
+
+    public String getName() {
+        return this.file.getName();
+    }
+
+    public boolean isBookMarked() {
+        return this.isBookmarked;
+    }
+
+    public void setBookMarked(boolean enabled) {
+        isBookmarked = enabled;
+    }
+
+    public boolean isDirectory() {
+        return this.file.isDirectory();
+    }
+
+    public boolean isFile() {
+        return this.file.isFile();
     }
 }

@@ -87,9 +87,7 @@ public class TextPane extends Pane {
 
     public String getText() {
         if (hasPerformedCreateView() && textView != null) {
-            return textView
-                .getText()
-                .toString();
+            return textView.getText().toString();
         }
 
         return "";
@@ -106,8 +104,7 @@ public class TextPane extends Pane {
 
     public static int pxToDp(@NonNull Context context, float px) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, px, context
-            .getResources()
-            .getDisplayMetrics()));
+            .getResources().getDisplayMetrics()));
     }
 
     public String getContent() {

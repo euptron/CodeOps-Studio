@@ -58,46 +58,12 @@ public class Logger {
         isAttached = true;
     }
 
-    public void d(@NonNull String message) {
-        if (!isAttached) return;
-        ILog.debug(TAG, message);
-        add(new Log(highlightNumbers(message)));
-    }
-
-    private void add(@NonNull Log log) {
+    public void clear() {
         if (logClass == LogClass.BUILD) {
-            ArrayList<Log> currentList = model
-                .getBUILDLogs()
-                .getValue();
-            if (currentList == null) currentList = new ArrayList<>();
-
-            currentList.add(log);
-            model
-                .getBUILDLogs()
-                .postValue(currentList);
+            model.getBUILDLogs().setValue(new ArrayList<>());
         } else if (logClass == LogClass.IDE) {
-            ArrayList<Log> currentList = model
-                .getIDELogs()
-                .getValue();
-            if (currentList == null) currentList = new ArrayList<>();
-
-            currentList.add(log);
-            model
-                .getIDELogs()
-                .postValue(currentList);
+            model.getIDELogs().setValue(new ArrayList<>());
         }
-    }
-
-    @NonNull
-    private SpannableString highlightNumbers(String message) {
-        SpannableString spannableMessage = new SpannableString(message);
-        Pattern pattern = Pattern.compile("\\b\\d+\\b"); // Regular expression to match numbers
-        Matcher matcher = pattern.matcher(message);
-        while (matcher.find()) {
-            spannableMessage.setSpan(new ForegroundColorSpan(0xFF00FF00), matcher.start(),
-                matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-        return spannableMessage;
     }
 
     public void d(String tag, String message) {
@@ -123,6 +89,40 @@ public class Logger {
         return LogLevel.getLevel(logLevel);
     }
 
+    public void d(@NonNull String message) {
+        if (!isAttached) return;
+        ILog.debug(TAG, message);
+        add(new Log(highlightNumbers(message)));
+    }
+
+    private void add(@NonNull Log log) {
+        if (logClass == LogClass.BUILD) {
+            ArrayList<Log> currentList = model.getBUILDLogs().getValue();
+            if (currentList == null) currentList = new ArrayList<>();
+
+            currentList.add(log);
+            model.getBUILDLogs().postValue(currentList);
+        } else if (logClass == LogClass.IDE) {
+            ArrayList<Log> currentList = model.getIDELogs().getValue();
+            if (currentList == null) currentList = new ArrayList<>();
+
+            currentList.add(log);
+            model.getIDELogs().postValue(currentList);
+        }
+    }
+
+    @NonNull
+    private SpannableString highlightNumbers(String message) {
+        SpannableString spannableMessage = new SpannableString(message);
+        Pattern pattern = Pattern.compile("\\b\\d+\\b"); // Regular expression to match numbers
+        Matcher matcher = pattern.matcher(message);
+        while (matcher.find()) {
+            spannableMessage.setSpan(new ForegroundColorSpan(0xFF00FF00), matcher.start(),
+                matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return spannableMessage;
+    }
+
     public void e(String tag, String message) {
         e(tag, message, null);
     }
@@ -132,7 +132,7 @@ public class Logger {
 
         if (throwable == null) {
             ILog.error(tag, message);
-        } else{
+        } else {
             ILog.error(tag, message, throwable);
         }
         add(new Log(formatDate(), tag, highlightSpan(getLogLevel(LogLevel.ERROR), 0xffff0000),
@@ -159,18 +159,6 @@ public class Logger {
         ILog.warning(tag, message);
         add(new Log(formatDate(), tag, highlightSpan(getLogLevel(LogLevel.WARN), 0xffff7043),
             message));
-    }
-
-    public void clear() {
-        if (logClass == LogClass.BUILD) {
-            model
-                .getBUILDLogs()
-                .setValue(new ArrayList<>());
-        } else if (logClass == LogClass.IDE) {
-            model
-                .getIDELogs()
-                .setValue(new ArrayList<>());
-        }
     }
 
     public enum LogClass {

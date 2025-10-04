@@ -69,10 +69,6 @@ public class ChangeLogFragment extends Fragment {
     private SharedPreferences sharedPreferences;
     private updateListener listener;
 
-    public static ChangeLogFragment newInstance() {
-        return new ChangeLogFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,25 +141,15 @@ public class ChangeLogFragment extends Fragment {
         this.binding = null;
     }
 
-    private void showSyncingAlert() {
-        binding.alertIcon.setImageResource(R.drawable.ic_cached);
-        binding.alertTitle.setText(R.string.sync_change_log_title);
-        binding.alertMessage.setText(R.string.sync_change_log_summ);
-        binding.retryButton.setVisibility(View.GONE); // Hide retry button
+    public boolean hasInternetConnection() {
+        ConnectivityManager connectivityManager =
+            (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 
-    private void showOfflineAlert(String errorMessage) {
-        binding
-            .getRoot()
-            .post(() -> {
-                binding.alertIcon.setImageResource(R.drawable.ic_signal_off);
-                binding.alertTitle.setText(R.string.failed_sync_change_log_title);
-                binding.alertMessage.setText(getString(R.string.failed_sync_change_log_summ));
-                binding.retryButton.setVisibility(View.VISIBLE);
-                binding.retryButton.setOnClickListener(v -> fetchLogs());
-                checkIfLoaded(false);
-            });
-        ILog.error(TAG, errorMessage);
+    public static ChangeLogFragment newInstance() {
+        return new ChangeLogFragment();
     }
 
     private void checkIfLoaded(boolean isLoaded) {
@@ -180,13 +166,6 @@ public class ChangeLogFragment extends Fragment {
             binding.changelogList.setVisibility(View.GONE);
             binding.alertHeader.setVisibility(View.VISIBLE);
         }
-    }
-
-    public boolean hasInternetConnection() {
-        ConnectivityManager connectivityManager =
-            (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
     }
 
     /**
@@ -207,30 +186,6 @@ public class ChangeLogFragment extends Fragment {
             if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
         }), error -> requireActivity().runOnUiThread(() -> listener.onDataFailedToLoad(error)));
         requestQueue.add(request);
-    }
-
-    /**
-     * Saves a list of app change logs to shared-preferences
-     *
-     * @param changelogList the log list to save
-     * @throws JSONException if error JSON error occurs
-     */
-    private void saveToSharedPreferences(
-        @NonNull List<ChangelogItem> changelogList) throws JSONException {
-        JSONArray jsonArray = new JSONArray();
-        for (ChangelogItem item : changelogList) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("versionName", item.getVersionName());
-            jsonObject.put("description", item.getDescription());
-            jsonObject.put("releaseDate", item.getReleaseDate());
-            jsonObject.put("releaseType", item.getReleaseType());
-            jsonObject.put("hasVersionName", item.hasVersionName());
-            jsonObject.put("supportsHtml", item.getSupportsHtml());
-            jsonArray.put(jsonObject);
-        }
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(SHARED_PREF_KEY, jsonArray.toString());
-        editor.apply();
     }
 
     /**
@@ -269,7 +224,7 @@ public class ChangeLogFragment extends Fragment {
      * @return a list of ChangelogItem
      */
     @NonNull
-        private List<ChangelogItem> parseLogs(@NonNull JSONObject response) {
+    private List<ChangelogItem> parseLogs(@NonNull JSONObject response) {
         List<ChangelogItem> changelogList = new ArrayList<>();
         JSONArray changelogArray = response.optJSONArray("changelog");
         if (changelogArray != null) {
@@ -293,9 +248,52 @@ public class ChangeLogFragment extends Fragment {
         return changelogList;
     }
 
-    public interface updateListener {
-        void onDataLoaded(List<ChangelogItem> changelogList);
+    /**
+     * Saves a list of app change logs to shared-preferences
+     *
+     * @param changelogList the log list to save
+     * @throws JSONException if error JSON error occurs
+     */
+    private void saveToSharedPreferences(
+        @NonNull List<ChangelogItem> changelogList) throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (ChangelogItem item : changelogList) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("versionName", item.getVersionName());
+            jsonObject.put("description", item.getDescription());
+            jsonObject.put("releaseDate", item.getReleaseDate());
+            jsonObject.put("releaseType", item.getReleaseType());
+            jsonObject.put("hasVersionName", item.hasVersionName());
+            jsonObject.put("supportsHtml", item.getSupportsHtml());
+            jsonArray.put(jsonObject);
+        }
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(SHARED_PREF_KEY, jsonArray.toString());
+        editor.apply();
+    }
 
+    private void showOfflineAlert(String errorMessage) {
+        binding.getRoot().post(() -> {
+            binding.alertIcon.setImageResource(R.drawable.ic_signal_off);
+            binding.alertTitle.setText(R.string.failed_sync_change_log_title);
+            binding.alertMessage.setText(getString(R.string.failed_sync_change_log_summ));
+            binding.retryButton.setVisibility(View.VISIBLE);
+            binding.retryButton.setOnClickListener(v -> fetchLogs());
+            checkIfLoaded(false);
+        });
+        ILog.error(TAG, errorMessage);
+    }
+
+    private void showSyncingAlert() {
+        binding.alertIcon.setImageResource(R.drawable.ic_cached);
+        binding.alertTitle.setText(R.string.sync_change_log_title);
+        binding.alertMessage.setText(R.string.sync_change_log_summ);
+        binding.retryButton.setVisibility(View.GONE); // Hide retry button
+    }
+
+    public interface updateListener {
         void onDataFailedToLoad(Exception error);
+
+        void onDataLoaded(List<ChangelogItem> changelogList);
     }
 }

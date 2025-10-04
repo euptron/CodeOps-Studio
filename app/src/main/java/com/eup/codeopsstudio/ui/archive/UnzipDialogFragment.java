@@ -34,11 +34,10 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.archive.ZIPArchive;
-import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.DialogFragmentUnzipBinding;
 import com.eup.codeopsstudio.models.logger.Logger;
-import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -58,18 +57,6 @@ public class UnzipDialogFragment extends DialogFragment implements ZIPArchive.On
     private String destDirectory;
     private MainViewModel mainViewModel;
     private Logger logger;
-
-    @NonNull
-    public static UnzipDialogFragment newInstance(String zipFilePath, String destDirectory,
-        int bufferSize) {
-        UnzipDialogFragment fragment = new UnzipDialogFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString(KEY_ARGUMENT_ZIP_FILE_PATH, zipFilePath);
-        arguments.putString(KEY_ARGUMENT_DESTINATION_DIRECTORY, destDirectory);
-        arguments.putInt(KEY_ARGUMENT_BUFFER_SIZE, bufferSize);
-        fragment.setArguments(arguments);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -224,5 +211,17 @@ public class UnzipDialogFragment extends DialogFragment implements ZIPArchive.On
         if (isDialogVisible()) {
             binding.speedText.setText(getString(R.string.msg_speed, message));
         }
+    }
+
+    @NonNull
+    public static UnzipDialogFragment newInstance(String zipFilePath, String destDirectory,
+        int bufferSize) {
+        UnzipDialogFragment fragment = new UnzipDialogFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(KEY_ARGUMENT_ZIP_FILE_PATH, zipFilePath);
+        arguments.putString(KEY_ARGUMENT_DESTINATION_DIRECTORY, destDirectory);
+        arguments.putInt(KEY_ARGUMENT_BUFFER_SIZE, bufferSize);
+        fragment.setArguments(arguments);
+        return fragment;
     }
 }

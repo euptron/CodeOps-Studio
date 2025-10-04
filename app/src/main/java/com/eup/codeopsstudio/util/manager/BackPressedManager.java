@@ -31,7 +31,7 @@ import androidx.annotation.NonNull;
 import java.util.Objects;
 
 /**
- * @author  Etido Peter
+ * @author Etido Peter
  */
 public abstract class BackPressedManager extends OnBackPressedCallback {
     protected final Activity activity;

@@ -39,6 +39,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -71,11 +72,10 @@ import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.j2objc.annotations.UsedByReflection;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -143,6 +143,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     private Pair<Integer, Pane> currentPanePair = Pair.create(-1, null);
     private OnBackPressedCallback onBackPressedCallback;
     private FileViewModel fileViewModel;
+    private ActionBarDrawerToggle actionBarDrawerToggle;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -171,6 +172,8 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     @MainThread
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        AppCompatActivity activity = (AppCompatActivity) requireActivity();
+
         logger.attach(requireActivity());
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
@@ -178,37 +181,30 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         if (((MainActivity) requireActivity()).isStoragePermissionGranted()) checkPlugins();
         ((MainActivity) requireActivity()).ensureNotificationPermissionGranted();
 
-        mainViewModel
-            .getToolbarTitle()
-            .observe(getViewLifecycleOwner(), binding.toolbar::setTitle);
-        mainViewModel
-            .getToolbarSubTitle()
-            .observe(getViewLifecycleOwner(), binding.toolbar::setSubtitle);
+        mainViewModel.getToolbarTitle().observe(getViewLifecycleOwner(), binding.toolbar::setTitle);
+        mainViewModel.getToolbarSubTitle()
+                     .observe(getViewLifecycleOwner(), binding.toolbar::setSubtitle);
         mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(),
             file -> invalidateMenu());
         mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
 
         FirebaseApp.initializeApp(requireContext());
 
-        FirebaseMessaging
-            .getInstance()
-            .getToken()
-            .addOnCompleteListener(task -> {
-                if (!task.isSuccessful()) {
-                    ILog.warning(TAG, "Fetching FCM registration token failed",
-                        task.getException());
-                    return;
-                }
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                ILog.warning(TAG, "Fetching FCM registration token failed", task.getException());
+                return;
+            }
 
-                // Get new FCM registration token
-                String token = task.getResult();
+            // Get new FCM registration token
+            String token = task.getResult();
 
-                // Log and toast
-                String msg = "Instance ID: " + token;
-                ILog.debug(TAG, msg);
-                logger.i(TAG, msg);
-                BaseUtil.toastShort(msg);
-            });
+            // Log and toast
+            String msg = "Instance ID: " + token;
+            ILog.debug(TAG, msg);
+            logger.i(TAG, msg);
+            BaseUtil.toastShort(msg);
+        });
 
         setUpDrawer();
 
@@ -216,29 +212,21 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             @Override
             public void handleOnBackPressed() {
                 var webViewPane = getSelectedWebViewPane();
-                if (webViewPane != null && webViewPane
-                    .getWebView()
-                    .canGoBack()) {
-                    webViewPane
-                        .getWebView()
-                        .goBack();
+                if (webViewPane != null && webViewPane.getWebView().canGoBack()) {
+                    webViewPane.getWebView().goBack();
                     return;
                 }
                 if (rootView instanceof AllowChildInterceptDrawerLayout) {
-                    Boolean drawerState = mainViewModel
-                        .getDrawerState()
-                        .getValue();
-                    if (drawerState != null && drawerState) {
-                        mainViewModel.setDrawerState(false);
+                    if (mainViewModel.isDrawerOpen()) {
+                        mainViewModel.closeDrawer();
                     } else {
-                        // TODO: show exit dialog
+                        mainViewModel.requestExit();
                     }
                 }
             }
         };
-        getActivity()
-            .getOnBackPressedDispatcher()
-            .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
+        requireActivity().getOnBackPressedDispatcher()
+                         .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
 
         BaseUtil.registerSoftInputChangedListener(getActivity(), __ -> invalidateMenu());
 
@@ -247,14 +235,12 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         if (savedInstanceState != null) restoreViewState(savedInstanceState);
         restoreLastProject();
 
-        mainViewModel
-            .getShouldUpdateMenu()
-            .observe(getViewLifecycleOwner(), shouldUpdate -> {
-                if (shouldUpdate != null && shouldUpdate) {
-                    invalidateMenu();
-                    mainViewModel.setShouldUpdateMenu(false); // reset
-                }
-            });
+        mainViewModel.getShouldUpdateMenu().observe(getViewLifecycleOwner(), shouldUpdate -> {
+            if (shouldUpdate != null && shouldUpdate) {
+                invalidateMenu();
+                mainViewModel.setShouldUpdateMenu(false); // reset
+            }
+        });
 
         fileViewModel.monitorMessages(getViewLifecycleOwner(), observer -> {
             if (observer != null) {
@@ -264,11 +250,9 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
 
         fileViewModel.observePickedFiles(getViewLifecycleOwner(), file -> {
             if (file != null) {
-                if (Wizard
-                    .getMimeType(requireContext(), file)
-                    .equals(MetaDocument.MimeType.ZIP.toString()) || file
-                    .getName()
-                    .endsWith(".zip")) {
+                if (Wizard.getMimeType(requireContext(), file)
+                          .equals(MetaDocument.MimeType.ZIP.toString()) || file.getName()
+                                                                               .endsWith(".zip")) {
                     mainViewModel.setZipFile(file);
                 } else {
                     openFileInPane(file);
@@ -286,12 +270,8 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onStart() {
         super.onStart();
-        if (!EventBus
-            .getDefault()
-            .isRegistered(this)) {
-            EventBus
-                .getDefault()
-                .register(this);
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
         }
     }
 
@@ -307,12 +287,8 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onStop() {
         super.onStop();
-        if (EventBus
-            .getDefault()
-            .isRegistered(this)) {
-            EventBus
-                .getDefault()
-                .unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
         }
     }
 
@@ -321,12 +297,8 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         super.onDestroyView();
         binding = null;
         // mainViewModel.getDrawerState().removeObservers(getViewLifecycleOwner());
-        mainViewModel
-            .getToolbarTitle()
-            .removeObservers(getViewLifecycleOwner());
-        mainViewModel
-            .getToolbarSubTitle()
-            .removeObservers(getViewLifecycleOwner());
+        mainViewModel.getToolbarTitle().removeObservers(getViewLifecycleOwner());
+        mainViewModel.getToolbarSubTitle().removeObservers(getViewLifecycleOwner());
     }
 
     @Override
@@ -356,15 +328,13 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             mainLayout = (CoordinatorLayout) binding.mainLayout;
             mainViewModel.setDrawerInstance(true);
 
-            mainViewModel
-                .getDrawerState()
-                .observe(getViewLifecycleOwner(), isOpen -> {
-                    if (isOpen) {
-                        drawerLayout.openDrawer(binding.navView);
-                    } else {
-                        drawerLayout.closeDrawer(binding.navView);
-                    }
-                });
+            mainViewModel.getDrawerState().observe(getViewLifecycleOwner(), isOpen -> {
+                if (isOpen) {
+                    drawerLayout.openDrawer(binding.navView);
+                } else {
+                    drawerLayout.closeDrawer(binding.navView);
+                }
+            });
 
             binding.toolbar.setNavigationOnClickListener(v -> {
                 if (drawerLayout.isDrawerOpen(binding.navView)) {
@@ -449,9 +419,8 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         if (!PreferencesUtils.openLastOpenedProject()) return;
 
         try {
-            String lastProjectPath = PreferencesUtils
-                .getLastOpenedProjectPreferences()
-                .getString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
+            String lastProjectPath = PreferencesUtils.getLastOpenedProjectPreferences()
+                                                     .getString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
             if (!Wizard.isEmpty(lastProjectPath)) {
                 var projectFile = new File(lastProjectPath);
                 if (projectFile.exists() && projectFile.isDirectory()) {
@@ -523,9 +492,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             editorPane.saveEditor();
             return true;
         } else if (id == R.id.menu_findFile) {
-            editorPane
-                .getSearchManager()
-                .openSearchPanel(true);
+            editorPane.getSearchManager().openSearchPanel(true);
             return true;
         } else if (id == R.id.menu_jump_to_line) {
             editorPane.doJumpToLine();
@@ -536,42 +503,28 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             item.setChecked(newState);
             return true;
         } else if (id == R.id.menu_copy_line) {
-            editorPane
-                .getEditor()
-                .copyText();
+            editorPane.getEditor().copyText();
             return true;
         } else if (id == R.id.menu_delete_line) {
-            editorPane
-                .getEditor()
-                .deleteLine();
+            editorPane.getEditor().deleteLine();
             return true;
         } else if (id == R.id.menu_replace_line) {
-            editorPane
-                .getEditor()
-                .replaceCurrLine();
+            editorPane.getEditor().replaceCurrLine();
             return true;
         } else if (id == R.id.menu_duplicate_line) {
-            editorPane
-                .getEditor()
-                .duplicateLine();
+            editorPane.getEditor().duplicateLine();
             return true;
         } else if (id == R.id.menu_convert_to_lowercase) {
-            editorPane
-                .getEditor()
-                .convertSelectionToLowerCase();
+            editorPane.getEditor().convertSelectionToLowerCase();
             return true;
         } else if (id == R.id.menu_convert_to_uppercase) {
-            editorPane
-                .getEditor()
-                .convertSelectionToUpperCase();
+            editorPane.getEditor().convertSelectionToUpperCase();
             return true;
         } else if (id == R.id.menu_reset_color_schemes) {
             editorPane.refreshEditorLanguageSyntax();
             return true;
         } else if (id == R.id.menu_cut_line) {
-            editorPane
-                .getEditor()
-                .cutLine();
+            editorPane.getEditor().cutLine();
             return true;
         }
         return false;
@@ -632,42 +585,22 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             } else {
                 menu.setGroupEnabled(R.id.group_unredo, true);
                 menu.setGroupVisible(R.id.group_content_edit, true);
-                menu
-                    .findItem(R.id.menu_undo)
-                    .setEnabled(editorPane.canUndo());
-                menu
-                    .findItem(R.id.menu_redo)
-                    .setEnabled(editorPane.canRedo());
+                menu.findItem(R.id.menu_undo).setEnabled(editorPane.canUndo());
+                menu.findItem(R.id.menu_redo).setEnabled(editorPane.canRedo());
             }
-            menu
-                .findItem(R.id.menu_run)
-                .setVisible(Constants.isMarkUp(editorPane.getFile()));
-            menu
-                .findItem(R.id.menu_save_file)
-                .setEnabled(editorPane.isModified());
-            menu
-                .findItem(R.id.menu_read_only_mode)
-                .setChecked(editorPane.isReadOnlyMode());
+            menu.findItem(R.id.menu_run).setVisible(Constants.isMarkUp(editorPane.getFile()));
+            menu.findItem(R.id.menu_save_file).setEnabled(editorPane.isModified());
+            menu.findItem(R.id.menu_read_only_mode).setChecked(editorPane.isReadOnlyMode());
             // menu.findItem(R.id.?).setEnabled(!BaseUtil.isSoftInputVisible(this));
         } else if (webViewPane != null) {
             menu.setGroupVisible(R.id.group_content_edit, false);
             menu.setGroupVisible(R.id.group_editor_actions, false);
             menu.setGroupVisible(R.id.group_unredo, true);
-            menu
-                .findItem(R.id.menu_liveserver)
-                .setVisible(true);
-            menu
-                .findItem(R.id.menu_zoom)
-                .setChecked(webViewPane.isZoomable());
-            menu
-                .findItem(R.id.menu_desktop_mode)
-                .setChecked(webViewPane.isDeskTopMode());
-            menu
-                .findItem(R.id.menu_redo)
-                .setEnabled(webViewPane.canRedo());
-            menu
-                .findItem(R.id.menu_undo)
-                .setEnabled(webViewPane.canUndo());
+            menu.findItem(R.id.menu_liveserver).setVisible(true);
+            menu.findItem(R.id.menu_zoom).setChecked(webViewPane.isZoomable());
+            menu.findItem(R.id.menu_desktop_mode).setChecked(webViewPane.isDeskTopMode());
+            menu.findItem(R.id.menu_redo).setEnabled(webViewPane.canRedo());
+            menu.findItem(R.id.menu_undo).setEnabled(webViewPane.canUndo());
         }
     }
 
@@ -702,10 +635,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         builder.setPositiveButton(getString(R.string.next), (dialog, which) -> {
             String prepName = null;
             if (dialogBinding.tilName.getEditText() != null) {
-                prepName = dialogBinding.tilName
-                    .getEditText()
-                    .getText()
-                    .toString();
+                prepName = dialogBinding.tilName.getEditText().getText().toString();
             }
             if (prepName != null && prepName.isEmpty()) {
                 if (lifeCycleObserver != null) {
@@ -730,7 +660,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
-        currentPanePair = Pair.create(event.index, event.pane);
+        currentPanePair = Pair.create(event.getIndex(), event.getPane());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -746,12 +676,14 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         if (lifeCycleObserver != null) lifeCycleObserver.pickFolder();
     }
 
+    @UsedByReflection
     public void openFolderInTreeViewFragment(File dir) {
         // BaseFragment performs sanity check for invalid files
         mainViewModel.setTreeViewFragmentTreeDir(dir);
         invalidateMenu();
     }
 
+    @UsedByReflection
     public void openZipFileFromManager() {
         if (lifeCycleObserver != null) lifeCycleObserver.pickZipFile();
     }

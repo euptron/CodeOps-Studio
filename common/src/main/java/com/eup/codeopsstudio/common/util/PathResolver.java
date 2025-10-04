@@ -66,35 +66,6 @@ public final class PathResolver<T> {
     }
 
     /**
-     * Checks if the path resolver contains the specified file.
-     *
-     * @param file The file to check.
-     * @return True if the path resolver contains the file, otherwise false.
-     */
-    public boolean contains(T file) {
-        return findNode(file) != null;
-    }
-
-    /**
-     * Finds the TrieNode associated with the given key.
-     *
-     * @param key The key to find.
-     * @return The TrieNode associated with
-     */
-    private TrieNode<T> findNode(T key) {
-        return root.findNode(key);
-    }
-
-    /**
-     * Retrieves the number of paths stored in the resolver.
-     *
-     * @return The size of the path resolver.
-     */
-    public int size() {
-        return root.size();
-    }
-
-    /**
      * Adds a path with associated data to the resolver.
      *
      * @param key  The key associated with the data.
@@ -126,6 +97,35 @@ public final class PathResolver<T> {
     }
 
     /**
+     * Checks if the path resolver contains the specified file.
+     *
+     * @param file The file to check.
+     * @return True if the path resolver contains the file, otherwise false.
+     */
+    public boolean contains(T file) {
+        return findNode(file) != null;
+    }
+
+    /**
+     * Finds the TrieNode associated with the given key.
+     *
+     * @param key The key to find.
+     * @return The TrieNode associated with
+     */
+    private TrieNode<T> findNode(T key) {
+        return root.findNode(key);
+    }
+
+    /**
+     * Retrieves the separator used in the paths.
+     *
+     * @return The separator used in the paths.
+     */
+    public String getSeparator() {
+        return separator;
+    }
+
+    /**
      * Retrieves the short path representation for a given key.
      *
      * @param key The key for which to retrieve the short path.
@@ -139,9 +139,7 @@ public final class PathResolver<T> {
         TrieNode<T> current = node;
 
         while (current != root) {
-            if (!builder
-                .toString()
-                .isEmpty()) {
+            if (!builder.toString().isEmpty()) {
                 builder.insert(0, separator);
             }
             builder.insert(0, current.getKey());
@@ -153,19 +151,17 @@ public final class PathResolver<T> {
         }
 
         if (current != root) {
-            builder
-                .insert(0, separator)
-                .insert(0, "...");
+            builder.insert(0, separator).insert(0, "...");
         }
         return builder.toString();
     }
 
     /**
-     * Retrieves the separator used in the paths.
+     * Retrieves the number of paths stored in the resolver.
      *
-     * @return The separator used in the paths.
+     * @return The size of the path resolver.
      */
-    public String getSeparator() {
-        return separator;
+    public int size() {
+        return root.size();
     }
 }

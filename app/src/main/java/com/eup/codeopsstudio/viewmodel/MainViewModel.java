@@ -31,8 +31,9 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.eup.codeopsstudio.IdeApplication;
-import com.eup.codeopsstudio.models.logger.Log;
 import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.models.Event;
+import com.eup.codeopsstudio.models.logger.Log;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
@@ -57,87 +58,19 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<File> mWebViewPaneFile = new MutableLiveData<>();
     private final MutableLiveData<File> mTreeFragmentViewFile = new MutableLiveData<>();
     private final MutableLiveData<File> mOpenEditorFile = new MutableLiveData<>();
+    private final MutableLiveData<File> pickZipFile = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> addPane = new MutableLiveData<>(false);
+    private final MutableLiveData<Event<Boolean>> exitRequest = new MutableLiveData<>();
     private MutableLiveData<ArrayList<Log>> mIDELogs;
     private MutableLiveData<ArrayList<Log>> mBUILDLogs;
-    private final MutableLiveData<File> pickZipFile = new MutableLiveData<>();
 
     public MainViewModel() {
-        setToolbarTitle(IdeApplication
-            .getGlobalContext()
-            .getString(R.string.app_name));
+        setToolbarTitle(IdeApplication.getGlobalContext().getString(R.string.app_name));
     }
 
-    public LiveData<Integer> getBottomSheetState() {
-        return mBottomSheetState;
-    }
-
-    public void setBottomSheetState(@BottomSheetBehavior.State int bottomSheetState) {
-        mBottomSheetState.setValue(bottomSheetState);
-    }
-
-    public LiveData<Boolean> getDrawerState() {
-        return mDrawerState;
-    }
-
-    public void setDrawerState(boolean isOpen) {
-        mDrawerState.setValue(isOpen);
-    }
-
-    public LiveData<Boolean> getDrawerInstance() {
-        return mDrawerInstance;
-    }
-
-    public void setDrawerInstance(boolean isDrawerLayout) {
-        mDrawerInstance.setValue(isDrawerLayout);
-    }
-
-    public LiveData<String> getToolbarTitle() {
-        return mToolbarTitle;
-    }
-
-    public void setToolbarTitle(@Nullable String title) {
-        mToolbarTitle.setValue(title);
-    }
-
-    public LiveData<String> getToolbarSubTitle() {
-        return mToolbarSubTitle;
-    }
-
-    public void setToolbarSubTitle(@Nullable String title) {
-        mToolbarSubTitle.setValue(title);
-    }
-
-    public MutableLiveData<File> getWebViewPaneFile() {
-        return mWebViewPaneFile;
-    }
-
-    public void setWebViewPaneFile(File file) {
-        mWebViewPaneFile.setValue(file);
-    }
-
-    public void setTreeViewFragmentTreeDir(File file) {
-        mTreeFragmentViewFile.setValue(file);
-    }
-
-    public void openEditorFile(File file) {
-        mOpenEditorFile.setValue(file);
-    }
-
-    public LiveData<Boolean> getBottomSheetExpanded() {
-        return bottomSheetExpanded;
-    }
-
-    public void setBottomSheetExpanded(boolean expand) {
-        bottomSheetExpanded.setValue(expand);
-    }
-
-    public void observeEditorFileOpening(LifecycleOwner lifecycleOwner, Observer<File> observer) {
-        mOpenEditorFile.observe(lifecycleOwner, observer);
-    }
-
-    public void observeSetTreeViewFragmentFile(LifecycleOwner lifecycleOwner,
-                                               Observer<File> observer) {
-        this.mTreeFragmentViewFile.observe(lifecycleOwner, observer);
+    public boolean addPane() {
+        this.addPane.postValue(true);
+        return true;
     }
 
     public LiveData<Boolean> addSettingsPane() {
@@ -148,19 +81,16 @@ public class MainViewModel extends ViewModel {
         this.addSettingsPane.setValue(enabled);
     }
 
-    public LiveData<File> getZipFile() {
-        return this.pickZipFile;
+    public void clearExitRequest() {
+        exitRequest.setValue(new Event<>(false));
     }
 
-    public void setZipFile(File file) {
-        this.pickZipFile.setValue(file);
+    public void closeDrawer() {
+        mDrawerState.setValue(false);
     }
 
-    public MutableLiveData<ArrayList<Log>> getIDELogs() {
-        if (mIDELogs == null) {
-            mIDELogs = new MutableLiveData<>();
-        }
-        return mIDELogs;
+    public LiveData<Boolean> getAddPane() {
+        return this.addPane;
     }
 
     public MutableLiveData<ArrayList<Log>> getBUILDLogs() {
@@ -170,11 +100,112 @@ public class MainViewModel extends ViewModel {
         return mBUILDLogs;
     }
 
+    public LiveData<Boolean> getBottomSheetExpanded() {
+        return bottomSheetExpanded;
+    }
+
+    public void setBottomSheetExpanded(boolean expand) {
+        bottomSheetExpanded.setValue(expand);
+    }
+
+    public LiveData<Integer> getBottomSheetState() {
+        return mBottomSheetState;
+    }
+
+    public void setBottomSheetState(@BottomSheetBehavior.State int bottomSheetState) {
+        mBottomSheetState.setValue(bottomSheetState);
+    }
+
+    public LiveData<Boolean> getDrawerInstance() {
+        return mDrawerInstance;
+    }
+
+    public void setDrawerInstance(boolean isDrawerLayout) {
+        mDrawerInstance.setValue(isDrawerLayout);
+    }
+
+    public LiveData<Boolean> getDrawerState() {
+        return mDrawerState;
+    }
+
+    public void setDrawerState(boolean isOpen) {
+        mDrawerState.postValue(isOpen);
+    }
+
+    public LiveData<Event<Boolean>> getExitRequest() {
+        return exitRequest;
+    }
+
+    public MutableLiveData<ArrayList<Log>> getIDELogs() {
+        if (mIDELogs == null) {
+            mIDELogs = new MutableLiveData<>();
+        }
+        return mIDELogs;
+    }
+
     public LiveData<Boolean> getShouldUpdateMenu() {
         return shouldUpdateMenu;
     }
 
     public void setShouldUpdateMenu(boolean update) {
         shouldUpdateMenu.setValue(update);
+    }
+
+    public LiveData<String> getToolbarSubTitle() {
+        return mToolbarSubTitle;
+    }
+
+    public void setToolbarSubTitle(@Nullable String title) {
+        mToolbarSubTitle.setValue(title);
+    }
+
+    public LiveData<String> getToolbarTitle() {
+        return mToolbarTitle;
+    }
+
+    public void setToolbarTitle(@Nullable String title) {
+        mToolbarTitle.setValue(title);
+    }
+
+    public MutableLiveData<File> getWebViewPaneFile() {
+        return mWebViewPaneFile;
+    }
+
+    public void setWebViewPaneFile(File file) {
+        mWebViewPaneFile.setValue(file);
+    }
+
+    public LiveData<File> getZipFile() {
+        return this.pickZipFile;
+    }
+
+    public void setZipFile(File file) {
+        this.pickZipFile.setValue(file);
+    }
+
+    public boolean isDrawerOpen() {
+        Boolean state = mDrawerState.getValue();
+        return state != null && state;
+    }
+
+    public void observeEditorFileOpening(LifecycleOwner lifecycleOwner, Observer<File> observer) {
+        mOpenEditorFile.observe(lifecycleOwner, observer);
+    }
+
+    public void observeSetTreeViewFragmentFile(LifecycleOwner lifecycleOwner,
+        Observer<File> observer) {
+        this.mTreeFragmentViewFile.observe(lifecycleOwner, observer);
+    }
+
+    public void openEditorFile(File file) {
+        mOpenEditorFile.setValue(file);
+    }
+
+    public void requestExit() {
+        exitRequest.setValue(new Event<>(true));
+    }
+
+    public void setTreeViewFragmentTreeDir(File file) {
+        mTreeFragmentViewFile.setValue(file);
     }
 }

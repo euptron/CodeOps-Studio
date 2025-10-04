@@ -43,9 +43,9 @@ public class BreadCrumbPanel extends RecyclerView {
     public static final String STORAGE_EMULATED =
         File.separator + "storage" + File.separator + "emulated";
     public static final String STORAGE_EMULATED_0 = STORAGE_EMULATED + File.separator + "0";
+    private final List<BreadCrumb> breadCrumbs = new ArrayList<>();
     private BreadCrumbAdapter adapter;
     private boolean visible;
-    private final List<BreadCrumb> breadCrumbs = new ArrayList<>();
 
     public BreadCrumbPanel(Context context) {
         this(context, null);
@@ -76,18 +76,14 @@ public class BreadCrumbPanel extends RecyclerView {
             breadCrumbs.clear();
 
             while (file != null) {
-                if (file
-                    .getPath()
-                    .equals(STORAGE_EMULATED)) {
+                if (file.getPath().equals(STORAGE_EMULATED)) {
                     break;
                 }
 
                 var breadCrumb = BreadCrumb.fileToCrumb(file);
 
                 if (breadCrumb != null) {
-                    if (breadCrumb
-                        .getFilePath()
-                        .equals(STORAGE_EMULATED_0)) {
+                    if (breadCrumb.getFilePath().equals(STORAGE_EMULATED_0)) {
                         breadCrumb.setName("Internal Storage");
                     }
                     breadCrumbs.add(breadCrumb);

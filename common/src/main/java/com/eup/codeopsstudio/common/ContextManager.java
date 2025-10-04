@@ -42,10 +42,6 @@ public class ContextManager {
         // Hide
     }
 
-    public static void initialize(@NonNull Context context) {
-        mContext = context.getApplicationContext();
-    }
-
     public static Context getApplicationContext() {
         if (mContext == null) {
             throw new IllegalStateException("initialize() hasn't been called.");
@@ -55,5 +51,9 @@ public class ContextManager {
 
     public static String getPackageName() {
         return mContext.getPackageName();
+    }
+
+    public static void initialize(@NonNull Context context) {
+        mContext = context.getApplicationContext();
     }
 }

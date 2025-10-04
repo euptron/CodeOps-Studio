@@ -25,18 +25,24 @@ package com.eup.codeopsstudio.common.models;
 
 import java.io.File;
 
-public class ProjectEvent extends BaseEvent {
+/**
+ * @author Etido Peter
+ */
+public class ProjectEvent extends BaseEvent<File> {
 
-    final File projectDir;
-
-    public ProjectEvent(File dir) {
-        projectDir = dir;
+    /**
+     * Constructor for Event.
+     *
+     * @param content The content of the event.
+     */
+    public ProjectEvent(File content) {
+        super(content);
     }
 
     /**
      * @return project directory
      */
     public File getFile() {
-        return this.projectDir;
+        return peekContent();
     }
 }

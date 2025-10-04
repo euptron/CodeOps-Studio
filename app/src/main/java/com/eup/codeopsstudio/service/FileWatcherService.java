@@ -36,11 +36,11 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.observers.FileWatcher;
 import com.eup.codeopsstudio.observers.FileWatcher.OnFileChangeListener;
-import com.eup.codeopsstudio.R;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -171,8 +171,7 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
             .setContentTitle(getString(R.string.app_name))
             .setSmallIcon(R.drawable.ic_folder_sync_outline)
             .setContentText(getString(R.string.file_watcher_desc))
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build();
+            .setPriority(NotificationCompat.PRIORITY_LOW).build();
     }
 
     @Override
@@ -196,6 +195,10 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
     public class LocalBinder extends Binder {
         public void addListener(OnFileChangeListener listener) {
             listeners.add(listener);
+        }
+
+        public FileWatcherService getService() {
+            return FileWatcherService.this;
         }
 
         public void removeListener(OnFileChangeListener listener) {
@@ -223,10 +226,6 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
                 isMonitoring = false;
                 ILog.debug(TAG, "Monitoring stopped");
             }
-        }
-
-        public FileWatcherService getService() {
-            return FileWatcherService.this;
         }
     }
 }

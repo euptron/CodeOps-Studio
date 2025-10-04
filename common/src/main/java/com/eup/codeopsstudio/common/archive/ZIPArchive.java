@@ -97,6 +97,31 @@ public class ZIPArchive implements Archive {
     }
 
     @NonNull
+    @Override
+    public String getType() {
+        return "Compressed::ZIPArchive";
+    }
+
+    public void cancelAndShutdown() {
+        cancel();
+        executor.shutdownNow();
+    }
+
+    public void cancel() {
+        if (unzipFuture != null) {
+            canceled = true;
+            unzipFuture.cancel(true);
+        }
+    }
+
+    public void cancelPreviousTask() {
+        if (unzipFuture != null && !unzipFuture.isDone()) {
+            canceled = true;
+            unzipFuture.cancel(true);
+        }
+    }
+
+    @NonNull
     public static ZIPArchive fromAssets(Context context, String zipAssetPath, File destDir,
         int bufferSize) throws IOException {
         return fromAssets(context, zipAssetPath, destDir, bufferSize, new NoOPListener());
@@ -107,9 +132,7 @@ public class ZIPArchive implements Archive {
         int bufferSize, OnArchiveListener listener) throws IOException {
         Objects.requireNonNull(context);
         Objects.requireNonNull(zipAssetPath);
-        InputStream is = context
-            .getAssets()
-            .open(zipAssetPath);
+        InputStream is = context.getAssets().open(zipAssetPath);
         Objects.requireNonNull(is);
         return fromInputStream(is, destDir, bufferSize, listener);
     }
@@ -117,11 +140,6 @@ public class ZIPArchive implements Archive {
     public static ZIPArchive fromInputStream(InputStream inputStream, File destDir, int bufferSize,
         OnArchiveListener listener) {
         return new ZIPArchive(null, inputStream, destDir, bufferSize, listener);
-    }
-
-    public static ZIPArchive fromInputStream(InputStream inputStream, File destDir,
-        int bufferSize) {
-        return fromInputStream(inputStream, destDir, bufferSize, new NoOPListener());
     }
 
     public static ZIPArchive fromFile(String zipPath, String destDir, int bufferSize) {
@@ -142,8 +160,17 @@ public class ZIPArchive implements Archive {
         return fromFile(zipFile, destDir, bufferSize, new NoOPListener());
     }
 
-    private static long getElapsedTime(long startMills) {
-        return millsNow() - startMills;
+    public static ZIPArchive fromInputStream(InputStream inputStream, File destDir,
+        int bufferSize) {
+        return fromInputStream(inputStream, destDir, bufferSize, new NoOPListener());
+    }
+
+    public boolean isCanceled() {
+        return canceled;
+    }
+
+    public boolean isPaused() {
+        return paused;
     }
 
     public void pause() {
@@ -166,35 +193,170 @@ public class ZIPArchive implements Archive {
         }
     }
 
-    public boolean isPaused() {
-        return paused;
-    }
-
-    public boolean isCanceled() {
-        return canceled;
-    }
-
-    public void cancelAndShutdown() {
-        cancel();
-        executor.shutdownNow();
-    }
-
-    public void cancel() {
-        if (unzipFuture != null) {
-            canceled = true;
-            unzipFuture.cancel(true);
-        }
-    }
-
-    public void cancelPreviousTask() {
-        if (unzipFuture != null && !unzipFuture.isDone()) {
-            canceled = true;
-            unzipFuture.cancel(true);
-        }
-    }
-
     public void unzip() {
         unzipFuture = executor.submit(this::unzipInternal);
+    }
+
+    private boolean checkCanceled() {
+        if (Thread.interrupted() || canceled) {
+            canceled = true;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean cleanupTempResources() {
+        boolean cleaned = false;
+        if (tempFile != null && tempFile.exists()) {
+            cleaned = tempFile.delete();
+        }
+        try {
+            if (firstPassStream != null) {
+                firstPassStream.close();
+            }
+            if (secondPassStream != null) {
+                secondPassStream.close();
+            }
+        } catch (IOException e) {
+            ILog.warning(TAG, "Error closing duplicated streams");
+        }
+        return cleaned;
+    }
+
+    private void duplicateInputStream() throws IOException {
+        if (archiveStream == null) return;
+
+        // For small steams, memory based duplication is used
+        if (archiveStream.available() > 0 && archiveStream.available() <= MAX_MEMORY_STREAM_SIZE) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[userBufferSize];
+            int len;
+            while ((len = archiveStream.read(buffer)) > -1) {
+                baos.write(buffer, 0, len);
+            }
+            baos.flush();
+
+            byte[] data = baos.toByteArray();
+            firstPassStream  = new ByteArrayInputStream(data);
+            secondPassStream = new ByteArrayInputStream(data);
+        } else {
+            // For large streams
+            tempFile = File.createTempFile("zip_temp_cos", ".tmp");
+            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[userBufferSize];
+                int len;
+                while ((len = archiveStream.read(buffer)) > -1) {
+                    fos.write(buffer, 0, len);
+                }
+            }
+
+            firstPassStream  = new FileInputStream(tempFile);
+            secondPassStream = new FileInputStream(tempFile);
+        }
+    }
+
+    @NonNull
+    private String formatElapsedTime(long millis) {
+        if (millis < 1000) {
+            return String.format(Locale.ENGLISH, "%d ms", millis);
+        }
+
+        long seconds = millis / 1000;
+        if (seconds < 60) {
+            return String.format(Locale.ENGLISH, "%d sec", seconds);
+        }
+
+        long minutes = seconds / 60;
+        if (minutes < 60) {
+            return String.format(Locale.ENGLISH, "%d min %d sec", minutes, (seconds % 60));
+        }
+
+        long hours = minutes / 60;
+        return String.format(Locale.ENGLISH, "%d hours %d min %d sec", hours, minutes, (seconds
+            % 60));
+    }
+
+    @NonNull
+    private String formatSpeed(double bytesPerSecond) {
+        if (bytesPerSecond < 1024) {
+            return String.format(Locale.ENGLISH, "%.1f B/s", bytesPerSecond);
+        } else if (bytesPerSecond < 1024 * 1024) {
+            return String.format(Locale.ENGLISH, "%.1f KB/s", bytesPerSecond / 1024);
+        } else {
+            return String.format(Locale.ENGLISH, "%.1f MB/s", bytesPerSecond / (1024 * 1024));
+        }
+    }
+
+    /**
+     * A lot slower than #gatherZipInfo(File)
+     *
+     * @param inputStream the input stream to collect info of
+     */
+    private void gatherZipInfo(InputStream inputStream) throws Exception {
+        long lastFirstPassUiUpdateTime = 0;
+        totalItems = 0;
+
+        Log.d(TAG, "Using InputStream to gather zip info");
+
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(inputStream))) {
+            ZipEntry entry;
+            firstPassIndexedEntries = 0;
+
+            while ((entry = zis.getNextEntry()) != null) {
+                firstPassIndexedEntries++;
+                totalItems++;
+                if (checkCanceled()) break;
+                if (entry.isDirectory()) continue;
+                long size = entry.getSize();
+                if (size <= 0) continue;
+
+                long now = System.currentTimeMillis();
+                if (now - lastFirstPassUiUpdateTime > MIN_UPDATE_INTERVAL_IN_MS) {
+                    AsyncTask.runOnUiThread(() -> archiveListener.onInitialize(
+                        "Indexing: " + firstPassIndexedEntries + " items"));
+                    lastFirstPassUiUpdateTime = now;
+                }
+            }
+        }
+    }
+
+    /**
+     * A lot faster than #gatherZipInfo(InputStream)
+     *
+     * @param file the file to collect info of
+     */
+    private void gatherZipInfo(File file) throws Exception {
+        long lastFirstPassUiUpdateTime = 0;
+        totalItems = 0;
+
+        Log.d(TAG, "Using file to gather zip info");
+        try (ZipFile zipFile = new ZipFile(file)) {
+            totalItems = zipFile.size();
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            firstPassIndexedEntries = 0;
+
+            while (entries.hasMoreElements()) {
+                firstPassIndexedEntries++;
+                ZipEntry entry = entries.nextElement();
+
+                if (checkCanceled()) break;
+                if (entry.isDirectory()) continue;
+
+                long size = entry.getSize();
+                if (size <= 0) continue;
+
+                long elapsedTime = getElapsedTime(lastFirstPassUiUpdateTime);
+                if (elapsedTime > MIN_UPDATE_INTERVAL_IN_MS) {
+                    AsyncTask.runOnUiThread(() -> archiveListener.onInitialize(
+                        "Indexing: " + firstPassIndexedEntries + "/" + totalItems));
+                    lastFirstPassUiUpdateTime = millsNow();
+                }
+            }
+        }
+    }
+
+    private static long getElapsedTime(long startMills) {
+        return millsNow() - startMills;
     }
 
     private void unzipInternal() {
@@ -346,127 +508,8 @@ public class ZIPArchive implements Archive {
                 "Error after " + timeMessage + ": " + e.getMessage(), e);
             AsyncTask.runOnUiThread(() -> archiveListener.onError(error));
         } finally {
-            ILog.debug(TAG,
-                "Cleaned temporary resources: " + cleanupTempResources());
+            ILog.debug(TAG, "Cleaned temporary resources: " + cleanupTempResources());
         }
-    }
-
-    /**
-     * A lot slower than #gatherZipInfo(File)
-     *
-     * @param inputStream the input stream to collect info of
-     */
-    private void gatherZipInfo(InputStream inputStream) throws Exception {
-        long lastFirstPassUiUpdateTime = 0;
-        totalItems = 0;
-
-        Log.d(TAG, "Using InputStream to gather zip info");
-
-        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(inputStream))) {
-            ZipEntry entry;
-            firstPassIndexedEntries = 0;
-
-            while ((entry = zis.getNextEntry()) != null) {
-                firstPassIndexedEntries++;
-                totalItems++;
-                if (checkCanceled()) break;
-                if (entry.isDirectory()) continue;
-                long size = entry.getSize();
-                if (size <= 0) continue;
-
-                long now = System.currentTimeMillis();
-                if (now - lastFirstPassUiUpdateTime > MIN_UPDATE_INTERVAL_IN_MS) {
-                    AsyncTask.runOnUiThread(() -> archiveListener.onInitialize(
-                        "Indexing: " + firstPassIndexedEntries + " items"));
-                    lastFirstPassUiUpdateTime = now;
-                }
-            }
-        }
-    }
-
-    /**
-     * A lot faster than #gatherZipInfo(InputStream)
-     *
-     * @param file the file to collect info of
-     */
-    private void gatherZipInfo(File file) throws Exception {
-        long lastFirstPassUiUpdateTime = 0;
-        totalItems = 0;
-
-        Log.d(TAG, "Using file to gather zip info");
-        try (ZipFile zipFile = new ZipFile(file)) {
-            totalItems = zipFile.size();
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            firstPassIndexedEntries = 0;
-
-            while (entries.hasMoreElements()) {
-                firstPassIndexedEntries++;
-                ZipEntry entry = entries.nextElement();
-
-                if (checkCanceled()) break;
-                if (entry.isDirectory()) continue;
-
-                long size = entry.getSize();
-                if (size <= 0) continue;
-
-                long elapsedTime = getElapsedTime(lastFirstPassUiUpdateTime);
-                if (elapsedTime > MIN_UPDATE_INTERVAL_IN_MS) {
-                    AsyncTask.runOnUiThread(() -> archiveListener.onInitialize(
-                        "Indexing: " + firstPassIndexedEntries + "/" + totalItems));
-                    lastFirstPassUiUpdateTime = millsNow();
-                }
-            }
-        }
-    }
-
-    private void duplicateInputStream() throws IOException {
-        if (archiveStream == null) return;
-
-        // For small steams, memory based duplication is used
-        if (archiveStream.available() > 0 && archiveStream.available() <= MAX_MEMORY_STREAM_SIZE) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[userBufferSize];
-            int len;
-            while ((len = archiveStream.read(buffer)) > -1) {
-                baos.write(buffer, 0, len);
-            }
-            baos.flush();
-
-            byte[] data = baos.toByteArray();
-            firstPassStream  = new ByteArrayInputStream(data);
-            secondPassStream = new ByteArrayInputStream(data);
-        } else {
-            // For large streams
-            tempFile = File.createTempFile("zip_temp_cos", ".tmp");
-            try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-                byte[] buffer = new byte[userBufferSize];
-                int len;
-                while ((len = archiveStream.read(buffer)) > -1) {
-                    fos.write(buffer, 0, len);
-                }
-            }
-
-            firstPassStream  = new FileInputStream(tempFile);
-            secondPassStream = new FileInputStream(tempFile);
-        }
-    }
-
-    private boolean cleanupTempResources() {
-        boolean cleaned = false;
-        if (tempFile != null && tempFile.exists()) {
-            cleaned = tempFile.delete();
-        }
-        try {
-            if (firstPassStream != null) {
-                firstPassStream.close();
-            }
-            if (secondPassStream != null) {
-                secondPassStream.close();
-            }
-        } catch (IOException e) {
-            ILog.warning(TAG, "Error closing duplicated streams");
-        }
-        return cleaned;
     }
 
     private void waitIfPaused() throws InterruptedException {
@@ -475,51 +518,5 @@ public class ZIPArchive implements Archive {
                 pauseLock.wait();
             }
         }
-    }
-
-    private boolean checkCanceled() {
-        if (Thread.interrupted() || canceled) {
-            canceled = true;
-            return true;
-        }
-        return false;
-    }
-
-    @NonNull
-    private String formatSpeed(double bytesPerSecond) {
-        if (bytesPerSecond < 1024) {
-            return String.format(Locale.ENGLISH, "%.1f B/s", bytesPerSecond);
-        } else if (bytesPerSecond < 1024 * 1024) {
-            return String.format(Locale.ENGLISH, "%.1f KB/s", bytesPerSecond / 1024);
-        } else {
-            return String.format(Locale.ENGLISH, "%.1f MB/s", bytesPerSecond / (1024 * 1024));
-        }
-    }
-
-    @NonNull
-    private String formatElapsedTime(long millis) {
-        if (millis < 1000) {
-            return String.format(Locale.ENGLISH, "%d ms", millis);
-        }
-
-        long seconds = millis / 1000;
-        if (seconds < 60) {
-            return String.format(Locale.ENGLISH, "%d sec", seconds);
-        }
-
-        long minutes = seconds / 60;
-        if (minutes < 60) {
-            return String.format(Locale.ENGLISH, "%d min %d sec", minutes, (seconds % 60));
-        }
-
-        long hours = minutes / 60;
-        return String.format(Locale.ENGLISH, "%d hours %d min %d sec", hours, minutes, (seconds
-            % 60));
-    }
-
-    @NonNull
-    @Override
-    public String getType() {
-        return "Compressed::ZIPArchive";
     }
 }

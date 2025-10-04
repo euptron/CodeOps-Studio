@@ -95,21 +95,19 @@ public class JsonLanguageInfoProvider implements LanguageInfoProvider {
     }
 
     @Override
-    public String getScope(String extensionEntry) {
-        return scopeMap.get(extensionEntry);
-    }
-
-    @Override
     public Set<String> getLanguageExtensions(String scopeEntry) {
         var extensions = new HashSet<String>();
         for (Map.Entry<String, String> entry : scopeMap.entrySet()) {
-            if (entry
-                .getValue()
-                .equals(scopeEntry)) {
+            if (entry.getValue().equals(scopeEntry)) {
                 extensions.add(entry.getKey());
                 return extensions;
             }
         }
         return Collections.emptySet();
+    }
+
+    @Override
+    public String getScope(String extensionEntry) {
+        return scopeMap.get(extensionEntry);
     }
 }

@@ -52,41 +52,6 @@ public class ProjectTemplateAdapter extends RecyclerView.Adapter<ProjectTemplate
         // Default
     }
 
-    public void setOnTemplateClickListener(OnTemplateClickListener listener) {
-        templateClickListener = listener;
-    }
-
-    public void setOnTemplateLongClickListener(OnTemplateLongClickListener listener) {
-        templateLongClickListener = listener;
-    }
-
-    public void submitTemplateList(@NonNull List<ProjectTemplateModel> newItems) {
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-            @Override
-            public int getOldListSize() {
-                return mItems.size();
-            }
-
-            @Override
-            public int getNewListSize() {
-                return newItems.size();
-            }
-
-            @Override
-            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-                return Objects.equals(mItems.get(oldItemPosition), newItems.get(newItemPosition));
-            }
-
-            @Override
-            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-                return Objects.equals(mItems.get(oldItemPosition), newItems.get(newItemPosition));
-            }
-        });
-        mItems.clear();
-        mItems.addAll(newItems);
-        diffResult.dispatchUpdatesTo(this);
-    }
-
     @NonNull
     @Override
     public TemplateViewHolder onCreateViewHolder(@NonNull ViewGroup viewgroup, int viewType) {
@@ -126,6 +91,41 @@ public class ProjectTemplateAdapter extends RecyclerView.Adapter<ProjectTemplate
     @Override
     public int getItemCount() {
         return mItems.size();
+    }
+
+    public void setOnTemplateClickListener(OnTemplateClickListener listener) {
+        templateClickListener = listener;
+    }
+
+    public void setOnTemplateLongClickListener(OnTemplateLongClickListener listener) {
+        templateLongClickListener = listener;
+    }
+
+    public void submitTemplateList(@NonNull List<ProjectTemplateModel> newItems) {
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return mItems.size();
+            }
+
+            @Override
+            public int getNewListSize() {
+                return newItems.size();
+            }
+
+            @Override
+            public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+                return Objects.equals(mItems.get(oldItemPosition), newItems.get(newItemPosition));
+            }
+
+            @Override
+            public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+                return Objects.equals(mItems.get(oldItemPosition), newItems.get(newItemPosition));
+            }
+        });
+        mItems.clear();
+        mItems.addAll(newItems);
+        diffResult.dispatchUpdatesTo(this);
     }
 
     public interface OnTemplateClickListener {

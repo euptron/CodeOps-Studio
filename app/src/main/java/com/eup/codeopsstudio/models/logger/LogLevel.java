@@ -27,18 +27,10 @@ import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 
 public enum LogLevel {
-    WARN(IdeApplication
-        .getInstance()
-        .getString(R.string.warn)),
-    INFO(IdeApplication
-        .getInstance()
-        .getString(R.string.info)),
-    DEBUG(IdeApplication
-        .getInstance()
-        .getString(R.string.debug)),
-    ERROR(IdeApplication
-        .getInstance()
-        .getString(R.string.error));
+    WARN(IdeApplication.getInstance().getString(R.string.warn)),
+    INFO(IdeApplication.getInstance().getString(R.string.info)),
+    DEBUG(IdeApplication.getInstance().getString(R.string.debug)),
+    ERROR(IdeApplication.getInstance().getString(R.string.error));
 
     public final String level;
 

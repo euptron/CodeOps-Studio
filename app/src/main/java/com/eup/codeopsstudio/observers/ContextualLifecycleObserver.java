@@ -41,6 +41,7 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
@@ -48,7 +49,6 @@ import com.eup.codeopsstudio.common.models.MetaDocument;
 import com.eup.codeopsstudio.common.util.FileUriMediator;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.UriUtils;
-import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 
 import java.io.File;
@@ -119,6 +119,15 @@ public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
             new ActivityResultContracts.StartActivityForResult(), this::performSaveAs);
     }
 
+    public void createFile(String name) {
+        try {
+            createFileLauncher.launch(name);
+        } catch (ActivityNotFoundException e) {
+            String errorMsg = context.getString(R.string.msg_create_file_failed, e.toString());
+            notifyError(new ActivityNotFoundException(errorMsg));
+        }
+    }
+
     public void pickFile() {
         launchFilePicker(MetaDocument.MimeType.ALL.toString());
     }
@@ -133,21 +142,13 @@ public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
     }
 
     private void notifyError(Exception e) {
-        var message = String.format("Error: %s - %s", e
-            .getClass()
-            .getSimpleName(), e.getMessage());
+        var message = String.format("Error: %s - %s", e.getClass().getSimpleName(), e.getMessage());
         toast(message);
         fileViewModel.setMonitorMessage(null, message);
     }
 
     private void toast(String msg) {
-        Toast
-            .makeText(context, msg, Toast.LENGTH_SHORT)
-            .show();
-    }
-
-    public void pickZipFile() {
-        launchFilePicker(MetaDocument.MimeType.ZIP.toString());
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
     }
 
     public void pickFolder() {
@@ -159,27 +160,8 @@ public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
         }
     }
 
-    public void saveFileAs(@NonNull String name, @NonNull Uri uri) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("text/*");
-            intent.putExtra(Intent.EXTRA_TITLE, name);
-            intent.putExtra(EXTRA_SAVE_AS, uri.toString());
-            saveFileAsLauncher.launch(intent);
-        } catch (ActivityNotFoundException e) {
-            String errorMsg = context.getString(R.string.msg_save_as_failed_no_act);
-            notifyError(new ActivityNotFoundException(errorMsg));
-        }
-    }
-
-    public void createFile(String name) {
-        try {
-            createFileLauncher.launch(name);
-        } catch (ActivityNotFoundException e) {
-            String errorMsg = context.getString(R.string.msg_create_file_failed, e.toString());
-            notifyError(new ActivityNotFoundException(errorMsg));
-        }
+    public void pickZipFile() {
+        launchFilePicker(MetaDocument.MimeType.ZIP.toString());
     }
 
     public void requestDirPermission(final Uri uri) {
@@ -243,36 +225,17 @@ public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
         }
     }
 
-    private void mediateFolderUri(Uri uri) {
-        if (isInValidUri(uri)) return;
-
-        int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-        UriUtils.takePersistableUriPermission(context, uri, flags);
-
+    public void saveFileAs(@NonNull String name, @NonNull Uri uri) {
         try {
-            FileUriMediator mediator = FileUriMediator.resolveTree(uri, context);
-
-            if (isInValidUriAuthority(mediator.getAuthority())) return;
-            String storageType = mediator.getStorageType();
-
-            // only allow internal storage to be modified for now until doc api is ready
-            if (!Constants.MODIFIABLE_EXTERNAL_STORAGE_IDS.contains(storageType)) {
-                toast(context.getString(R.string.msg_internal_storage_only));
-                return;
-            }
-
-            File pickedFolder = mediator.getFile();
-
-            if (pickedFolder == null || !pickedFolder.exists() || !pickedFolder.isDirectory()) {
-                toast(context.getString(R.string.msg_invalid_folder_selected));
-                return;
-            }
-
-            recentProjects.recordFolderCreation(pickedFolder);
-            fileViewModel.setPickedFolder(pickedFolder);
-        } catch (Exception e) {
-            notifyError(new IOException(context.getString(R.string.msg_folder_access_violation),
-                e));
+            Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("text/*");
+            intent.putExtra(Intent.EXTRA_TITLE, name);
+            intent.putExtra(EXTRA_SAVE_AS, uri.toString());
+            saveFileAsLauncher.launch(intent);
+        } catch (ActivityNotFoundException e) {
+            String errorMsg = context.getString(R.string.msg_save_as_failed_no_act);
+            notifyError(new ActivityNotFoundException(errorMsg));
         }
     }
 
@@ -344,14 +307,45 @@ public class ContextualLifecycleObserver implements DefaultLifecycleObserver {
         }
     }
 
+    private void mediateFolderUri(Uri uri) {
+        if (isInValidUri(uri)) return;
+
+        int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+        UriUtils.takePersistableUriPermission(context, uri, flags);
+
+        try {
+            FileUriMediator mediator = FileUriMediator.resolveTree(uri, context);
+
+            if (isInValidUriAuthority(mediator.getAuthority())) return;
+            String storageType = mediator.getStorageType();
+
+            // only allow internal storage to be modified for now until doc api is ready
+            if (!Constants.MODIFIABLE_EXTERNAL_STORAGE_IDS.contains(storageType)) {
+                toast(context.getString(R.string.msg_internal_storage_only));
+                return;
+            }
+
+            File pickedFolder = mediator.getFile();
+
+            if (pickedFolder == null || !pickedFolder.exists() || !pickedFolder.isDirectory()) {
+                toast(context.getString(R.string.msg_invalid_folder_selected));
+                return;
+            }
+
+            recentProjects.recordFolderCreation(pickedFolder);
+            fileViewModel.setPickedFolder(pickedFolder);
+        } catch (Exception e) {
+            notifyError(new IOException(context.getString(R.string.msg_folder_access_violation),
+                e));
+        }
+    }
+
     private void performSaveAs(ActivityResult result) {
         if (result.getResultCode() != Activity.RESULT_OK) return;
 
         try {
             Intent intent = result.getData();
-            Uri uri = Objects
-                .requireNonNull(result.getData())
-                .getData();
+            Uri uri = Objects.requireNonNull(result.getData()).getData();
             if (isInValidUri(uri)) return;
 
             String encoding = PreferencesUtils.getDefaultFileEncoding();

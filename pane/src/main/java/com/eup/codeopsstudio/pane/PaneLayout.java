@@ -71,7 +71,7 @@ public class PaneLayout extends FrameLayout {
     }
 
     public PaneLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr,
-                      int defStyleRes) {
+        int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         // Set default layout parameters to match parent if not explicitly defined
         setLayoutParams(FILL_LAYOUT);

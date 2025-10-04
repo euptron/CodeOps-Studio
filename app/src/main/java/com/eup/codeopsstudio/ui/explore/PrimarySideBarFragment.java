@@ -35,8 +35,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import com.eup.codeopsstudio.databinding.FragmentPrimarySideBarBinding;
 import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.databinding.FragmentPrimarySideBarBinding;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.google.android.material.navigationrail.NavigationRailView;
 
@@ -115,9 +115,8 @@ public class PrimarySideBarFragment extends Fragment {
      * @return true Since fragments must be made selectable
      */
     private boolean navigateToFragment(int fragmentId) {
-        if (navController.getCurrentDestination() != null && navController
-            .getCurrentDestination()
-            .getId() != fragmentId) {
+        if (navController.getCurrentDestination() != null
+            && navController.getCurrentDestination().getId() != fragmentId) {
             navController.navigate(fragmentId); // Assuming the fragment is not displayed we add it
         }
         return true;

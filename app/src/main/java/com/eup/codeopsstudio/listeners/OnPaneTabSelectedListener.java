@@ -41,24 +41,16 @@ public interface OnPaneTabSelectedListener {
     void close(TabLayout.Tab tab);
 
     /**
-     * Called when all pane tabs except the specified tab are closed.
-     *
-     * @param tabToKeep The TabLayout.Tab to keep open while closing others.
-     */
-    void closeOthers(TabLayout.Tab tabToKeep);
-
-    /**
      * Called when all pane tabs are closed.
      */
     void closeAll();
 
     /**
-     * Called when the pane tab to the right of the current tab is closed.
+     * Called when all pane tabs except the specified tab are closed.
      *
-     * @param tab   The TabLayout.Tab representing the reference tab.
-     * @param first Closes only the next unpinned pane tab if true
+     * @param tabToKeep The TabLayout.Tab to keep open while closing others.
      */
-    void closeToRightOf(TabLayout.Tab tab, boolean first);
+    void closeOthers(TabLayout.Tab tabToKeep);
 
     /**
      * Called when the pane tabs to the left of the current tab is closed.
@@ -67,6 +59,14 @@ public interface OnPaneTabSelectedListener {
      * @param first Closes only the next unpinned pane tab if true
      */
     void closeToLeftOf(TabLayout.Tab tab, boolean first);
+
+    /**
+     * Called when the pane tab to the right of the current tab is closed.
+     *
+     * @param tab   The TabLayout.Tab representing the reference tab.
+     * @param first Closes only the next unpinned pane tab if true
+     */
+    void closeToRightOf(TabLayout.Tab tab, boolean first);
 
     /**
      * Called when a pane tab is pinned.

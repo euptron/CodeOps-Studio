@@ -30,9 +30,9 @@ import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants.SharedPreferenceKeys;
 import com.eup.codeopsstudio.models.user.DeviceInfo;
-import com.eup.codeopsstudio.R;
 import com.google.android.material.transition.MaterialSharedAxis;
 
 import java.util.Objects;
@@ -43,10 +43,6 @@ import java.util.Objects;
 public class PrivacyFragment extends PreferenceFragmentCompat {
 
     public static final String TAG = PrivacyFragment.class.getSimpleName();
-
-    public static PrivacyFragment newInstance() {
-        return new PrivacyFragment();
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -113,5 +109,9 @@ public class PrivacyFragment extends PreferenceFragmentCompat {
             if (pref == null) continue;
             pref.setCopyingEnabled(true);
         }
+    }
+
+    public static PrivacyFragment newInstance() {
+        return new PrivacyFragment();
     }
 }

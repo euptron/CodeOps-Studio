@@ -79,20 +79,6 @@ public class EditorShortcutWizard {
         return actions;
     }
 
-    public void setEditorContext(ContextualCodeEditor editor) {
-        this.codeEditor = editor;
-        invalidateCache();
-    }
-
-    /**
-     * Clears the cache of compiled language sequences. This is called if editor
-     * preferences (like tab size or indentation style) are changed by the user,
-     * to ensure the TAB key and other dynamic actions are correctly configured on the next request.
-     */
-    public void invalidateCache() {
-        cachedLanguageSequences.clear();
-    }
-
     public List<EditorAction> getActions() {
         String currentLanguage = codeEditor.getLanguageExtension();
         return cachedLanguageSequences.computeIfAbsent(currentLanguage,
@@ -119,5 +105,19 @@ public class EditorShortcutWizard {
             configuredSequence.add(new EditorAction(action.getName(), action.getValue()));
         }
         return configuredSequence;
+    }
+
+    public void setEditorContext(ContextualCodeEditor editor) {
+        this.codeEditor = editor;
+        invalidateCache();
+    }
+
+    /**
+     * Clears the cache of compiled language sequences. This is called if editor
+     * preferences (like tab size or indentation style) are changed by the user,
+     * to ensure the TAB key and other dynamic actions are correctly configured on the next request.
+     */
+    public void invalidateCache() {
+        cachedLanguageSequences.clear();
     }
 }

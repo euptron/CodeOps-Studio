@@ -62,7 +62,7 @@ public class FormatDateUseCase {
     }
 
     public FormatDateUseCase(@NonNull String datePattern, @NonNull Locale dateLocale,
-                             @Nullable String timeZone) {
+        @Nullable String timeZone) {
         formatter = new SimpleDateFormat(datePattern, dateLocale);
         if (Wizard.isEmpty(timeZone)) return;
         formatter.setTimeZone(TimeZone.getTimeZone(timeZone));

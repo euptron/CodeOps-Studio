@@ -35,22 +35,6 @@ public class BreadCrumb {
         this.crumbFile = file;
     }
 
-    public static BreadCrumb fileToCrumb(File file) {
-        return new BreadCrumb(file.getName(), file);
-    }
-
-    public String getName() {
-        return this.crumbName;
-    }
-
-    public void setName(String name) {
-        this.crumbName = name;
-    }
-
-    public String getFilePath() {
-        return this.crumbFile.getAbsolutePath();
-    }
-
     @Override
     public int hashCode() {
         int result = 18;
@@ -68,11 +52,7 @@ public class BreadCrumb {
             return false;
         }
         BreadCrumb crumb = (BreadCrumb) obj;
-        return crumbFile
-            .getAbsolutePath()
-            .equals(crumb
-                .getFile()
-                .getAbsolutePath());
+        return crumbFile.getAbsolutePath().equals(crumb.getFile().getAbsolutePath());
     }
 
     public File getFile() {
@@ -81,5 +61,21 @@ public class BreadCrumb {
 
     public void setFile(File file) {
         this.crumbFile = file;
+    }
+
+    public static BreadCrumb fileToCrumb(File file) {
+        return new BreadCrumb(file.getName(), file);
+    }
+
+    public String getFilePath() {
+        return this.crumbFile.getAbsolutePath();
+    }
+
+    public String getName() {
+        return this.crumbName;
+    }
+
+    public void setName(String name) {
+        this.crumbName = name;
     }
 }

@@ -76,13 +76,9 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
         logger.attach(requireActivity());
-        PreferencesUtils
-            .getDefaultPreferences()
-            .registerOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
 
-        mainViewModel
-            .getZipFile()
-            .observe(requireActivity(), this::openZipFile);
+        mainViewModel.getZipFile().observe(requireActivity(), this::openZipFile);
 
         configureWelcomePaneCheckBox();
 
@@ -98,8 +94,7 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             gitUI.showCloneDialog(project -> mainViewModel.setTreeViewFragmentTreeDir(project));
         });
         binding.importZipBtn.setOnClickListener(v -> {
-            callFragmentMethod(MainFragment.TAG,
-                "openZipFileFromManager");
+            callFragmentMethod(MainFragment.TAG, "openZipFileFromManager");
         });
         binding.recentProjectBtn.setOnClickListener(v -> {
             RecentProjectsBottomSheetDialogFragment dialogFragment =
@@ -135,10 +130,13 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        PreferencesUtils
-            .getDefaultPreferences()
-            .unregisterOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
         binding = null;
+    }
+
+    private void configureWelcomePaneCheckBox() {
+        boolean isChecked = PreferencesUtils.canShowWelcomePanel();
+        binding.welcomeCheckbox.setChecked(isChecked);
     }
 
     @Override
@@ -146,10 +144,5 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
         if (Objects.equals(key, Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE)) {
             configureWelcomePaneCheckBox();
         }
-    }
-
-    private void configureWelcomePaneCheckBox() {
-        boolean isChecked = PreferencesUtils.canShowWelcomePanel();
-        binding.welcomeCheckbox.setChecked(isChecked);
     }
 }

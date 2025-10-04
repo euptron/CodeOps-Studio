@@ -41,10 +41,6 @@ import java.util.Set;
  */
 public class LocalSync implements Sync {
 
-    public static LocalSync IO(){
-        return new LocalSync();
-    }
-
     public LocalSync() {
         // Default
     }
@@ -75,9 +71,7 @@ public class LocalSync implements Sync {
         ILog.debug("Preferences ", String.format(" Restored: %s -> %s", key, value));
 
         if (value instanceof Boolean o) {
-            editor
-                .putBoolean(key, o)
-                .apply();
+            editor.putBoolean(key, o).apply();
         } else if (value instanceof Float o) {
             editor.putFloat(key, o);
         } else if (value instanceof String o) {
@@ -97,5 +91,9 @@ public class LocalSync implements Sync {
         }
 
         editor.apply();
+    }
+
+    public static LocalSync IO() {
+        return new LocalSync();
     }
 }

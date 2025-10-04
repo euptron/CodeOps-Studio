@@ -125,21 +125,20 @@ public class EncodingDetector {
         return foundCharSet;
     }
 
-    public static boolean isSupportedEncoding(Charset charset) {
-        return getSupportedCharsets().contains(charset);
-    }
-
-    @NonNull
-    public static Collection<Charset> getSupportedCharsets() {
-        List<Charset> list = new ArrayList<>();
-        for (Charset charset : Charset
-            .availableCharsets()
-            .values()) {
-            if (charset.isRegistered()) {
-                list.add(charset);
+    public static Charset getEncoding(String charsetDef) {
+        var availableCharsets = Charset.availableCharsets();
+        for (Map.Entry<String, Charset> entry : availableCharsets.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(charsetDef)) {
+                Charset charset = entry.getValue();
+                if (charset.isRegistered()) {
+                    ILog.debug(LOG_TAG, "Mapped encoding " + charsetDef + " to charset " + charset);
+                    return charset;
+                }
             }
         }
-        return Collections.unmodifiableList(list);
+        ILog.debug(LOG_TAG,
+            "No matching encoding found for " + charsetDef + ". Using default charset.");
+        return StandardCharsets.UTF_8;
     }
 
     @NonNull
@@ -152,21 +151,18 @@ public class EncodingDetector {
         return Collections.unmodifiableList(list);
     }
 
-    public static Charset getEncoding(String charsetDef) {
-        var availableCharsets = Charset.availableCharsets();
-        for (Map.Entry<String, Charset> entry : availableCharsets.entrySet()) {
-            if (entry
-                .getKey()
-                .equalsIgnoreCase(charsetDef)) {
-                Charset charset = entry.getValue();
-                if (charset.isRegistered()) {
-                    ILog.debug(LOG_TAG, "Mapped encoding " + charsetDef + " to charset " + charset);
-                    return charset;
-                }
+    public static boolean isSupportedEncoding(Charset charset) {
+        return getSupportedCharsets().contains(charset);
+    }
+
+    @NonNull
+    public static Collection<Charset> getSupportedCharsets() {
+        List<Charset> list = new ArrayList<>();
+        for (Charset charset : Charset.availableCharsets().values()) {
+            if (charset.isRegistered()) {
+                list.add(charset);
             }
         }
-        ILog.debug(LOG_TAG,
-            "No matching encoding found for " + charsetDef + ". Using default charset.");
-        return StandardCharsets.UTF_8;
+        return Collections.unmodifiableList(list);
     }
 }

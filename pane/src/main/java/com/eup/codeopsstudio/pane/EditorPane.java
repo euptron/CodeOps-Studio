@@ -52,10 +52,6 @@ public class EditorPane extends Pane {
         content = "";
     }
 
-    public ContextualCodeEditor getEditor() {
-        return this.editor;
-    }
-
     @Override
     public View onCreateView() {
         binding = LayoutPaneEditorBinding.inflate(LayoutInflater.from(getContext()));
@@ -93,9 +89,7 @@ public class EditorPane extends Pane {
 
     public String getText() {
         if (hasPerformedCreateView() && editor != null) {
-            return editor
-                .getText()
-                .toString();
+            return editor.getText().toString();
         }
 
         return "";
@@ -108,5 +102,9 @@ public class EditorPane extends Pane {
      */
     public void setText(String text) {
         if (hasPerformedCreateView() && editor != null) editor.setText(text);
+    }
+
+    public ContextualCodeEditor getEditor() {
+        return this.editor;
     }
 }

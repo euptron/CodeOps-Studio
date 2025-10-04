@@ -99,10 +99,6 @@ public final class RandomAccessPane implements Parcelable {
         identifier = in.readString();
     }
 
-    public String getArguments() {
-        return arguments;
-    }
-
     /**
      * Describes the kinds of special objects contained in the Parcelable instance's marshaled
      * representation. Subclasses can override this method to provide additional information about
@@ -128,5 +124,9 @@ public final class RandomAccessPane implements Parcelable {
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         dest.writeString(arguments);
         dest.writeString(identifier);
+    }
+
+    public String getArguments() {
+        return arguments;
     }
 }

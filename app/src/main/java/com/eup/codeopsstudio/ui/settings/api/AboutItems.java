@@ -57,19 +57,19 @@ public class AboutItems {
         this.icon = icon;
     }
 
-    public String getTitle() {
-        return this.title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getSummary() {
         return this.summary;
     }
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

@@ -74,6 +74,7 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
             return String.CASE_INSENSITIVE_ORDER.compare(p1.getName(), p2.getName());
         }
     };
+
     public static final Comparator<Project> COMBINED_ORDER =
         PROJECT_FIRST_ORDER.thenComparingLong(Project::getLastModified);
 
@@ -194,35 +195,31 @@ public class RecentProjectsBottomSheetDialogFragment extends BottomSheetDialogFr
             getString(R.string.remove), getString(R.string.check_history)
         };
 
-        new MaterialAlertDialogBuilder(requireContext())
-            .setItems(options, (dialog, which) -> {
-                if (which == 0) {
-                    dialog.dismiss();
-                    String message = getString(R.string.prompt_remove_from_recent,
-                        project.getName());
-                    new MaterialAlertDialogBuilder(requireContext())
-                        .setMessage(message)
-                        .setPositiveButton(R.string.yes, (dialogInterface, item) -> {
-                            recentProjects.remove(project);
-                            if (adapter != null) {
-                                notifyDataSetChanged();
-                            }
-                        })
-                        .setNegativeButton(R.string.no, null)
-                        .show();
-                } else if (which == 1) {
-                    dialog.dismiss();
-                    long date = Objects.requireNonNull(project.getHistory()).creationDate;
-                    String message = getString(R.string.msg_recent_project_history, getDate(date)
-                        , project.getHistory().fileAction.toString());
-                    new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(project.getName() + " " + getString(R.string.history))
-                        .setMessage(message)
-                        .setPositiveButton(android.R.string.cancel, null)
-                        .show();
-                }
-            })
-            .show();
+        new MaterialAlertDialogBuilder(requireContext()).setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                dialog.dismiss();
+                String message = getString(R.string.prompt_remove_from_recent, project.getName());
+                new MaterialAlertDialogBuilder(requireContext()).setMessage(message)
+                                                                .setPositiveButton(R.string.yes,
+                                                                    (dialogInterface, item) -> {
+                                                                    recentProjects.remove(project);
+                                                                    if (adapter != null) {
+                                                                        notifyDataSetChanged();
+                                                                    }
+                                                                })
+                                                                .setNegativeButton(R.string.no,
+                                                                    null)
+                                                                .show();
+            } else if (which == 1) {
+                dialog.dismiss();
+                long date = Objects.requireNonNull(project.getHistory()).creationDate;
+                String message = getString(R.string.msg_recent_project_history, getDate(date),
+                    project.getHistory().fileAction.toString());
+                new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(project.getName() + " " + getString(R.string.history))
+                    .setMessage(message).setPositiveButton(android.R.string.cancel, null).show();
+            }
+        }).show();
         return true;
     }
 

@@ -58,10 +58,6 @@ public class NameComparator extends AbstractComparator<MetaDocument> {
         this.ioCase = IOCase.value(ioCase, IOCase.SENSITIVE);
     }
 
-    public static NameComparator newInstance(final IOCase ioCase) {
-        return new NameComparator(ioCase);
-    }
-
     @Override
     public int compare(final MetaDocument o1, final MetaDocument o2) {
         return ioCase.checkCompareTo(o1.getName(), o2.getName());
@@ -71,5 +67,9 @@ public class NameComparator extends AbstractComparator<MetaDocument> {
     @Override
     public String toString() {
         return super.toString() + "[ioCase=" + ioCase + "]";
+    }
+
+    public static NameComparator newInstance(final IOCase ioCase) {
+        return new NameComparator(ioCase);
     }
 }

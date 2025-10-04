@@ -50,16 +50,14 @@ public final class ContextualEditorCompletionAdapter extends EditorCompletionAda
     @Override
     public int getItemHeight() {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, itemHeight, getContext()
-            .getResources()
-            .getDisplayMetrics());
+            .getResources().getDisplayMetrics());
     }
 
     @Override
     public View getView(int pos, View view, ViewGroup parent, boolean isCurrentCursorPosition) {
         if (view == null) {
-            view = LayoutInflater
-                .from(getContext())
-                .inflate(R.layout.editor_completion_result_item, parent, false);
+            view = LayoutInflater.from(getContext())
+                                 .inflate(R.layout.editor_completion_result_item, parent, false);
         }
         CompletionItem item = getItem(pos);
 

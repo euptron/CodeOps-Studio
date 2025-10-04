@@ -97,9 +97,7 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
         setContentView(layout.inflate(editor.getContext()));
         applyColorScheme();
         if (mAdapter != null) {
-            this.layout
-                .getCompletionList()
-                .setAdapter(mAdapter);
+            this.layout.getCompletionList().setAdapter(mAdapter);
         }
     }
 
@@ -109,9 +107,7 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
             this.mAdapter = new ContextualEditorCompletionAdapter();
         }
 
-        layout
-            .getCompletionList()
-            .setAdapter(mAdapter);
+        layout.getCompletionList().setAdapter(mAdapter);
     }
 
     /**
@@ -131,38 +127,13 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
 
         public CompletionThread(long requestTime, @NonNull CompletionPublisher publisher) {
             requestTimestamp = requestTime;
-            requestPosition  = editor
-                .getCursor()
-                .left();
+            requestPosition  = editor.getCursor().left();
             targetLanguage   = editor.getEditorLanguage();
             contentRef       = new ContentReference(editor.getText());
             contentRef.setValidator(this);
             localPublisher = publisher;
             extraData      = editor.getExtraArguments();
             isAborted      = false;
-        }
-
-        /**
-         * Abort the completion thread
-         */
-        public void cancel() {
-            isAborted = true;
-            int level = targetLanguage.getInterruptionLevel();
-            if (level == Language.INTERRUPTION_LEVEL_STRONG) {
-                interrupt();
-            }
-            localPublisher.cancel();
-        }
-
-        public boolean isCancelled() {
-            return isAborted;
-        }
-
-        @Override
-        public void validate() {
-            if (mRequestTime != requestTimestamp || isAborted) {
-                throw new CompletionCancelledException();
-            }
         }
 
         @Override
@@ -183,6 +154,29 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
             } catch (Exception e) {
                 ILog.error(TAG, "Failed to run Auto Completion");
             }
+        }
+
+        @Override
+        public void validate() {
+            if (mRequestTime != requestTimestamp || isAborted) {
+                throw new CompletionCancelledException();
+            }
+        }
+
+        /**
+         * Abort the completion thread
+         */
+        public void cancel() {
+            isAborted = true;
+            int level = targetLanguage.getInterruptionLevel();
+            if (level == Language.INTERRUPTION_LEVEL_STRONG) {
+                interrupt();
+            }
+            localPublisher.cancel();
+        }
+
+        public boolean isCancelled() {
+            return isAborted;
         }
     }
 
@@ -271,9 +265,7 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
     @Override
     public void moveDown() {
         AdapterView<ListAdapter> adpView = layout.getCompletionList();
-        if (mCurrentSelection + 1 >= adpView
-            .getAdapter()
-            .getCount()) {
+        if (mCurrentSelection + 1 >= adpView.getAdapter().getCount()) {
             return;
         }
         mCurrentSelection++;
@@ -341,13 +333,9 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
         if (!cursor.isSelected() && thread != null) {
             mCancelShowUp = true;
             editor.restartInput();
-            editor
-                .getText()
-                .beginBatchEdit();
+            editor.getText().beginBatchEdit();
             item.performCompletion(editor, editor.getText(), mCompletionThread.requestPosition);
-            editor
-                .getText()
-                .endBatchEdit();
+            editor.getText().endBatchEdit();
             editor.updateCursor();
             mCancelShowUp = false;
             editor.restartInput();
@@ -375,9 +363,7 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
      */
     @Override
     public boolean checkNoCompletion() {
-        CharPosition pos = editor
-            .getCursor()
-            .left();
+        CharPosition pos = editor.getCursor().left();
         Styles styles = editor.getStyles();
         return StylesUtils.checkNoCompletion(styles, pos);
     }
@@ -391,9 +377,7 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
             return;
         }
         Content text = editor.getText();
-        if (text
-            .getCursor()
-            .isSelected() || checkNoCompletion()) {
+        if (text.getCursor().isSelected() || checkNoCompletion()) {
             hide();
             return;
         }
@@ -423,9 +407,7 @@ public class ContextualEditorAutoCompletion extends EditorAutoCompletion {
             if (!isShowing()) {
                 show();
             }
-        }, editor
-            .getEditorLanguage()
-            .getInterruptionLevel());
+        }, editor.getEditorLanguage().getInterruptionLevel());
         mCompletionThread = new CompletionThread(mRequestTime, mPublisher);
         setLoading(true);
         mCompletionThread.start();

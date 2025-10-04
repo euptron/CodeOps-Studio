@@ -54,9 +54,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         new DiffUtil.ItemCallback<>() {
         @Override
         public boolean areItemsTheSame(@NonNull Project oldProject, @NonNull Project newProject) {
-            return oldProject
-                .getPath()
-                .equals(newProject.getPath());
+            return oldProject.getPath().equals(newProject.getPath());
         }
 
         @Override
@@ -72,18 +70,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public ProjectAdapter() {
         // default
-    }
-
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-        this.itemClickListener = itemClickListener;
-    }
-
-    public void setOnItemLongClickListener(OnItemLongClickListener itemLongClickListener) {
-        this.itemLongClickListener = itemLongClickListener;
-    }
-
-    public void submitList(List<Project> newData) {
-        mDiffer.submitList(newData);
     }
 
     @NonNull
@@ -102,9 +88,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.itemView.setOnClickListener(v -> {
             if (itemClickListener != null) {
                 int position = holder.getAbsoluteAdapterPosition();
-                Project project = mDiffer
-                    .getCurrentList()
-                    .get(position);
+                Project project = mDiffer.getCurrentList().get(position);
                 if (position != RecyclerView.NO_POSITION) {
                     itemClickListener.onClick(project);
                 }
@@ -114,9 +98,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.itemView.setOnLongClickListener(v -> {
             if (itemLongClickListener != null) {
                 int position = holder.getAbsoluteAdapterPosition();
-                Project project = mDiffer
-                    .getCurrentList()
-                    .get(position);
+                Project project = mDiffer.getCurrentList().get(position);
                 if (position != RecyclerView.NO_POSITION) {
                     return itemLongClickListener.onLongClick(v, project);
                 }
@@ -131,18 +113,14 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
         if (getItemViewType(position) != EMPTY_VIEW) {
             ItemViewHolder itemHolder = (ItemViewHolder) holder;
-            Project project = mDiffer
-                .getCurrentList()
-                .get(position);
+            Project project = mDiffer.getCurrentList().get(position);
             itemHolder.bind(project);
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (mDiffer
-            .getCurrentList()
-            .isEmpty()) {
+        if (mDiffer.getCurrentList().isEmpty()) {
             return EMPTY_VIEW;
         }
         return super.getItemViewType(position);
@@ -150,10 +128,20 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemCount() {
-        var count = mDiffer
-            .getCurrentList()
-            .size();
+        var count = mDiffer.getCurrentList().size();
         return count > 0 ? count : 1;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
+    }
+
+    public void setOnItemLongClickListener(OnItemLongClickListener itemLongClickListener) {
+        this.itemLongClickListener = itemLongClickListener;
+    }
+
+    public void submitList(List<Project> newData) {
+        mDiffer.submitList(newData);
     }
 
     public interface OnItemClickListener {
@@ -184,9 +172,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         private void bind(@NonNull Project project) {
-            if (project
-                .getFile()
-                .isFile()) {
+            if (project.getFile().isFile()) {
                 icon.setImageResource(ExtensionTable.getExtensionIcon(project.getName()));
             } else {
                 icon.setImageResource(R.drawable.ic_folder);

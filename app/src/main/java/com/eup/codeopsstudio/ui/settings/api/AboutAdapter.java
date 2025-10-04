@@ -68,10 +68,6 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         this.context = context;
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        itemClickListener = listener;
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int position) {
@@ -114,12 +110,8 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private void bind(ShareViewHolder shareHolder) {
         shareHolder.shareLayout.setOnItemClickListener(v -> BaseUtil.shareAppPlayStoreLink(context));
         shareHolder.shareLayout.setSharePromptText(Constants.CHECK_UPDATE_GITHUB_URL);
-        shareHolder.shareLayout
-            .getSharePrompt()
-            .setSingleLine(true);
-        shareHolder.shareLayout
-            .getSharePrompt()
-            .setEllipsize(TextUtils.TruncateAt.END);
+        shareHolder.shareLayout.getSharePrompt().setSingleLine(true);
+        shareHolder.shareLayout.getSharePrompt().setEllipsize(TextUtils.TruncateAt.END);
     }
 
     private void bind(NestedListViewHolder nestedListViewHolder) {
@@ -169,8 +161,24 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return 5; // view types (0-4)
     }
 
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        itemClickListener = listener;
+    }
+
     public interface OnItemClickListener {
         void onItemClick(AboutItems items, int position);
+    }
+
+    private class ReleaseViewHolder extends RecyclerView.ViewHolder {
+
+        public ReleaseViewHolder(LayoutBundleReleaseItemBinding binding) {
+            super(binding.getRoot());
+            TextView release_info = binding.appBundleName;
+            String appName = Wizard.getAppName(context);
+            String appVersionName = Wizard.getAppVersionName(context);
+            String releaseInfo = appName + " " + appVersionName;
+            release_info.setText(releaseInfo);
+        }
     }
 
     private static class AboutAppViewHolder extends RecyclerView.ViewHolder {
@@ -216,18 +224,6 @@ public class AboutAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             super(binding.getRoot());
             privacy       = binding.tvPrivacyPolicy;
             service_terms = binding.tvTermsOfService;
-        }
-    }
-
-    private class ReleaseViewHolder extends RecyclerView.ViewHolder {
-
-        public ReleaseViewHolder(LayoutBundleReleaseItemBinding binding) {
-            super(binding.getRoot());
-            TextView release_info = binding.appBundleName;
-            String appName = Wizard.getAppName(context);
-            String appVersionName = Wizard.getAppVersionName(context);
-            String releaseInfo = appName + " " + appVersionName;
-            release_info.setText(releaseInfo);
         }
     }
 }

@@ -37,13 +37,9 @@ public class PluginFragment extends Fragment {
     public static final String TAG = PluginFragment.class.getSimpleName();
     private FragmentPluginBinding binding;
 
-    public static PluginFragment newInstance() {
-        return new PluginFragment();
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
         binding = FragmentPluginBinding.inflate(inflater, viewgroup, false);
         return binding.getRoot();
     }
@@ -52,5 +48,9 @@ public class PluginFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         this.binding = null;
+    }
+
+    public static PluginFragment newInstance() {
+        return new PluginFragment();
     }
 }

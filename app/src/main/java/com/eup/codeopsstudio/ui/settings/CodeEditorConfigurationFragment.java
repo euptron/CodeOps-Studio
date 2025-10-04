@@ -38,10 +38,6 @@ public class CodeEditorConfigurationFragment extends PreferenceFragmentCompat {
 
     public static final String TAG = CodeEditorConfigurationFragment.class.getSimpleName();
 
-    public static CodeEditorConfigurationFragment newInstance() {
-        return new CodeEditorConfigurationFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,5 +48,9 @@ public class CodeEditorConfigurationFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.editor_preferences, rootKey);
+    }
+
+    public static CodeEditorConfigurationFragment newInstance() {
+        return new CodeEditorConfigurationFragment();
     }
 }

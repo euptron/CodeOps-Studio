@@ -55,10 +55,6 @@ public class OutPutFragment extends Fragment {
     private MainViewModel model;
     private RecyclerViewOnScrollListener listener;
 
-    public static OutPutFragment newInstance() {
-        return new OutPutFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +64,7 @@ public class OutPutFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
         binding = FragmentBuildOutputBinding.inflate(inflater, viewgroup, false);
         binding.outViewFlipper.setDisplayedChild(1);
         binding.clearBuildLogsFab.setVisibility(View.GONE);
@@ -98,9 +94,7 @@ public class OutPutFragment extends Fragment {
 
         binding.buildOutputRecyclerview.addOnScrollListener(listener);
 
-        model
-            .getBUILDLogs()
-            .observe(getViewLifecycleOwner(), this::updateLayout);
+        model.getBUILDLogs().observe(getViewLifecycleOwner(), this::updateLayout);
         binding.clearBuildLogsFab.setOnClickListener(v -> clearLogs());
     }
 
@@ -134,5 +128,9 @@ public class OutPutFragment extends Fragment {
         if (position > 0) {
             binding.buildOutputRecyclerview.scrollToPosition(position - 1);
         }
+    }
+
+    public static OutPutFragment newInstance() {
+        return new OutPutFragment();
     }
 }

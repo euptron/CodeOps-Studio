@@ -77,12 +77,9 @@ public class FontSeekBarDialogPreference extends Preference {
                 var codeEditorFontSize = binding.slider.getValue();
                 persistFloat(codeEditorFontSize);
                 notifyChanged();
-            })
-            .setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
-            .setNeutralButton(R.string.reset, (d, w) -> resetFontSize())
-            .setView(binding.getRoot())
-            .setCancelable(false)
-            .show();
+            }).setNegativeButton(R.string.cancel, (d, w) -> d.dismiss())
+            .setNeutralButton(R.string.reset, (d, w) -> resetFontSize()).setView(binding.getRoot())
+            .setCancelable(false).show();
     }
 
     @Override
@@ -104,9 +101,6 @@ public class FontSeekBarDialogPreference extends Preference {
 
     private void resetFontSize() {
         var pref = PreferencesUtils.getDefaultPreferences();
-        pref
-            .edit()
-            .putFloat(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, 14)
-            .apply();
+        pref.edit().putFloat(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_FONT_SIZE, 14).apply();
     }
 }

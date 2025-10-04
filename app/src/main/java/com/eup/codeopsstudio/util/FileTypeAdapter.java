@@ -38,12 +38,6 @@ import java.io.IOException;
  * @author Etido Peter
  */
 public class FileTypeAdapter extends TypeAdapter<File> {
-    public static Gson createFileAwareGson() {
-        return new GsonBuilder()
-            .registerTypeAdapter(File.class, new FileTypeAdapter())
-            .create();
-    }
-
     @Override
     public void write(@NonNull JsonWriter out, File value) throws IOException {
         out.value(value == null ? null : value.getPath());
@@ -53,5 +47,9 @@ public class FileTypeAdapter extends TypeAdapter<File> {
     public File read(@NonNull JsonReader in) throws IOException {
         String path = in.nextString();
         return (path == null || path.isEmpty()) ? null : new File(path);
+    }
+
+    public static Gson createFileAwareGson() {
+        return new GsonBuilder().registerTypeAdapter(File.class, new FileTypeAdapter()).create();
     }
 }

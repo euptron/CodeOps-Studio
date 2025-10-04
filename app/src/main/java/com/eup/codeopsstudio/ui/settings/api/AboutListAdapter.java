@@ -46,6 +46,24 @@ public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.View
         this.list = list;
     }
 
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        return new ViewHolder(LayoutThreeLineListItemBinding.inflate(inflater, parent, false));
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        int iconRes = list.get(position).getIcon();
+        AboutItems item = list.get(position);
+        holder.bind(item, position);
+    }
+
+    @Override
+    public int getItemCount() {
+        return list.size();
+    }
+
     public void setData(List<AboutItems> newData) {
         list.clear();
         list.addAll(newData);
@@ -59,26 +77,6 @@ public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.View
      */
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
-    }
-
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        return new ViewHolder(LayoutThreeLineListItemBinding.inflate(inflater, parent, false));
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        int iconRes = list
-            .get(position)
-            .getIcon();
-        AboutItems item = list.get(position);
-        holder.bind(item, position);
-    }
-
-    @Override
-    public int getItemCount() {
-        return list.size();
     }
 
     /**
@@ -108,24 +106,16 @@ public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.View
             summary.setText(item != null ? item.getSummary() : null);
             if (Integer.valueOf(item.getIcon()) != null) {
                 icon.setImageResource(item.getIcon());
-                icon.setShapeAppearanceModel(icon
-                    .getShapeAppearanceModel()
-                    .toBuilder()
-                    .setAllCorners(CornerFamily.ROUNDED, 0)
-                    .build()); // override orginal shape appearance
+                icon.setShapeAppearanceModel(icon.getShapeAppearanceModel().toBuilder()
+                                                 .setAllCorners(CornerFamily.ROUNDED, 0)
+                                                 .build()); // override orginal shape appearance
             }
-            if (!title
-                .getText()
-                .toString()
-                .isEmpty()) {
+            if (!title.getText().toString().isEmpty()) {
                 title.setVisibility(View.VISIBLE);
             } else {
                 title.setVisibility(View.GONE);
             }
-            if (!summary
-                .getText()
-                .toString()
-                .isEmpty()) {
+            if (!summary.getText().toString().isEmpty()) {
                 summary.setVisibility(View.VISIBLE);
             } else {
                 summary.setVisibility(View.GONE);

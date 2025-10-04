@@ -63,13 +63,11 @@ public final class Constants {
     public static final Set<String> ARCHIVE_EXTENSIONS = Set.of("zip", "rar", "tar", "gz", "7z",
         "bz2", "xz");
     public static final Set<String> PREVIEWABLE_EXTENSIONS = Collections.unmodifiableSet(Stream
-        .of(VIDEO_EXTENSIONS, AUDIO_EXTENSIONS, IMAGE_EXTENSIONS)
-        .flatMap(Collection::stream)
+        .of(VIDEO_EXTENSIONS, AUDIO_EXTENSIONS, IMAGE_EXTENSIONS).flatMap(Collection::stream)
         .collect(Collectors.toSet()));
 
     public static final Set<String> NON_PREVIEWABLE_EXTENSIONS = Collections.unmodifiableSet(Stream
-        .of(DOCUMENT_EXTENSIONS, ARCHIVE_EXTENSIONS)
-        .flatMap(Collection::stream)
+        .of(DOCUMENT_EXTENSIONS, ARCHIVE_EXTENSIONS).flatMap(Collection::stream)
         .collect(Collectors.toSet()));
 
     public static final int EXPIRATION_YEAR = 2026;
@@ -112,10 +110,8 @@ public final class Constants {
     public static final String GITHUB_BASE_URL = "https://github.com";
     public static final String REPO_ADMIN_USER_NAME = "euptron";
     public static final String REPO_NAME = "CodeOps-Studio";
-    public static final String GITHUB_URL = GITHUB_BASE_URL
-        .concat("/")
-        .concat(REPO_ADMIN_USER_NAME)
-        .concat(REPO_NAME);
+    public static final String GITHUB_URL = GITHUB_BASE_URL.concat("/").concat(REPO_ADMIN_USER_NAME)
+                                                           .concat(REPO_NAME);
     public static final String CHECK_UPDATE_GITHUB_URL = GITHUB_URL.concat("/releases");
     public static final String PRIVACY_POLICY_URL =
         "https://codeopsstudio.blogspot" + ".com/p/privacy-policy.html";

@@ -93,6 +93,38 @@ public class ProjectTemplateModel {
         }
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String authorsName) {
+        this.author = authorsName;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String date) {
+        this.creationDate = date;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDocumentationUrl() {
+        return documentationUrl;
+    }
+
+    public void setDocumentationUrl(String url) {
+        this.documentationUrl = url;
+    }
+
     public String getName() {
         return name;
     }
@@ -117,14 +149,6 @@ public class ProjectTemplateModel {
         this.projectType = type;
     }
 
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String authorsName) {
-        this.author = authorsName;
-    }
-
     public int getVersion() {
         return versionCode;
     }
@@ -139,29 +163,5 @@ public class ProjectTemplateModel {
 
     public void setVersionName(String name) {
         this.versionName = name;
-    }
-
-    public String getCreationDate() {
-        return creationDate;
-    }
-
-    public void setCreationDate(String date) {
-        this.creationDate = date;
-    }
-
-    public String getDocumentationUrl() {
-        return documentationUrl;
-    }
-
-    public void setDocumentationUrl(String url) {
-        this.documentationUrl = url;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

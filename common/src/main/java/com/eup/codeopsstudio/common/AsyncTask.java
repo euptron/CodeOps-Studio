@@ -60,52 +60,16 @@ import java.util.concurrent.TimeUnit;
 public class AsyncTask {
 
     public static final String LOG_TAG = AsyncTask.class.getSimpleName();
-    private static final int CPU_PROCESSORS_COUNT = Runtime
-        .getRuntime()
-        .availableProcessors();
+    private static final int CPU_PROCESSORS_COUNT = Runtime.getRuntime().availableProcessors();
     public static final Executor executor = Executors.newFixedThreadPool(CPU_PROCESSORS_COUNT);
 
     /**
-     * Execute task on background thread
+     * Cancels a scheduled runnable by removing it from the UI thread's message queue.
      *
-     * @param runnable The runnable to execute
-     * @since CodeOps Studio version 1.0.3
+     * @param action The runnable to cancel.
      */
-    public static void runOnBackgroundThread(Runnable runnable) {
-        CompletableFuture.runAsync(runnable);
-    }
-
-    /**
-     * Executes a task and invokes the callback on resolution thread
-     *
-     * <p>Upon observation when i invoked the callback directly on the main thread, it takes few
-     * milliseconds depending on the task before invoking the callback, that this makes callback
-     * handling more flexible. <strong> Remember to handle UI elements on the main UI
-     * thread</strong>
-     *
-     * @see #runNonCancelable(Callable, CallbackWithError) for main thread callback invocation
-     */
-    public static <R> void execute(Callable<R> callable,
-        @NonNull CallbackWithError<R> callbackWithError) {
-        runProvideError(callable).whenComplete(callbackWithError::onComplete);
-    }
-
-    /**
-     * Executes a callable task asynchronously and returns a CompletableFuture. Throws a
-     * CompletionException if an exception occurs during execution.
-     *
-     * @param callable The callable task to execute.
-     * @param <R>      The type of result returned by the task.
-     * @return A CompletableFuture representing the result of the task.
-     */
-    public static <R> CompletableFuture<R> runProvideError(Callable<R> callable) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return callable.call();
-            } catch (Throwable throwable) {
-                throw new CompletionException(throwable);
-            }
-        });
+    public static void cancelRunLater(Runnable action) {
+        MainThreadExecutor.getInstance().cancelExecute(action);
     }
 
     /**
@@ -146,6 +110,52 @@ public class AsyncTask {
         long delayMills, TimeUnit timeUnit) {
         runProvideError(callable).whenCompleteAsync(callback::onComplete,
             CompletableFuture.delayedExecutor(delayMills, timeUnit));
+    }
+
+    /**
+     * Executes a task and invokes the callback on resolution thread
+     *
+     * <p>Upon observation when i invoked the callback directly on the main thread, it takes few
+     * milliseconds depending on the task before invoking the callback, that this makes callback
+     * handling more flexible. <strong> Remember to handle UI elements on the main UI
+     * thread</strong>
+     *
+     * @see #runNonCancelable(Callable, CallbackWithError) for main thread callback invocation
+     */
+    public static <R> void execute(Callable<R> callable,
+        @NonNull CallbackWithError<R> callbackWithError) {
+        runProvideError(callable).whenComplete(callbackWithError::onComplete);
+    }
+
+    /**
+     * Executes a callable task asynchronously and returns a CompletableFuture. Throws a
+     * CompletionException if an exception occurs during execution.
+     *
+     * @param callable The callable task to execute.
+     * @param <R>      The type of result returned by the task.
+     * @return A CompletableFuture representing the result of the task.
+     */
+    public static <R> CompletableFuture<R> runProvideError(Callable<R> callable) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return callable.call();
+            } catch (Throwable throwable) {
+                throw new CompletionException(throwable);
+            }
+        });
+    }
+
+    /**
+     * Posts the runnable into the UI thread to be run later after the specified amount of time
+     * elapses.
+     *
+     * <p>The time-base is {@link android.os.SystemClock#uptimeMillis}.
+     *
+     * @param runnable The Runnable that will be executed.
+     * @param delay    The delay (in milliseconds) until the Runnable will be executed.
+     */
+    public static void runLaterOnUiThread(Runnable runnable, long delay) {
+        MainThreadExecutor.getInstance().executeAfterDelay(runnable, delay);
     }
 
     /**
@@ -209,18 +219,13 @@ public class AsyncTask {
     }
 
     /**
-     * Posts the runnable into the UI thread to be run later after the specified amount of time
-     * elapses.
+     * Execute task on background thread
      *
-     * <p>The time-base is {@link android.os.SystemClock#uptimeMillis}.
-     *
-     * @param runnable The Runnable that will be executed.
-     * @param delay    The delay (in milliseconds) until the Runnable will be executed.
+     * @param runnable The runnable to execute
+     * @since CodeOps Studio version 1.0.3
      */
-    public static void runLaterOnUiThread(Runnable runnable, long delay) {
-        MainThreadExecutor
-            .getInstance()
-            .executeAfterDelay(runnable, delay);
+    public static void runOnBackgroundThread(Runnable runnable) {
+        CompletableFuture.runAsync(runnable);
     }
 
     /**
@@ -229,20 +234,7 @@ public class AsyncTask {
      * @param runnable The code to run
      */
     public static void runOnUiThread(Runnable runnable) {
-        MainThreadExecutor
-            .getInstance()
-            .execute(runnable);
-    }
-
-    /**
-     * Cancels a scheduled runnable by removing it from the UI thread's message queue.
-     *
-     * @param action The runnable to cancel.
-     */
-    public static void cancelRunLater(Runnable action) {
-        MainThreadExecutor
-            .getInstance()
-            .cancelExecute(action);
+        MainThreadExecutor.getInstance().execute(runnable);
     }
 
     /**
@@ -292,15 +284,28 @@ public class AsyncTask {
         }
 
         /**
-         * Returns an instance of the main thread executor.
+         * Executes the given action {@code action} on the main UI thread immediately or posts it
+         * to the
+         * UI thread's message queue if called from a background thread.
          *
-         * @return The singleton MainThreadExecutor.
+         * @param action The runnable task to execute.
          */
-        public static MainThreadExecutor getInstance() {
-            if (mainInstance == null) {
-                mainInstance = new MainThreadExecutor();
+        @Override
+        public void execute(Runnable action) {
+            if (isMainThread()) {
+                action.run();
+            } else {
+                mainHandler.post(action);
             }
-            return mainInstance;
+        }
+
+        /**
+         * Remove any pending posts of runnable that are in the message queue.
+         *
+         * @param runnable The runnable to remove
+         */
+        public void cancelExecute(Runnable runnable) {
+            mainHandler.removeCallbacks(runnable);
         }
 
         /**
@@ -321,25 +326,7 @@ public class AsyncTask {
          * @return true if we are on the main thread, false otherwise
          */
         public static boolean isMainThread() {
-            return Thread.currentThread() == Looper
-                .getMainLooper()
-                .getThread();
-        }
-
-        /**
-         * Executes the given action {@code action} on the main UI thread immediately or posts it
-         * to the
-         * UI thread's message queue if called from a background thread.
-         *
-         * @param action The runnable task to execute.
-         */
-        @Override
-        public void execute(Runnable action) {
-            if (isMainThread()) {
-                action.run();
-            } else {
-                mainHandler.post(action);
-            }
+            return Thread.currentThread() == Looper.getMainLooper().getThread();
         }
 
         /**
@@ -356,12 +343,15 @@ public class AsyncTask {
         }
 
         /**
-         * Remove any pending posts of runnable that are in the message queue.
+         * Returns an instance of the main thread executor.
          *
-         * @param runnable The runnable to remove
+         * @return The singleton MainThreadExecutor.
          */
-        public void cancelExecute(Runnable runnable) {
-            mainHandler.removeCallbacks(runnable);
+        public static MainThreadExecutor getInstance() {
+            if (mainInstance == null) {
+                mainInstance = new MainThreadExecutor();
+            }
+            return mainInstance;
         }
     }
 }

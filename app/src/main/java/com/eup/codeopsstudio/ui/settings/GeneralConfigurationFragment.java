@@ -111,17 +111,11 @@ public class GeneralConfigurationFragment extends PreferenceFragmentCompat imple
     }
 
     private void applyTheme() {
-        IdeApplication
-            .getInstance()
-            .getThemeManager()
-            .applyTheme();
+        IdeApplication.getInstance().getThemeManager().applyTheme();
     }
 
     private void applyDynamicColors() {
-        IdeApplication
-            .getInstance()
-            .getThemeManager()
-            .applyDynamicColors();
+        IdeApplication.getInstance().getThemeManager().applyDynamicColors();
     }
 
     private void syncSwitch(SwitchPreferenceCompat switchPreference, boolean checked) {

@@ -138,75 +138,6 @@ public class TwoDScrollView extends FrameLayout {
         initTwoDScrollView();
     }
 
-    /**
-     * @return The maximum amount this scroll view will scroll in response to an arrow event.
-     */
-    public int getMaxScrollAmountVertical() {
-        return (int) (MAX_SCROLL_FACTOR * getHeight());
-    }
-
-    public int getMaxScrollAmountHorizontal() {
-        return (int) (MAX_SCROLL_FACTOR * getWidth());
-    }
-
-    /**
-     * You can call this function yourself to have the scroll view perform scrolling from a key
-     * event,
-     * just as if the event had been dispatched to it by the view hierarchy.
-     *
-     * @param event The key event to execute.
-     * @return Return true if the event was handled, else false.
-     */
-    public boolean executeKeyEvent(KeyEvent event) {
-        mTempRect.setEmpty();
-        if (!canScroll()) {
-            if (isFocused()) {
-                View currentFocused = findFocus();
-                if (currentFocused == this) currentFocused = null;
-                View nextFocused = FocusFinder
-                    .getInstance()
-                    .findNextFocus(this, currentFocused, View.FOCUS_DOWN);
-                return nextFocused != null && nextFocused != this
-                    && nextFocused.requestFocus(View.FOCUS_DOWN);
-            }
-            return false;
-        }
-        boolean handled = false;
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_DPAD_UP:
-                    if (!event.isAltPressed()) {
-                        handled = arrowScroll(View.FOCUS_UP, false);
-                    } else {
-                        handled = fullScroll(View.FOCUS_UP, false);
-                    }
-                    break;
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                    if (!event.isAltPressed()) {
-                        handled = arrowScroll(View.FOCUS_DOWN, false);
-                    } else {
-                        handled = fullScroll(View.FOCUS_DOWN, false);
-                    }
-                    break;
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                    if (!event.isAltPressed()) {
-                        handled = arrowScroll(View.FOCUS_LEFT, true);
-                    } else {
-                        handled = fullScroll(View.FOCUS_LEFT, true);
-                    }
-                    break;
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    if (!event.isAltPressed()) {
-                        handled = arrowScroll(View.FOCUS_RIGHT, true);
-                    } else {
-                        handled = fullScroll(View.FOCUS_RIGHT, true);
-                    }
-                    break;
-            }
-        }
-        return handled;
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
@@ -619,8 +550,7 @@ public class TwoDScrollView extends FrameLayout {
      * @return the next focusable component in the bounds or null if none can be found
      */
     private View findFocusableViewInMyBounds(final boolean topFocus, final int top,
-                                             final boolean leftFocus, final int left,
-                                             View preferredFocusable) {
+        final boolean leftFocus, final int left, View preferredFocusable) {
         /*
          * The fading edge's transparent side should be considered for focus
          * since it's mostly visible, so we divide the actual fading edge length
@@ -652,8 +582,8 @@ public class TwoDScrollView extends FrameLayout {
      * @param bottom   the bottom offset of the bounds in which a focusable must be found
      * @return the next focusable component in the bounds or null if none can be found
      */
-    private View findFocusableViewInBounds(boolean topFocus, int top, int bottom,
-                                           boolean leftFocus, int left, int right) {
+    private View findFocusableViewInBounds(boolean topFocus, int top, int bottom, boolean leftFocus,
+        int left, int right) {
         List<View> focusables = getFocusables(View.FOCUS_FORWARD);
         View focusCandidate = null;
 
@@ -735,131 +665,6 @@ public class TwoDScrollView extends FrameLayout {
                 < childWidth + getPaddingLeft() + getPaddingRight());
         }
         return false;
-    }
-
-    /**
-     * Handles scrolling in response to a "home/end" shortcut press. This method will scroll the
-     * view
-     * to the top or bottom and give the focus to the topmost/bottommost component in the new
-     * visible
-     * area. If no component is a good candidate for focus, this scrollview reclaims the focus.
-     *
-     * @param direction the scroll direction: {@link android.view.View#FOCUS_UP} to go the top of
-     *                  the
-     *                  view or {@link android.view.View#FOCUS_DOWN} to go the bottom
-     * @return true if the key event is consumed by this method, false otherwise
-     */
-    public boolean fullScroll(int direction, boolean horizontal) {
-        if (!horizontal) {
-            boolean down = direction == View.FOCUS_DOWN;
-            int height = getHeight();
-            mTempRect.top    = 0;
-            mTempRect.bottom = height;
-            if (down) {
-                int count = getChildCount();
-                if (count > 0) {
-                    View view = getChildAt(count - 1);
-                    mTempRect.bottom = view.getBottom();
-                    mTempRect.top    = mTempRect.bottom - height;
-                }
-            }
-            return scrollAndFocus(direction, mTempRect.top, mTempRect.bottom, 0, 0, 0);
-        } else {
-            boolean right = direction == View.FOCUS_DOWN;
-            int width = getWidth();
-            mTempRect.left  = 0;
-            mTempRect.right = width;
-            if (right) {
-                int count = getChildCount();
-                if (count > 0) {
-                    View view = getChildAt(count - 1);
-                    mTempRect.right = view.getBottom();
-                    mTempRect.left  = mTempRect.right - width;
-                }
-            }
-            return scrollAndFocus(0, 0, 0, direction, mTempRect.top, mTempRect.bottom);
-        }
-    }
-
-    /**
-     * Handle scrolling in response to an up or down arrow click.
-     *
-     * @param direction The direction corresponding to the arrow key that was pressed
-     * @return True if we consumed the event, false otherwise
-     */
-    public boolean arrowScroll(int direction, boolean horizontal) {
-        View currentFocused = findFocus();
-        if (currentFocused == this) currentFocused = null;
-        View nextFocused = FocusFinder
-            .getInstance()
-            .findNextFocus(this, currentFocused, direction);
-        final int maxJump =
-            horizontal ? getMaxScrollAmountHorizontal() : getMaxScrollAmountVertical();
-
-        if (!horizontal) {
-            if (nextFocused != null) {
-                nextFocused.getDrawingRect(mTempRect);
-                offsetDescendantRectToMyCoords(nextFocused, mTempRect);
-                int scrollDelta = computeScrollDeltaToGetChildRectOnScreen(mTempRect);
-                doScroll(0, scrollDelta);
-                nextFocused.requestFocus(direction);
-            } else {
-                // no new focus
-                int scrollDelta = maxJump;
-                if (direction == View.FOCUS_UP && getScrollY() < scrollDelta) {
-                    scrollDelta = getScrollY();
-                } else if (direction == View.FOCUS_DOWN) {
-                    if (getChildCount() > 0) {
-                        int daBottom = getChildAt(0).getBottom();
-                        int screenBottom = getScrollY() + getHeight();
-                        if (daBottom - screenBottom < maxJump) {
-                            scrollDelta = daBottom - screenBottom;
-                        }
-                    }
-                }
-                if (scrollDelta == 0) {
-                    return false;
-                }
-                doScroll(0, direction == View.FOCUS_DOWN ? scrollDelta : -scrollDelta);
-            }
-        } else {
-            if (nextFocused != null) {
-                nextFocused.getDrawingRect(mTempRect);
-                offsetDescendantRectToMyCoords(nextFocused, mTempRect);
-                int scrollDelta = computeScrollDeltaToGetChildRectOnScreen(mTempRect);
-                doScroll(scrollDelta, 0);
-                nextFocused.requestFocus(direction);
-            } else {
-                // no new focus
-                int scrollDelta = maxJump;
-                if (direction == View.FOCUS_UP && getScrollY() < scrollDelta) {
-                    scrollDelta = getScrollY();
-                } else if (direction == View.FOCUS_DOWN) {
-                    if (getChildCount() > 0) {
-                        int daBottom = getChildAt(0).getBottom();
-                        int screenBottom = getScrollY() + getHeight();
-                        if (daBottom - screenBottom < maxJump) {
-                            scrollDelta = daBottom - screenBottom;
-                        }
-                    }
-                }
-                if (scrollDelta == 0) {
-                    return false;
-                }
-                doScroll(direction == View.FOCUS_DOWN ? scrollDelta : -scrollDelta, 0);
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Like {@link #scrollTo}, but scroll smoothly instead of immediately.
-     *
-     * @param x the position where to scroll on the X axis
-     * @param y the position where to scroll on the Y axis
-     */
-    public final void smoothScrollTo(int x, int y) {
-        smoothScrollBy(x - getScrollX(), y - getScrollY());
     }
 
     @Override
@@ -989,11 +794,11 @@ public class TwoDScrollView extends FrameLayout {
             direction = View.FOCUS_UP;
         }
 
-        final View nextFocus = previouslyFocusedRect == null ? FocusFinder
-            .getInstance()
-            .findNextFocus(this, null, direction) : FocusFinder
-            .getInstance()
-            .findNextFocusFromRect(this, previouslyFocusedRect, direction);
+        final View nextFocus = previouslyFocusedRect == null ? FocusFinder.getInstance()
+                                                                          .findNextFocus(this,
+                                                                              null, direction)
+            : FocusFinder.getInstance()
+                         .findNextFocusFromRect(this, previouslyFocusedRect, direction);
 
         if (nextFocus == null) {
             return false;
@@ -1036,7 +841,7 @@ public class TwoDScrollView extends FrameLayout {
 
     @Override
     protected void measureChild(View child, int parentWidthMeasureSpec,
-                                int parentHeightMeasureSpec) {
+        int parentHeightMeasureSpec) {
         ViewGroup.LayoutParams lp = child.getLayoutParams();
         int childWidthMeasureSpec;
         int childHeightMeasureSpec;
@@ -1050,7 +855,7 @@ public class TwoDScrollView extends FrameLayout {
 
     @Override
     protected void measureChildWithMargins(View child, int parentWidthMeasureSpec, int widthUsed,
-                                           int parentHeightMeasureSpec, int heightUsed) {
+        int parentHeightMeasureSpec, int heightUsed) {
         final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
         final int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(
             lp.leftMargin + lp.rightMargin, MeasureSpec.UNSPECIFIED);
@@ -1097,6 +902,209 @@ public class TwoDScrollView extends FrameLayout {
     }
 
     /**
+     * Handle scrolling in response to an up or down arrow click.
+     *
+     * @param direction The direction corresponding to the arrow key that was pressed
+     * @return True if we consumed the event, false otherwise
+     */
+    public boolean arrowScroll(int direction, boolean horizontal) {
+        View currentFocused = findFocus();
+        if (currentFocused == this) currentFocused = null;
+        View nextFocused = FocusFinder.getInstance().findNextFocus(this, currentFocused, direction);
+        final int maxJump =
+            horizontal ? getMaxScrollAmountHorizontal() : getMaxScrollAmountVertical();
+
+        if (!horizontal) {
+            if (nextFocused != null) {
+                nextFocused.getDrawingRect(mTempRect);
+                offsetDescendantRectToMyCoords(nextFocused, mTempRect);
+                int scrollDelta = computeScrollDeltaToGetChildRectOnScreen(mTempRect);
+                doScroll(0, scrollDelta);
+                nextFocused.requestFocus(direction);
+            } else {
+                // no new focus
+                int scrollDelta = maxJump;
+                if (direction == View.FOCUS_UP && getScrollY() < scrollDelta) {
+                    scrollDelta = getScrollY();
+                } else if (direction == View.FOCUS_DOWN) {
+                    if (getChildCount() > 0) {
+                        int daBottom = getChildAt(0).getBottom();
+                        int screenBottom = getScrollY() + getHeight();
+                        if (daBottom - screenBottom < maxJump) {
+                            scrollDelta = daBottom - screenBottom;
+                        }
+                    }
+                }
+                if (scrollDelta == 0) {
+                    return false;
+                }
+                doScroll(0, direction == View.FOCUS_DOWN ? scrollDelta : -scrollDelta);
+            }
+        } else {
+            if (nextFocused != null) {
+                nextFocused.getDrawingRect(mTempRect);
+                offsetDescendantRectToMyCoords(nextFocused, mTempRect);
+                int scrollDelta = computeScrollDeltaToGetChildRectOnScreen(mTempRect);
+                doScroll(scrollDelta, 0);
+                nextFocused.requestFocus(direction);
+            } else {
+                // no new focus
+                int scrollDelta = maxJump;
+                if (direction == View.FOCUS_UP && getScrollY() < scrollDelta) {
+                    scrollDelta = getScrollY();
+                } else if (direction == View.FOCUS_DOWN) {
+                    if (getChildCount() > 0) {
+                        int daBottom = getChildAt(0).getBottom();
+                        int screenBottom = getScrollY() + getHeight();
+                        if (daBottom - screenBottom < maxJump) {
+                            scrollDelta = daBottom - screenBottom;
+                        }
+                    }
+                }
+                if (scrollDelta == 0) {
+                    return false;
+                }
+                doScroll(direction == View.FOCUS_DOWN ? scrollDelta : -scrollDelta, 0);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * You can call this function yourself to have the scroll view perform scrolling from a key
+     * event,
+     * just as if the event had been dispatched to it by the view hierarchy.
+     *
+     * @param event The key event to execute.
+     * @return Return true if the event was handled, else false.
+     */
+    public boolean executeKeyEvent(KeyEvent event) {
+        mTempRect.setEmpty();
+        if (!canScroll()) {
+            if (isFocused()) {
+                View currentFocused = findFocus();
+                if (currentFocused == this) currentFocused = null;
+                View nextFocused = FocusFinder.getInstance()
+                                              .findNextFocus(this, currentFocused, View.FOCUS_DOWN);
+                return nextFocused != null && nextFocused != this
+                    && nextFocused.requestFocus(View.FOCUS_DOWN);
+            }
+            return false;
+        }
+        boolean handled = false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    if (!event.isAltPressed()) {
+                        handled = arrowScroll(View.FOCUS_UP, false);
+                    } else {
+                        handled = fullScroll(View.FOCUS_UP, false);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    if (!event.isAltPressed()) {
+                        handled = arrowScroll(View.FOCUS_DOWN, false);
+                    } else {
+                        handled = fullScroll(View.FOCUS_DOWN, false);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    if (!event.isAltPressed()) {
+                        handled = arrowScroll(View.FOCUS_LEFT, true);
+                    } else {
+                        handled = fullScroll(View.FOCUS_LEFT, true);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    if (!event.isAltPressed()) {
+                        handled = arrowScroll(View.FOCUS_RIGHT, true);
+                    } else {
+                        handled = fullScroll(View.FOCUS_RIGHT, true);
+                    }
+                    break;
+            }
+        }
+        return handled;
+    }
+
+    /**
+     * Handles scrolling in response to a "home/end" shortcut press. This method will scroll the
+     * view
+     * to the top or bottom and give the focus to the topmost/bottommost component in the new
+     * visible
+     * area. If no component is a good candidate for focus, this scrollview reclaims the focus.
+     *
+     * @param direction the scroll direction: {@link android.view.View#FOCUS_UP} to go the top of
+     *                  the
+     *                  view or {@link android.view.View#FOCUS_DOWN} to go the bottom
+     * @return true if the key event is consumed by this method, false otherwise
+     */
+    public boolean fullScroll(int direction, boolean horizontal) {
+        if (!horizontal) {
+            boolean down = direction == View.FOCUS_DOWN;
+            int height = getHeight();
+            mTempRect.top    = 0;
+            mTempRect.bottom = height;
+            if (down) {
+                int count = getChildCount();
+                if (count > 0) {
+                    View view = getChildAt(count - 1);
+                    mTempRect.bottom = view.getBottom();
+                    mTempRect.top    = mTempRect.bottom - height;
+                }
+            }
+            return scrollAndFocus(direction, mTempRect.top, mTempRect.bottom, 0, 0, 0);
+        } else {
+            boolean right = direction == View.FOCUS_DOWN;
+            int width = getWidth();
+            mTempRect.left  = 0;
+            mTempRect.right = width;
+            if (right) {
+                int count = getChildCount();
+                if (count > 0) {
+                    View view = getChildAt(count - 1);
+                    mTempRect.right = view.getBottom();
+                    mTempRect.left  = mTempRect.right - width;
+                }
+            }
+            return scrollAndFocus(0, 0, 0, direction, mTempRect.top, mTempRect.bottom);
+        }
+    }
+
+    public int getMaxScrollAmountHorizontal() {
+        return (int) (MAX_SCROLL_FACTOR * getWidth());
+    }
+
+    /**
+     * @return The maximum amount this scroll view will scroll in response to an arrow event.
+     */
+    public int getMaxScrollAmountVertical() {
+        return (int) (MAX_SCROLL_FACTOR * getHeight());
+    }
+
+    /**
+     * Like {@link #scrollTo}, but scroll smoothly instead of immediately.
+     *
+     * @param x the position where to scroll on the X axis
+     * @param y the position where to scroll on the Y axis
+     */
+    public final void smoothScrollTo(int x, int y) {
+        smoothScrollBy(x - getScrollX(), y - getScrollY());
+    }
+
+    /**
+     * Return true if child is an descendant of parent, (or equal to the parent).
+     */
+    private boolean isViewDescendantOf(View child, View parent) {
+        if (child == parent) {
+            return true;
+        }
+
+        final ViewParent theParent = child.getParent();
+        return (theParent instanceof ViewGroup) && isViewDescendantOf((View) theParent, parent);
+    }
+
+    /**
      * Scrolls the view to make the area defined by <code>top</code> and <code>bottom</code>
      * visible.
      * This method attempts to give the focus to a component visible in this area. If no
@@ -1110,7 +1118,7 @@ public class TwoDScrollView extends FrameLayout {
      * @return true if the key event is consumed by this method, false otherwise
      */
     private boolean scrollAndFocus(int directionY, int top, int bottom, int directionX, int left,
-                                   int right) {
+        int right) {
         boolean handled = true;
         int height = getHeight();
         int containerTop = getScrollY();
@@ -1137,17 +1145,5 @@ public class TwoDScrollView extends FrameLayout {
             mTwoDScrollViewMovedFocus = false;
         }
         return handled;
-    }
-
-    /**
-     * Return true if child is an descendant of parent, (or equal to the parent).
-     */
-    private boolean isViewDescendantOf(View child, View parent) {
-        if (child == parent) {
-            return true;
-        }
-
-        final ViewParent theParent = child.getParent();
-        return (theParent instanceof ViewGroup) && isViewDescendantOf((View) theParent, parent);
     }
 }

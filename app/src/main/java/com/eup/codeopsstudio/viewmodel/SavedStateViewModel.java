@@ -50,22 +50,6 @@ public class SavedStateViewModel extends ViewModel {
         mState = savedStateHandle;
     }
 
-    public LiveData<List<File>> getOpenedFiles() {
-        return mState.getLiveData(OPENED_FILES_KEY);
-    }
-
-    public void saveOpenedFiles(List<File> openedFiles) {
-        mState.set(OPENED_FILES_KEY, openedFiles);
-    }
-
-    public LiveData<String> getTreeViewFragmentTreeState() {
-        return mState.getLiveData(TREE_VIEW_FRAGMENT_STATE_KEY);
-    }
-
-    public void saveTreeViewFragmentTreeState(String treeState) {
-        mState.set(TREE_VIEW_FRAGMENT_STATE_KEY, treeState);
-    }
-
     /**
      * @see BaseFragment for action sheet
      */
@@ -73,7 +57,23 @@ public class SavedStateViewModel extends ViewModel {
         return mState.getLiveData(ACTION_SHEET_STATE_KEY);
     }
 
+    public LiveData<List<File>> getOpenedFiles() {
+        return mState.getLiveData(OPENED_FILES_KEY);
+    }
+
+    public LiveData<String> getTreeViewFragmentTreeState() {
+        return mState.getLiveData(TREE_VIEW_FRAGMENT_STATE_KEY);
+    }
+
     public void saveActionSheetState(int treeState) {
         mState.set(ACTION_SHEET_STATE_KEY, treeState);
+    }
+
+    public void saveOpenedFiles(List<File> openedFiles) {
+        mState.set(OPENED_FILES_KEY, openedFiles);
+    }
+
+    public void saveTreeViewFragmentTreeState(String treeState) {
+        mState.set(TREE_VIEW_FRAGMENT_STATE_KEY, treeState);
     }
 }

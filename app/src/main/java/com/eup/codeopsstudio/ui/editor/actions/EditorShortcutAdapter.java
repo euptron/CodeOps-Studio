@@ -32,10 +32,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.eup.codeopsstudio.common.Constants;
-import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.LayoutEditorShortcutItemBinding;
+import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.BaseUtil;
 
 import java.util.ArrayList;
@@ -68,12 +68,9 @@ public class EditorShortcutAdapter extends RecyclerView.Adapter<EditorShortcutAd
                 String name = editorAction.getName();
                 if (value != null) {
                     if (editor.isEditable()) {
-                        if (value.equals(Constants.TAB) && editor
-                            .getSnippetController()
-                            .isInSnippet()) {
-                            editor
-                                .getSnippetController()
-                                .shiftToNextTabStop();
+                        if (value.equals(Constants.TAB) && editor.getSnippetController()
+                                                                 .isInSnippet()) {
+                            editor.getSnippetController().shiftToNextTabStop();
                         } else {
                             editor.commitText(value);
                         }
@@ -111,6 +108,10 @@ public class EditorShortcutAdapter extends RecyclerView.Adapter<EditorShortcutAd
         return actionList.size();
     }
 
+    public void bindEditor(@NonNull ContextualCodeEditor editor) {
+        this.editor = editor;
+    }
+
     /**
      * Sets the data to be displayed by the mAdapter.
      *
@@ -121,10 +122,6 @@ public class EditorShortcutAdapter extends RecyclerView.Adapter<EditorShortcutAd
         actionList.clear();
         actionList.addAll(actions);
         notifyDataSetChanged();
-    }
-
-    public void bindEditor(@NonNull ContextualCodeEditor editor) {
-        this.editor = editor;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

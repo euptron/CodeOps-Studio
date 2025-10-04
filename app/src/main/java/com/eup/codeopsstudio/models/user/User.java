@@ -56,6 +56,51 @@ public class User {
         this.preferredDateFormat = preferredDateFormat;
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return "User[uniqueID=" + uniqueID + ", firstLaunchTimeID=" + firstLaunchTimeID + ", "
+            + "deviceInfo=" + deviceInfo + ", preferredLocale=" + preferredLocale + ", "
+            + "preferredDateFormat=" + preferredDateFormat + "]";
+    }
+
+    public DeviceInfo getDeviceInfo() {
+        return this.deviceInfo;
+    }
+
+    public String getFirstLaunchTimeID() {
+        return this.firstLaunchTimeID;
+    }
+
+    public String getPreferredDateFormat() {
+        return this.preferredDateFormat;
+    }
+
+    /**
+     * TODO: implement multi-language functionality.
+     * <p> This locale should be initialized with the selected human language
+     *
+     * @return the preferred locale of the e.g new Locale("en", "NG")
+     */
+    public Locale getPreferredLocale() {
+        return this.preferredLocale;
+    }
+
+    public String getUniqueID() {
+        return this.uniqueID;
+    }
+
+    @NonNull
+    public static User newInstance(@NonNull String dateFormat) {
+        var context = IdeApplication.getGlobalContext();
+        var info = new DeviceInfo(context);
+        var uniqueID = Wizard.getUserID(context);
+        var userPreferredLocale = new Locale(info.getLocaleLanguage(), info.getLocaleLanguage());
+
+        return new User(uniqueID, Wizard.getInstallUserID(context), info, userPreferredLocale,
+            dateFormat);
+    }
+
     public static void registerSession() {
         var analytics = IdeApplication.getAnalytics();
         var context = IdeApplication.getGlobalContext();
@@ -93,50 +138,5 @@ public class User {
         var userPreferredLocale = new Locale(info.getLocaleLanguage(), info.getLocaleLanguage());
         return new User(uniqueID, Wizard.getInstallUserID(context), info, userPreferredLocale,
             Constants.DEFAULT_DATE_FORMAT);
-    }
-
-    @NonNull
-    public static User newInstance(@NonNull String dateFormat) {
-        var context = IdeApplication.getGlobalContext();
-        var info = new DeviceInfo(context);
-        var uniqueID = Wizard.getUserID(context);
-        var userPreferredLocale = new Locale(info.getLocaleLanguage(), info.getLocaleLanguage());
-
-        return new User(uniqueID, Wizard.getInstallUserID(context), info, userPreferredLocale,
-            dateFormat);
-    }
-
-    public String getUniqueID() {
-        return this.uniqueID;
-    }
-
-    public String getFirstLaunchTimeID() {
-        return this.firstLaunchTimeID;
-    }
-
-    public DeviceInfo getDeviceInfo() {
-        return this.deviceInfo;
-    }
-
-    /**
-     * TODO: implement multi-language functionality.
-     * <p> This locale should be initialized with the selected human language
-     *
-     * @return the preferred locale of the e.g new Locale("en", "NG")
-     */
-    public Locale getPreferredLocale() {
-        return this.preferredLocale;
-    }
-
-    public String getPreferredDateFormat() {
-        return this.preferredDateFormat;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return "User[uniqueID=" + uniqueID + ", firstLaunchTimeID=" + firstLaunchTimeID + ", "
-            + "deviceInfo=" + deviceInfo + ", preferredLocale=" + preferredLocale + ", "
-            + "preferredDateFormat=" + preferredDateFormat + "]";
     }
 }

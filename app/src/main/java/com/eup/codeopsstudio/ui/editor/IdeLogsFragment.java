@@ -54,10 +54,6 @@ public class IdeLogsFragment extends Fragment {
     private MainViewModel model;
     private RecyclerViewOnScrollListener listener;
 
-    public static IdeLogsFragment newInstance() {
-        return new IdeLogsFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +63,7 @@ public class IdeLogsFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-                             Bundle savedInstanceState) {
+        Bundle savedInstanceState) {
         binding = FragmentIdeLogsBinding.inflate(inflater, viewgroup, false);
         binding.ideLogsViewFlipper.setDisplayedChild(1);
         binding.clearIdeLogsFab.setVisibility(View.GONE);
@@ -95,9 +91,7 @@ public class IdeLogsFragment extends Fragment {
         };
         binding.ideLogRecyclerview.addOnScrollListener(listener);
 
-        model
-            .getIDELogs()
-            .observe(getViewLifecycleOwner(), this::updateLayout);
+        model.getIDELogs().observe(getViewLifecycleOwner(), this::updateLayout);
         binding.clearIdeLogsFab.setOnClickListener(v -> clearLogs());
     }
 
@@ -131,5 +125,9 @@ public class IdeLogsFragment extends Fragment {
     private void clearLogs() {
         logger.clear();
         logAdapter.notifyDataSetChanged();
+    }
+
+    public static IdeLogsFragment newInstance() {
+        return new IdeLogsFragment();
     }
 }

@@ -44,12 +44,12 @@ public class FileViewModel extends ViewModel {
     private final MutableLiveData<Pair<Integer, String>> fileWatcherEvents =
         new MutableLiveData<>();
 
-    public MutableLiveData<File> getPickedFolder() {
-        return this.pickedFolder;
+    public MutableLiveData<Pair<Integer, String>> getFileWatcherEvents() {
+        return this.fileWatcherEvents;
     }
 
-    public void setPickedFolder(File pickedFolder) {
-        this.pickedFolder.setValue(pickedFolder);
+    public MutableLiveData<Pair<Exception, String>> getMonitorMessage() {
+        return this.monitorMessage;
     }
 
     public MutableLiveData<File> getPickedFile() {
@@ -60,20 +60,16 @@ public class FileViewModel extends ViewModel {
         this.pickedFile.setValue(pickedFile);
     }
 
-    public MutableLiveData<Pair<Exception, String>> getMonitorMessage() {
-        return this.monitorMessage;
+    public MutableLiveData<File> getPickedFolder() {
+        return this.pickedFolder;
     }
 
-    public void setMonitorMessage(Pair<Exception, String> monitorMessage) {
-        this.monitorMessage.setValue(monitorMessage);
-    }
-
-    public void setMonitorMessage(Exception e, String message) {
-        setMonitorMessage(Pair.create(e, message));
+    public void setPickedFolder(File pickedFolder) {
+        this.pickedFolder.setValue(pickedFolder);
     }
 
     public void monitorMessages(LifecycleOwner lifecycleOwner,
-                                Observer<Pair<Exception, String>> observer) {
+        Observer<Pair<Exception, String>> observer) {
         this.monitorMessage.observe(lifecycleOwner, observer);
     }
 
@@ -89,7 +85,11 @@ public class FileViewModel extends ViewModel {
         this.fileWatcherEvents.postValue(Pair.create(event, path));
     }
 
-    public MutableLiveData<Pair<Integer, String>> getFileWatcherEvents() {
-        return this.fileWatcherEvents;
+    public void setMonitorMessage(Exception e, String message) {
+        setMonitorMessage(Pair.create(e, message));
+    }
+
+    public void setMonitorMessage(Pair<Exception, String> monitorMessage) {
+        this.monitorMessage.setValue(monitorMessage);
     }
 }

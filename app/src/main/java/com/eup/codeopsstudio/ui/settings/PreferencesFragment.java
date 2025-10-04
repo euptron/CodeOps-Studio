@@ -38,10 +38,6 @@ public class PreferencesFragment extends PreferenceFragmentCompat {
 
     public static final String TAG = PreferencesFragment.class.getSimpleName();
 
-    public static PreferencesFragment newInstance() {
-        return new PreferencesFragment();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,5 +48,9 @@ public class PreferencesFragment extends PreferenceFragmentCompat {
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
+    }
+
+    public static PreferencesFragment newInstance() {
+        return new PreferencesFragment();
     }
 }

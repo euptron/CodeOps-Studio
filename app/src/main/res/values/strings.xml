@@ -562,4 +562,5 @@
     <string name="load">Load</string>
     <string name="previous_occurrence">Previous Occurrence</string>
     <string name="next_occurrence">Next Occurrence</string>
+    <string name="close_app_confirmation">Are you sure you want to close %s</string>
 </resources>

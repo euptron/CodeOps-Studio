@@ -62,16 +62,34 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
     }
 
     @Override
+    public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller,
+        @NonNull Preference pref) {
+        final Bundle args = pref.getExtras();
+        final Fragment fragment;
+        if (pref.getFragment() != null) {
+            fragment = requireActivity().getSupportFragmentManager().getFragmentFactory()
+                                        .instantiate(requireActivity().getClassLoader(),
+                                            pref.getFragment());
+            fragment.setArguments(args);
+            final String FRAGMENT_TAG = fragment.getClass().getSimpleName();
+            requireActivity().getSupportFragmentManager().beginTransaction()
+                             .replace(getContainerId(), fragment, FRAGMENT_TAG).addToBackStack(null)
+                             .commit();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
         logger.attach(requireActivity());
 
         if (cycleOwner != null) {
-            requireActivity()
-                .getOnBackPressedDispatcher()
-                .addCallback(cycleOwner, new OnBackPressedCallback(true) {
-                    @Override
-                    public void handleOnBackPressed() {
+            requireActivity().getOnBackPressedDispatcher()
+                             .addCallback(cycleOwner, new OnBackPressedCallback(true) {
+                                 @Override
+                                 public void handleOnBackPressed() {
                         /*
                           Fixes fragment back stack handling (variant: OXIDE: - v0.0.1: Primary
                           fragment
@@ -79,18 +97,16 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
                           fragment during
                           back stack removal.
                          */
-                        int stackCount = requireActivity()
-                            .getSupportFragmentManager()
-                            .getBackStackEntryCount();
-                        if (stackCount > 0 && !isPrimaryNavigation()) {
-                            requireActivity()
-                                .getSupportFragmentManager()
-                                .popBackStack();
-                        } else {
-                            BaseUtil.toastShort(R.string.alrt_cannot_go_back);
-                        }
-                    }
-                });
+                                     int stackCount = requireActivity().getSupportFragmentManager()
+                                                                       .getBackStackEntryCount();
+                                     if (stackCount > 0 && !isPrimaryNavigation()) {
+                                         requireActivity().getSupportFragmentManager()
+                                                          .popBackStack();
+                                     } else {
+                                         BaseUtil.toastShort(R.string.alrt_cannot_go_back);
+                                     }
+                                 }
+                             });
         } else {
             logger.e(TAG, "LifecycleOwner not attached. Back press handling disabled.");
         }
@@ -98,9 +114,8 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
 
     private boolean isPrimaryNavigation() {
         Fragment currentFragment = getFragment();
-        Fragment primaryFragment = requireActivity()
-            .getSupportFragmentManager()
-            .getPrimaryNavigationFragment();
+        Fragment primaryFragment = requireActivity().getSupportFragmentManager()
+                                                    .getPrimaryNavigationFragment();
 
         return Objects.equals(currentFragment, primaryFragment);
     }
@@ -109,31 +124,6 @@ public class SettingsPane extends FragmentPane implements PreferenceFragmentComp
     public void onDestroyView() {
         super.onDestroyView();
         cycleOwner = null;
-    }
-
-    @Override
-    public boolean onPreferenceStartFragment(@NonNull PreferenceFragmentCompat caller,
-        @NonNull Preference pref) {
-        final Bundle args = pref.getExtras();
-        final Fragment fragment;
-        if (pref.getFragment() != null) {
-            fragment = requireActivity()
-                .getSupportFragmentManager()
-                .getFragmentFactory()
-                .instantiate(requireActivity().getClassLoader(), pref.getFragment());
-            fragment.setArguments(args);
-            final String FRAGMENT_TAG = fragment
-                .getClass()
-                .getSimpleName();
-            requireActivity()
-                .getSupportFragmentManager()
-                .beginTransaction()
-                .replace(getContainerId(), fragment, FRAGMENT_TAG)
-                .addToBackStack(null)
-                .commit();
-            return true;
-        }
-        return false;
     }
 
     /**

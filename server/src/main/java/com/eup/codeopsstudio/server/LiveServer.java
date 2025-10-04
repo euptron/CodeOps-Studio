@@ -78,9 +78,130 @@ public class LiveServer {
         this.context = context.getApplicationContext();
     }
 
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
     @Nullable
     public static String getIPv4Address() {
         return getIpAddress(true);
+    }
+
+    @Nullable
+    public static String getIPv6Address() {
+        return getIpAddress(false);
+    }
+
+    public File getSourceFile() {
+        return sourceFile;
+    }
+
+    public String getUrl() {
+        return getAddress() + (fileName == null || fileName.isEmpty() ? "" : fileName);
+    }
+
+    public String getAddress() {
+        return "http://" + Objects.requireNonNullElse(socketHostAddress, Server.LOCAL_HOST) + ":"
+            + port + "/";
+    }
+
+    public boolean isAlive() {
+        return server != null && server.isAlive();
+    }
+
+    /**
+     * Starts a live server with dynamic host address.
+     * <p>
+     * Dynamic host address implies either local-host, Wifi or Device
+     * </p>
+     * <p> <strong>This is a thread blocking call</strong>
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    public void launch() throws IOException {
+        String deviceIP = getWifiOrDeviceIP();
+        ILog.info(TAG, "Device IP: " + deviceIP);
+
+        byte[] address = InetAddress.getByName(deviceIP).getAddress();
+        InetAddress bindAddress = InetAddress.getByAddress(address);
+
+        try (ServerSocket socket = new ServerSocket(port, 0, bindAddress)) {
+            port              = socket.getLocalPort();
+            socketHostAddress = socket.getInetAddress().getHostAddress();
+        }
+
+        server = new Server(socketHostAddress, port);
+        server.start();
+    }
+
+    public void launchWithLocalHost() {
+        try {
+            server = new Server();
+            server.start();
+            port = server.getListeningPort();
+        } catch (IOException e) {
+            ILog.error(TAG, "Error occurred when starting server", e);
+        }
+    }
+
+    public void setDirectoryMode(@NonNull File directory) {
+        Objects.requireNonNull(directory, "Source directory must not be null");
+        if (!directory.exists() || !directory.isDirectory()) {
+            throw new IllegalArgumentException("Provided directory is invalid");
+        }
+        this.singleFileMode = false;
+        this.sourceFile     = null;
+        this.sourceDir      = directory;
+        this.fileName       = "";  // no fileName for directory root
+    }
+
+    public void setSingleFileMode(@NonNull File file) {
+        Objects.requireNonNull(file, "Source file must not be null");
+        if (!file.exists() || !file.isFile()) {
+            throw new IllegalArgumentException("Provided file is invalid");
+        }
+        File parent = file.getParentFile();
+        if (parent == null) {
+            throw new IllegalArgumentException(
+                "Parent folder could not be determined for: " + file);
+        }
+        this.singleFileMode = true;
+        this.sourceFile     = file;
+        this.sourceDir      = parent;
+        this.fileName       = file.getName();
+    }
+
+    public void stop() {
+        if (server != null) {
+            server.stop();
+        }
+    }
+
+    /**
+     * @return the device IP if connected to the web or default to localhost
+     */
+    private String getDeviceIpAddress() {
+        var connectivityManager =
+            (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        // Check for network connectivity
+        Network network = connectivityManager.getActiveNetwork();
+        if (network != null) {
+            LinkProperties linkProperties = connectivityManager.getLinkProperties(network);
+            if (linkProperties != null) {
+                for (LinkAddress linkAddress : linkProperties.getLinkAddresses()) {
+                    InetAddress address = linkAddress.getAddress();
+                    if (!address.isLoopbackAddress()) {
+                        return address.getHostAddress();
+                    }
+                }
+            }
+        }
+        return Server.LOCAL_HOST;
     }
 
     @Nullable
@@ -107,6 +228,29 @@ public class LiveServer {
         return null;
     }
 
+    /**
+     * @return the Wifi IP address or null if WiFi interface is not found or IP address not assigned
+     */
+    @Nullable
+    private String getWifiIpAddress() {
+        String ipV4 = getIPv4Address();
+        if (ipV4 != null) return ipV4;
+
+        String ipV6 = getIPv6Address();
+        if (ipV6 != null) return ipV6;
+
+        ILog.warning(TAG, "Failed to get IP V4/V6 Wifi address");
+        return null;
+    }
+
+    private String getWifiOrDeviceIP() {
+        String ipAddress = getWifiIpAddress();
+        if (ipAddress == null) {
+            ipAddress = getDeviceIpAddress();
+        }
+        return ipAddress;
+    }
+
     @Nullable
     private static String resolvePreferredIp(boolean preferIPv4, InetAddress address) {
         if (preferIPv4 && address instanceof Inet4Address) {
@@ -123,154 +267,6 @@ public class LiveServer {
         Objects.requireNonNull(ip, "IP address must not be null");
         int zoneIndex = ip.indexOf('%');
         return (zoneIndex != -1) ? ip.substring(0, zoneIndex) : ip;
-    }
-
-    @Nullable
-    public static String getIPv6Address() {
-        return getIpAddress(false);
-    }
-
-    public boolean isAlive() {
-        return server != null && server.isAlive();
-    }
-
-    /**
-     * Starts a live server with dynamic host address.
-     * <p>
-     * Dynamic host address implies either local-host, Wifi or Device
-     * </p>
-     * <p> <strong>This is a thread blocking call</strong>
-     *
-     * @throws IOException if an I/O error occurs
-     */
-    public void launch() throws IOException {
-        String deviceIP = getWifiOrDeviceIP();
-        ILog.info(TAG, "Device IP: " + deviceIP);
-
-        byte[] address = InetAddress
-            .getByName(deviceIP)
-            .getAddress();
-        InetAddress bindAddress = InetAddress.getByAddress(address);
-
-        try (ServerSocket socket = new ServerSocket(port, 0, bindAddress)) {
-            port              = socket.getLocalPort();
-            socketHostAddress = socket
-                .getInetAddress()
-                .getHostAddress();
-        }
-
-        server = new Server(socketHostAddress, port);
-        server.start();
-    }
-
-    private String getWifiOrDeviceIP() {
-        String ipAddress = getWifiIpAddress();
-        if (ipAddress == null) {
-            ipAddress = getDeviceIpAddress();
-        }
-        return ipAddress;
-    }
-
-    /**
-     * @return the device IP if connected to the web or default to localhost
-     */
-    private String getDeviceIpAddress() {
-        var connectivityManager =
-            (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        // Check for network connectivity
-        Network network = connectivityManager.getActiveNetwork();
-        if (network != null) {
-            LinkProperties linkProperties = connectivityManager.getLinkProperties(network);
-            if (linkProperties != null) {
-                for (LinkAddress linkAddress : linkProperties.getLinkAddresses()) {
-                    InetAddress address = linkAddress.getAddress();
-                    if (!address.isLoopbackAddress()) {
-                        return address.getHostAddress();
-                    }
-                }
-            }
-        }
-        return Server.LOCAL_HOST;
-    }
-
-    /**
-     * @return the Wifi IP address or null if WiFi interface is not found or IP address not assigned
-     */
-    @Nullable
-    private String getWifiIpAddress() {
-        String ipV4 = getIPv4Address();
-        if (ipV4 != null) return ipV4;
-
-        String ipV6 = getIPv6Address();
-        if (ipV6 != null) return ipV6;
-
-        ILog.warning(TAG, "Failed to get IP V4/V6 Wifi address");
-        return null;
-    }
-
-    public void launchWithLocalHost() {
-        try {
-            server = new Server();
-            server.start();
-            port = server.getListeningPort();
-        } catch (IOException e) {
-            ILog.error(TAG, "Error occurred when starting server", e);
-        }
-    }
-
-    public void stop() {
-        if (server != null) {
-            server.stop();
-        }
-    }
-
-    public String getUrl() {
-        return getAddress() + (fileName == null || fileName.isEmpty() ? "" : fileName);
-    }
-
-    public String getAddress() {
-        return "http://" + Objects.requireNonNullElse(socketHostAddress, Server.LOCAL_HOST) + ":"
-            + port + "/";
-    }
-
-    public File getSourceFile() {
-        return sourceFile;
-    }
-
-    public String getDeviceName() {
-        return deviceName;
-    }
-
-    public void setDeviceName(String deviceName) {
-        this.deviceName = deviceName;
-    }
-
-    public void setSingleFileMode(@NonNull File file) {
-        Objects.requireNonNull(file, "Source file must not be null");
-        if (!file.exists() || !file.isFile()) {
-            throw new IllegalArgumentException("Provided file is invalid");
-        }
-        File parent = file.getParentFile();
-        if (parent == null) {
-            throw new IllegalArgumentException(
-                "Parent folder could not be determined for: " + file);
-        }
-        this.singleFileMode = true;
-        this.sourceFile     = file;
-        this.sourceDir      = parent;
-        this.fileName       = file.getName();
-    }
-
-    public void setDirectoryMode(@NonNull File directory) {
-        Objects.requireNonNull(directory, "Source directory must not be null");
-        if (!directory.exists() || !directory.isDirectory()) {
-            throw new IllegalArgumentException("Provided directory is invalid");
-        }
-        this.singleFileMode = false;
-        this.sourceFile     = null;
-        this.sourceDir      = directory;
-        this.fileName       = "";  // no fileName for directory root
     }
 
     class Server extends NanoHTTPD {
@@ -305,9 +301,8 @@ public class LiveServer {
             File requestedFile = new File(sourceDir, uri);
 
             try {
-                if (sourceDir != null && !requestedFile
-                    .getCanonicalPath()
-                    .startsWith(sourceDir.getCanonicalPath())) {
+                if (sourceDir != null && !requestedFile.getCanonicalPath()
+                                                       .startsWith(sourceDir.getCanonicalPath())) {
                     ILog.warning(TAG, "Directory traversal attempt detected for URI: " + uri);
                     return newFixedLengthResponse(Response.Status.FORBIDDEN, MIME_PLAINTEXT,
                         "Forbidden: Access Denied");
@@ -343,10 +338,8 @@ public class LiveServer {
             htmlBuilder.append("    <meta charset=\"UTF-8\">\n");
             htmlBuilder.append("    <meta name=\"viewport\" content=\"width=device-width, "
                 + "initial-scale=1.0\">\n");
-            htmlBuilder
-                .append("    <title>")
-                .append(deviceName)
-                .append(" - File Listing</title>\n");
+            htmlBuilder.append("    <title>").append(deviceName)
+                       .append(" - File Listing</title>\n");
             htmlBuilder.append("    <style>\n");
             htmlBuilder.append("        body { font-family: sans-serif; margin: 20px; "
                 + "background-color: #f4f4f4; color: #333; }\n");
@@ -359,12 +352,8 @@ public class LiveServer {
             htmlBuilder.append("    </style>\n");
             htmlBuilder.append("</head>\n");
             htmlBuilder.append("<body>\n");
-            htmlBuilder
-                .append("    <h1>")
-                .append(deviceName)
-                .append(" - Contents of ")
-                .append(directory.getName())
-                .append("</h1>\n");
+            htmlBuilder.append("    <h1>").append(deviceName).append(" - Contents of ")
+                       .append(directory.getName()).append("</h1>\n");
             htmlBuilder.append("    <ul>\n");
 
             File[] filesList = directory.listFiles();
@@ -372,21 +361,14 @@ public class LiveServer {
                 for (File file : filesList) {
                     // Ensure the relative path is correctly formed for URL, especially for
                     // subdirectories
-                    String relativePath = file
-                        .getAbsolutePath()
-                        .substring(directory
-                            .getAbsolutePath()
-                            .length());
+                    String relativePath = file.getAbsolutePath()
+                                              .substring(directory.getAbsolutePath().length());
                     if (!relativePath.startsWith("/")) {
                         relativePath = "/" + relativePath;
                     }
-                    htmlBuilder
-                        .append("        <li><a href=\"")
-                        .append(relativePath)
-                        .append("\">")
-                        .append(file.getName())
-                        .append(file.isDirectory() ? "/" : "")
-                        .append("</a></li>\n");
+                    htmlBuilder.append("        <li><a href=\"").append(relativePath).append("\">")
+                               .append(file.getName()).append(file.isDirectory() ? "/" : "")
+                               .append("</a></li>\n");
                 }
             }
 

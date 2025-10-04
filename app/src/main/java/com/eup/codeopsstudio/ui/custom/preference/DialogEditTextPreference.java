@@ -81,36 +81,29 @@ public class DialogEditTextPreference extends Preference {
             .setPositiveButton(android.R.string.ok, (d, w) -> {
                 int cursorBlinkPeriod = 0;
                 if (binding.tilName.getEditText() != null) {
-                    cursorBlinkPeriod = Integer.parseInt(binding.tilName
-                        .getEditText()
-                        .getEditableText()
-                        .toString());
+                    cursorBlinkPeriod = Integer.parseInt(binding.tilName.getEditText()
+                                                                        .getEditableText()
+                                                                        .toString());
                 }
                 persistInt(cursorBlinkPeriod);
                 notifyChanged();
-            })
-            .setNegativeButton(android.R.string.cancel, (d, w) -> d.dismiss())
+            }).setNegativeButton(android.R.string.cancel, (d, w) -> d.dismiss())
             .setNeutralButton(R.string.reset, (d, w) -> resetCursorBlinkPeriod())
-            .setView(binding.getRoot())
-            .setCancelable(false)
-            .show();
+            .setView(binding.getRoot()).setCancelable(false).show();
         applyTo(binding.tilName.getEditText(),
             editText -> editText.setText(String.valueOf(getPersistedInt(500))));
     }
 
     private void resetCursorBlinkPeriod() {
         var pref = PreferencesUtils.getDefaultPreferences();
-        pref
-            .edit()
-            .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, 500)
+        pref.edit().putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD, 500)
             .apply();
     }
 
     @Override
     protected boolean persistInt(int cursorBlinkPeriod) {
         var pref = PreferencesUtils.getDefaultPreferences();
-        pref
-            .edit()
+        pref.edit()
             .putInt(Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CURSOR_BLINK_PERIOD,
                 cursorBlinkPeriod)
             .apply();

@@ -61,21 +61,15 @@ public class ThrowableUtils {
                 removeCommonFrames(trace, nextTrace);
             }
             if (i == size - 1) {
-                frames.add(throwableList
-                    .get(i)
-                    .toString());
+                frames.add(throwableList.get(i).toString());
             } else {
-                frames.add(" Caused by: " + throwableList
-                    .get(i)
-                    .toString());
+                frames.add(" Caused by: " + throwableList.get(i).toString());
             }
             frames.addAll(trace);
         }
         StringBuilder sb = new StringBuilder();
         for (final String element : frames) {
-            sb
-                .append(element)
-                .append(LINE_SEP);
+            sb.append(element).append(LINE_SEP);
         }
         return sb.toString();
     }
@@ -92,10 +86,7 @@ public class ThrowableUtils {
             final String token = frames.nextToken();
             // Determine if the line starts with <whitespace>at
             final int at = token.indexOf("at");
-            if (at != -1 && token
-                .substring(0, at)
-                .trim()
-                .isEmpty()) {
+            if (at != -1 && token.substring(0, at).trim().isEmpty()) {
                 traceStarted = true;
                 list.add(token);
             } else if (traceStarted) {
@@ -106,7 +97,7 @@ public class ThrowableUtils {
     }
 
     private static void removeCommonFrames(final List<String> causeFrames,
-                                           final List<String> wrapperFrames) {
+        final List<String> wrapperFrames) {
         int causeFrameIndex = causeFrames.size() - 1;
         int wrapperFrameIndex = wrapperFrames.size() - 1;
         while (causeFrameIndex >= 0 && wrapperFrameIndex >= 0) {

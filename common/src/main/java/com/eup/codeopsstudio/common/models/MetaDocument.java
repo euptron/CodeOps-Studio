@@ -275,73 +275,38 @@ public class MetaDocument {
         return mDocumentFile != null;
     }
 
-    public String getDocumentId(Context context) {
-        if (DocumentsContract.isDocumentUri(context, uri)) {
-            return DocumentsContract.getDocumentId(uri);
-        } else {
-            return DocumentsContract.getTreeDocumentId(uri);
-        }
+    @Override
+    public int hashCode() {
+        if (isFileBased()) {
+            return Objects.hash(mFile);
+        } else if (isDocumentBased()) return Objects.hash(mDocumentFile.getUri());
+
+        return 0;
     }
 
-    @Nullable
-    public String getPath() {
-        if (mFile != null) {
-            return mFile.getAbsolutePath();
-        } else if (mDocumentFile != null) return buildVirtualPath();
-        return null;
-    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof MetaDocument other)) return false;
 
-    private String buildVirtualPath() {
-        if (mContext == null || mDocumentFile == null) return null;
-
-        String path = null;
-        FileUriMediator mediator = null;
-        Uri uri = mDocumentFile.getUri();
-
-        if (DocumentsContract.isDocumentUri(mContext, uri)) {
-            mediator = FileUriMediator.resolveDocument(uri, mContext);
-        } else if (DocumentsContract.isTreeUri(uri)) {
-            mediator = FileUriMediator.resolveTree(uri, mContext);
+        if (isFileBased() && other.isFileBased()) {
+            return Objects.equals(mFile, other.mFile);
+        } else if (isDocumentBased() && other.isDocumentBased()) {
+            return Objects.equals(mDocumentFile.getUri(), other.mDocumentFile.getUri());
         }
 
-        if (mediator != null) {
-            path = mediator.getRelativePath();
-        }
-
-        return (path != null || !path.isEmpty()) ? path : uri.getPath();
+        return false;
     }
 
-    @Nullable
-    public String getAuthority() {
-        if (mDocumentFile != null) {
-            return mDocumentFile
-                .getUri()
-                .getAuthority();
+    @NonNull
+    @Override
+    public String toString() {
+        if (isFileBased()) {
+            return "FileMetaDocument{path='" + mFile.getAbsolutePath() + "'}";
+        } else if (isDocumentBased()) {
+            return "DocumentMetaDocument{uri='" + mDocumentFile.getUri() + "'}";
         }
-        return null;
-    }
-
-    public DocumentFile getFile() {
-        return mDocumentFile;
-    }
-
-    public List<MetaDocument> listFiles() {
-        List<MetaDocument> files = new ArrayList<>();
-
-        if (mFile != null && mFile.isDirectory()) {
-            File[] fileList = mFile.listFiles();
-            if (fileList != null) {
-                for (File f : fileList) {
-                    files.add(new MetaDocument(f));
-                }
-            }
-        } else if (mDocumentFile != null && mDocumentFile.isDirectory()) {
-            for (DocumentFile docFile : mDocumentFile.listFiles()) {
-                files.add(new MetaDocument(docFile, mContext));
-            }
-        }
-
-        return files;
+        return "InvalidMetaDocument";
     }
 
     /**
@@ -396,6 +361,73 @@ public class MetaDocument {
         return false;
     }
 
+    @Nullable
+    public String getAuthority() {
+        if (mDocumentFile != null) {
+            return mDocumentFile.getUri().getAuthority();
+        }
+        return null;
+    }
+
+    public String getDocumentId(Context context) {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+            return DocumentsContract.getDocumentId(uri);
+        } else {
+            return DocumentsContract.getTreeDocumentId(uri);
+        }
+    }
+
+    public DocumentFile getFile() {
+        return mDocumentFile;
+    }
+
+    @Nullable
+    public String getPath() {
+        if (mFile != null) {
+            return mFile.getAbsolutePath();
+        } else if (mDocumentFile != null) return buildVirtualPath();
+        return null;
+    }
+
+    private String buildVirtualPath() {
+        if (mContext == null || mDocumentFile == null) return null;
+
+        String path = null;
+        FileUriMediator mediator = null;
+        Uri uri = mDocumentFile.getUri();
+
+        if (DocumentsContract.isDocumentUri(mContext, uri)) {
+            mediator = FileUriMediator.resolveDocument(uri, mContext);
+        } else if (DocumentsContract.isTreeUri(uri)) {
+            mediator = FileUriMediator.resolveTree(uri, mContext);
+        }
+
+        if (mediator != null) {
+            path = mediator.getRelativePath();
+        }
+
+        return (path != null || !path.isEmpty()) ? path : uri.getPath();
+    }
+
+    public List<MetaDocument> listFiles() {
+        List<MetaDocument> files = new ArrayList<>();
+
+        if (mFile != null && mFile.isDirectory()) {
+            File[] fileList = mFile.listFiles();
+            if (fileList != null) {
+                for (File f : fileList) {
+                    files.add(new MetaDocument(f));
+                }
+            }
+        } else if (mDocumentFile != null && mDocumentFile.isDirectory()) {
+            for (DocumentFile docFile : mDocumentFile.listFiles()) {
+                files.add(new MetaDocument(docFile, mContext));
+            }
+        }
+
+        return files;
+    }
+
     /**
      * Renames the file/directory to {@code newName}.
      *
@@ -429,7 +461,8 @@ public class MetaDocument {
      * resolve filesystem
      * conflicts ("eup" → "eup (1)" → Etido Peter). Providers might create a new document with
      * updated URI and
-     * MIME type; callers must recheck {@link #getUri()} and {@link DocumentFile#getType()} post-rename.
+     * MIME type; callers must recheck {@link #getUri()} and {@link DocumentFile#getType()} post
+     * -rename.
      *
      * <p>After renaming directories, reload document lists as {@link DocumentFile#listFiles()} may
      * return stale entries.
@@ -479,6 +512,15 @@ public class MetaDocument {
     }
 
     @Nullable
+    public DocumentFile toDocumentFile() {
+        if (mDocumentFile != null) return mDocumentFile;
+        if (mFile != null) {
+            return DocumentFile.fromFile(mFile);
+        }
+        return null;
+    }
+
+    @Nullable
     public File toFile() {
         if (mFile != null) return mFile;
         try {
@@ -499,49 +541,6 @@ public class MetaDocument {
             }
         }
         return null;
-    }
-
-    @Nullable
-    public DocumentFile toDocumentFile() {
-        if (mDocumentFile != null) return mDocumentFile;
-        if (mFile != null) {
-            return DocumentFile.fromFile(mFile);
-        }
-        return null;
-    }
-
-    @Override
-    public int hashCode() {
-        if (isFileBased()) {
-            return Objects.hash(mFile);
-        } else if (isDocumentBased()) return Objects.hash(mDocumentFile.getUri());
-
-        return 0;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || !(o instanceof MetaDocument other)) return false;
-
-        if (isFileBased() && other.isFileBased()) {
-            return Objects.equals(mFile, other.mFile);
-        } else if (isDocumentBased() && other.isDocumentBased()) {
-            return Objects.equals(mDocumentFile.getUri(), other.mDocumentFile.getUri());
-        }
-
-        return false;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        if (isFileBased()) {
-            return "FileMetaDocument{path='" + mFile.getAbsolutePath() + "'}";
-        } else if (isDocumentBased()) {
-            return "DocumentMetaDocument{uri='" + mDocumentFile.getUri() + "'}";
-        }
-        return "InvalidMetaDocument";
     }
 
     public enum MimeType {

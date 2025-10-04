@@ -121,9 +121,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     private void initialize(Context context) {
         ContextualEditorAutoCompletion editorAutoCompletion;
         this.context = context;
-        PreferencesUtils
-            .getDefaultPreferences()
-            .registerOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
         setInputType(defaultInputType(true, true, false, true));
         editorAutoCompletion = new ContextualEditorAutoCompletion(this);
         editorAutoCompletion.setAdapter(new ContextualEditorCompletionAdapter());
@@ -158,9 +156,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     }
 
     private void updateEditorTypeFace() {
-        var typeface = getContext()
-            .getResources()
-            .getFont(PreferencesUtils.getCurrentEditorFont());
+        var typeface = getContext().getResources().getFont(PreferencesUtils.getCurrentEditorFont());
         setTypefaceText(typeface);
         setTypefaceLineNumber(typeface);
     }
@@ -404,9 +400,8 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     public synchronized void release() {
         if (!isReleased()) {
             super.release();
-            PreferencesUtils
-                .getDefaultPreferences()
-                .unregisterOnSharedPreferenceChangeListener(this);
+            PreferencesUtils.getDefaultPreferences()
+                            .unregisterOnSharedPreferenceChangeListener(this);
         }
     }
 
@@ -431,12 +426,8 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
                         post(() -> {
                             int newRight = left + output.length();
-                            var pos1 = getText()
-                                .getIndexer()
-                                .getCharPosition(left);
-                            var pos2 = getText()
-                                .getIndexer()
-                                .getCharPosition(newRight);
+                            var pos1 = getText().getIndexer().getCharPosition(left);
+                            var pos2 = getText().getIndexer().getCharPosition(newRight);
                             setSelectionRegion(pos1.line, pos1.column, pos2.line, pos2.column);
                         });
                     } else {
@@ -474,12 +465,8 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
                         // Restore selection
                         post(() -> {
                             int newRight = left + output.length();
-                            var pos1 = getText()
-                                .getIndexer()
-                                .getCharPosition(left);
-                            var pos2 = getText()
-                                .getIndexer()
-                                .getCharPosition(newRight);
+                            var pos1 = getText().getIndexer().getCharPosition(left);
+                            var pos2 = getText().getIndexer().getCharPosition(newRight);
                             setSelectionRegion(pos1.line, pos1.column, pos2.line, pos2.column);
                         });
                     } else {
@@ -488,9 +475,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
                 };
 
                 if (length < CASE_CONVERSION_SYNC_THRESHOLD) {
-                    String selectedText = getText()
-                        .subSequence(left, right)
-                        .toString();
+                    String selectedText = getText().subSequence(left, right).toString();
                     String convertedText =
                         caseType == CaseHandler.CaseType.UPPER ? selectedText.toUpperCase()
                             : selectedText.toLowerCase();
@@ -506,9 +491,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     }
 
     private void toast(@StringRes int message) {
-        Toast
-            .makeText(getContext(), message, Toast.LENGTH_SHORT)
-            .show();
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -559,50 +542,24 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         var tml = TextMateLanguage.create(langScope, autoCompleteWindowEnabled);
         if (isAutoCompleteSymbols) {
             // SymbolPairs
-            tml
-                .getSymbolPairs()
-                .putPair("{", new SymbolPairMatch.SymbolPair("{", "}"));
-            tml
-                .getSymbolPairs()
-                .putPair("(", new SymbolPairMatch.SymbolPair("(", ")"));
-            tml
-                .getSymbolPairs()
-                .putPair("[", new SymbolPairMatch.SymbolPair("[", "]"));
-            tml
-                .getSymbolPairs()
-                .putPair("\"", new SymbolPairMatch.SymbolPair("\"", "\""));
-            tml
-                .getSymbolPairs()
-                .putPair("„", new SymbolPairMatch.SymbolPair("„", "„"));
-            tml
-                .getSymbolPairs()
-                .putPair("“", new SymbolPairMatch.SymbolPair("“", "”"));
-            tml
-                .getSymbolPairs()
-                .putPair("«", new SymbolPairMatch.SymbolPair("“", "»"));
-            tml
-                .getSymbolPairs()
-                .putPair("'", new SymbolPairMatch.SymbolPair("'", "'"));
-            tml
-                .getSymbolPairs()
-                .putPair("‚", new SymbolPairMatch.SymbolPair("‚", "‚"));
-            tml
-                .getSymbolPairs()
-                .putPair("‘", new SymbolPairMatch.SymbolPair("‘", "’"));
-            tml
-                .getSymbolPairs()
-                .putPair("‹", new SymbolPairMatch.SymbolPair("‹", "›"));
-            tml
-                .getSymbolPairs()
-                .putPair("`", new SymbolPairMatch.SymbolPair("`", "`"));
+            tml.getSymbolPairs().putPair("{", new SymbolPairMatch.SymbolPair("{", "}"));
+            tml.getSymbolPairs().putPair("(", new SymbolPairMatch.SymbolPair("(", ")"));
+            tml.getSymbolPairs().putPair("[", new SymbolPairMatch.SymbolPair("[", "]"));
+            tml.getSymbolPairs().putPair("\"", new SymbolPairMatch.SymbolPair("\"", "\""));
+            tml.getSymbolPairs().putPair("„", new SymbolPairMatch.SymbolPair("„", "„"));
+            tml.getSymbolPairs().putPair("“", new SymbolPairMatch.SymbolPair("“", "”"));
+            tml.getSymbolPairs().putPair("«", new SymbolPairMatch.SymbolPair("“", "»"));
+            tml.getSymbolPairs().putPair("'", new SymbolPairMatch.SymbolPair("'", "'"));
+            tml.getSymbolPairs().putPair("‚", new SymbolPairMatch.SymbolPair("‚", "‚"));
+            tml.getSymbolPairs().putPair("‘", new SymbolPairMatch.SymbolPair("‘", "’"));
+            tml.getSymbolPairs().putPair("‹", new SymbolPairMatch.SymbolPair("‹", "›"));
+            tml.getSymbolPairs().putPair("`", new SymbolPairMatch.SymbolPair("`", "`"));
         }
         return tml;
     }
 
     private void toast(String message) {
-        Toast
-            .makeText(getContext(), message, Toast.LENGTH_SHORT)
-            .show();
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     public void convertSelectionToUpperCase() {
@@ -692,11 +649,10 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
         if (count == 0) {
             matchText = context.getString(R.string.editor_no_search_match);
         } else {
-            matchText = (count == 1) ? 1 + context
-                .getResources()
-                .getQuantityString(R.plurals.editor_search_matches, 1) : count + context
-                .getResources()
-                .getQuantityString(R.plurals.editor_search_matches, count);
+            matchText = (count == 1) ? 1 + context.getResources()
+                                                  .getQuantityString(R.plurals.editor_search_matches, 1)
+                : count + context.getResources()
+                                 .getQuantityString(R.plurals.editor_search_matches, count);
         }
 
         if (idx == -1) {
@@ -772,16 +728,13 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     }
 
     public static boolean isUIDarkMode(@NonNull Context context) {
-        return (context
-            .getResources()
-            .getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+        return (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
             == Configuration.UI_MODE_NIGHT_YES;
     }
 
     public static void loadConfigurations(@NonNull Context context) throws Exception {
-        FileProviderRegistry
-            .getInstance()
-            .addFileProvider(new AssetsFileResolver(context.getAssets()));
+        FileProviderRegistry.getInstance()
+                            .addFileProvider(new AssetsFileResolver(context.getAssets()));
         loadDefaultEditorLanguages();
         loadDefaultEditorThemes(context);
     }
@@ -791,13 +744,11 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
         for (String name : themes) {
             var path = "editor/scheme/" + name + ".json";
-            var is = FileProviderRegistry
-                .getInstance()
-                .tryGetInputStream(path);
+            var is = FileProviderRegistry.getInstance().tryGetInputStream(path);
             if (is != null) {
-                ThemeRegistry
-                    .getInstance()
-                    .loadTheme(new ThemeModel(IThemeSource.fromInputStream(is, path, null), name));
+                ThemeRegistry.getInstance()
+                             .loadTheme(new ThemeModel(IThemeSource.fromInputStream(is, path,
+                                 null), name));
             } else {
                 ILog.warning(TAG, "Failed to default editor theme, provider input stream is null");
             }
@@ -805,9 +756,8 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
     }
 
     private static void loadDefaultEditorLanguages() {
-        GrammarRegistry
-            .getInstance()
-            .loadGrammars(ContextualCodeEditor.ASSETS_LANGUAGE_GRAMMAR_PATH);
+        GrammarRegistry.getInstance()
+                       .loadGrammars(ContextualCodeEditor.ASSETS_LANGUAGE_GRAMMAR_PATH);
     }
 
     public void navigateNextSearch() {
@@ -864,9 +814,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
      */
     public void updateTextMateTheme(String themeName) throws Exception {
         ensureTextmateTheme();
-        ThemeRegistry
-            .getInstance()
-            .setTheme(themeName);
+        ThemeRegistry.getInstance().setTheme(themeName);
         resetColorScheme();
     }
 
@@ -912,9 +860,7 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
             binding.progressMessage.setText(info);
 
             final AlertDialog progressDialog = new MaterialAlertDialogBuilder(getContext())
-                .setView(binding.getRoot())
-                .setCancelable(false)
-                .create();
+                .setView(binding.getRoot()).setCancelable(false).create();
 
             progressDialog.show();
 
@@ -973,10 +919,8 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
 
         private void showErrorDialog(String message) {
             AsyncTask.runOnUiThread(() -> new MaterialAlertDialogBuilder(getContext())
-                .setTitle(R.string.editor_conversion_failed)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null)
-                .show());
+                .setTitle(R.string.editor_conversion_failed).setMessage(message)
+                .setPositiveButton(android.R.string.ok, null).show());
         }
 
         public enum CaseType {

@@ -69,10 +69,6 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     private EditorShortcutWizard shortcutWizard;
     private String shortcutsJsonString;
 
-    public static BuildActionFragment newInstance() {
-        return new BuildActionFragment();
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -84,9 +80,7 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        PreferencesUtils
-            .getDefaultPreferences()
-            .registerOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
         shortcutAdapter = new EditorShortcutAdapter();
         var adapter = new BuildActionPagerAdapter(getChildFragmentManager(), getLifecycle());
         loadShortcutsJson();
@@ -122,33 +116,23 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     @Override
     public void onStart() {
         super.onStart();
-        if (!EventBus
-            .getDefault()
-            .isRegistered(this)) {
-            EventBus
-                .getDefault()
-                .register(this);
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (EventBus
-            .getDefault()
-            .isRegistered(this)) {
-            EventBus
-                .getDefault()
-                .unregister(this);
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
         }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        PreferencesUtils
-            .getDefaultPreferences()
-            .unregisterOnSharedPreferenceChangeListener(this);
+        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
         this.binding = null;
     }
 
@@ -171,24 +155,12 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
     private void loadShortcutsJson() {
         if (shortcutsJsonString == null) {
             try {
-                InputStream is = requireContext()
-                    .getAssets()
-                    .open("editor/shortcuts.json");
+                InputStream is = requireContext().getAssets().open("editor/shortcuts.json");
                 shortcutsJsonString = JsonLanguageInfoProvider.readInputStream(is);
             } catch (IOException e) {
                 ILog.error(TAG, "Failed to load shortcuts JSON file.", e);
                 shortcutsJsonString = "{}";// empty json
             }
-        }
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
-        switch (Objects.requireNonNull(key)) {
-            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE,
-                 Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT:
-               refreshShortcuts();
-                break;
         }
     }
 
@@ -207,10 +179,24 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
         shortcutAdapter.submitList(configuredActions);
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
+        switch (Objects.requireNonNull(key)) {
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_SIZE,
+                 Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_TAB_INDENT:
+                refreshShortcuts();
+                break;
+        }
+    }
+
+    public static BuildActionFragment newInstance() {
+        return new BuildActionFragment();
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
-        int position = event.index;
-        Pane currentPane = event.pane;
+        int position = event.getIndex();
+        Pane currentPane = event.getPane();
 
         if (position != -1 || currentPane != null) {
             if (currentPane instanceof CodeEditorPane editorPane) {

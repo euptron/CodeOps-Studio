@@ -58,6 +58,9 @@ import java.util.Objects;
 public class WebViewPane extends Pane {
 
     public static final String LOG_TAG = WebViewPane.class.getSimpleName();
+    public static final String KEY_PREVIEW_FILE_PATH = "preview_file_path";
+    public static final String KEY_IS_ZOOMABLE = "isZoomAble";
+    public static final String KEY_DESKTOP_MODE = "isDeskTopMode";
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10) AppleWebKit/537.36 "
         + "(KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36";
     private LayoutPaneWebviewBinding binding;
@@ -123,9 +126,7 @@ public class WebViewPane extends Pane {
         binding.webview.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                view.loadUrl(request
-                    .getUrl()
-                    .toString());
+                view.loadUrl(request.getUrl().toString());
                 return true;
             }
 
@@ -187,6 +188,19 @@ public class WebViewPane extends Pane {
         });
     }
 
+    /**
+     * Called before the pane is destroyed
+     */
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding.webview.destroy();
+
+        liveServer    = null;
+        consoleServer = null;
+        binding       = null;
+    }
+
     @Override
     public void onSelected() {
         super.onSelected();
@@ -198,9 +212,8 @@ public class WebViewPane extends Pane {
             mFile = liveServer.getSourceFile();
         }
 
-        if (mFile != null && Constants.WEB_MARKUP_LANGUAGE
-            .stream()
-            .anyMatch(mFile.getName()::endsWith)) {
+        if (mFile != null && Constants.WEB_MARKUP_LANGUAGE.stream()
+                                                          .anyMatch(mFile.getName()::endsWith)) {
             consoleServer.setSingleFileMode(FileUtil.Path.ERUDA_CONSOLE);
             consoleServer.launchWithLocalHost();
         }
@@ -235,25 +248,12 @@ public class WebViewPane extends Pane {
         }
     }
 
-    /**
-     * Called before the pane is destroyed
-     */
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding.webview.destroy();
-
-        liveServer    = null;
-        consoleServer = null;
-        binding       = null;
-    }
-
     @Override
     public void persist() {
         super.persist();
-        addArguments("preview_file_path", Wizard.getFilePathOrEmpty(mFile));
-        addArguments("isZoomAble", isZoomable);
-        addArguments("isDeskTopMode", isDesktopMode);
+        addArguments(KEY_PREVIEW_FILE_PATH, Wizard.getFilePathOrEmpty(mFile));
+        addArguments(KEY_IS_ZOOMABLE, isZoomable);
+        addArguments(KEY_DESKTOP_MODE, isDesktopMode);
     }
 
     public void enableDeskTopMode(boolean enabled) {
@@ -278,23 +278,8 @@ public class WebViewPane extends Pane {
         }
     }
 
-    /**
-     * Loads file preset for selected
-     *
-     * @param file the file
-     */
-    public void loadFile(File file) {
-        if (liveServer != null) {
-            mFile = file;
-            liveServer.setSingleFileMode(file);
-            if (liveServer.isAlive()) {
-                binding.webview.loadUrl(liveServer.getUrl());
-            }
-        }
-    }
-
-    public void refresh() {
-        binding.webview.reload();
+    public File getFile() {
+        return this.mFile;
     }
 
     public WebView getWebView() {
@@ -332,9 +317,22 @@ public class WebViewPane extends Pane {
     public void setZoomable(boolean enabled) {
         if (!hasPerformedCreateView()) return;
         isZoomable = enabled;
-        binding.webview
-            .getSettings()
-            .setSupportZoom(enabled);
+        binding.webview.getSettings().setSupportZoom(enabled);
+    }
+
+    /**
+     * Loads file preset for selected
+     *
+     * @param file the file
+     */
+    public void loadFile(File file) {
+        if (liveServer != null) {
+            mFile = file;
+            liveServer.setSingleFileMode(file);
+            if (liveServer.isAlive()) {
+                binding.webview.loadUrl(liveServer.getUrl());
+            }
+        }
     }
 
     public void openInDeviceBrowser() {
@@ -342,7 +340,7 @@ public class WebViewPane extends Pane {
         BaseUtil.openUrlOutsideActivity(url);
     }
 
-    public File getFile() {
-        return this.mFile;
+    public void refresh() {
+        binding.webview.reload();
     }
 }

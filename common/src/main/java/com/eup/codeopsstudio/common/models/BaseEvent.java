@@ -23,6 +23,52 @@
 
 package com.eup.codeopsstudio.common.models;
 
-public abstract class BaseEvent {
-    // Foundational event class
+/**
+ * Foundational event class
+ *
+ * @param <T> the event type to hold
+ */
+public abstract class BaseEvent<T> {
+
+    private final T content;
+    private boolean hasBeenHandled = false;
+
+    /**
+     * Constructor for Event.
+     *
+     * @param content The content of the event.
+     */
+    public BaseEvent(T content) {
+        this.content = content;
+    }
+
+    /**
+     * Returns the content and prevents its use again.
+     *
+     * @return The content if not handled, otherwise null.
+     */
+    public T getContentIfNotHandled() {
+        if (hasBeenHandled) {
+            return null;
+        } else {
+            hasBeenHandled = true;
+            return content;
+        }
+    }
+
+    /**
+     * Returns whether the event has been handled.
+     */
+    public final boolean getHasBeenHandled() {
+        return hasBeenHandled;
+    }
+
+    /**
+     * Returns the content, even if it's already been handled.
+     *
+     * @return The content.
+     */
+    public T peekContent() {
+        return content;
+    }
 }

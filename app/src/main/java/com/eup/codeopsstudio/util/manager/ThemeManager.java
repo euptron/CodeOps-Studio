@@ -52,15 +52,6 @@ public class ThemeManager {
         this.application = application;
     }
 
-    public void applyTheme() {
-        int themeMode = getCurrentTheme();
-        AppCompatDelegate.setDefaultNightMode(themeMode);
-    }
-
-    public int getCurrentTheme() {
-        return PreferencesUtils.getCurrentTheme();
-    }
-
     public void applyDynamicColors() {
         applyDynamicColors(false);
     }
@@ -69,13 +60,11 @@ public class ThemeManager {
         final DynamicColors.Precondition precondition =
             (activity, theme) -> isDynamicColorEnabled();
         DynamicColorsOptions dynamicColorsOptions = new DynamicColorsOptions.Builder()
-            .setPrecondition(precondition)
-            .setOnAppliedCallback(activity -> {
+            .setPrecondition(precondition).setOnAppliedCallback(activity -> {
                 if (harmonizeColours) {
                     applyColorHarmonization(activity);
                 }
-            })
-            .build();
+            }).build();
         DynamicColors.applyToActivitiesIfAvailable(application, dynamicColorsOptions);
     }
 
@@ -86,5 +75,14 @@ public class ThemeManager {
 
     public boolean isDynamicColorEnabled() {
         return PreferencesUtils.useDynamicColors();
+    }
+
+    public void applyTheme() {
+        int themeMode = getCurrentTheme();
+        AppCompatDelegate.setDefaultNightMode(themeMode);
+    }
+
+    public int getCurrentTheme() {
+        return PreferencesUtils.getCurrentTheme();
     }
 }

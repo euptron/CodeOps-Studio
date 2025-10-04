@@ -33,12 +33,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
-import com.eup.codeopsstudio.common.util.FileUtil;
-import com.eup.codeopsstudio.domain.FileAction;
-import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.LayoutDialogProgressBinding;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
+import com.eup.codeopsstudio.domain.FileAction;
+import com.eup.codeopsstudio.models.logger.Logger;
 import com.eup.codeopsstudio.util.BinaryFileChecker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -89,9 +89,7 @@ public class FileManager {
 
         for (int i = 0; i <= len; i++) {
             if (i != len) {
-                sb
-                    .append(formats[i])
-                    .append("|");
+                sb.append(formats[i]).append("|");
             } else {
                 sb.append(formats[i]);
             }
@@ -164,18 +162,14 @@ public class FileManager {
             builder.setView(binding.getRoot());
             binding.tilName.setHint(hint);
             if (binding.tilName.getEditText() != null) {
-                binding.tilName
-                    .getEditText()
-                    .setText(fileName);
+                binding.tilName.getEditText().setText(fileName);
             }
         }
 
         builder.setPositiveButton(positiveButtonLabel, (dialog, which) -> {
             if (binding.tilName.getEditText() != null) {
-                executeFileTask(fileAction, binding.tilName
-                    .getEditText()
-                    .getText()
-                    .toString(), file, listener);
+                executeFileTask(fileAction, binding.tilName.getEditText().getText()
+                                                           .toString(), file, listener);
             }
         });
 
@@ -226,7 +220,7 @@ public class FileManager {
                 if (result instanceof Boolean) {
                     listener.onTaskComplete(result);
                 } else if (result instanceof File) {
-                        listener.onTaskComplete(result);
+                    listener.onTaskComplete(result);
                 }
             }
         }.execute();

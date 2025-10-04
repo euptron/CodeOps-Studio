@@ -30,11 +30,18 @@ import com.eup.codeopsstudio.common.models.BaseEvent;
  *
  * @author Etido Peter
  */
-public class EditorModificationEvent extends BaseEvent {
+public class EditorModificationEvent extends BaseEvent<Boolean> {
 
-    public final boolean isModified;
+    /**
+     * Constructor for Event.
+     *
+     * @param content The content of the event.
+     */
+    public EditorModificationEvent(Boolean content) {
+        super(content);
+    }
 
-    public EditorModificationEvent(boolean isModified) {
-        this.isModified = isModified;
+    public boolean isModified() {
+        return peekContent();
     }
 }

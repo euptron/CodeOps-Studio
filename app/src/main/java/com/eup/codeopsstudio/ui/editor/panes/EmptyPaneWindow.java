@@ -35,20 +35,20 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.databinding.EmptyPaneWindowBinding;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 public class EmptyPaneWindow extends Pane {
 
-    private MainViewModel mViewModel;
     private final LifecycleOwner lifecycleOwner;
+    private MainViewModel mViewModel;
     private EmptyPaneWindowBinding binding;
     private SpannableString styledString;
 
-    public EmptyPaneWindow(MainViewModel viewModel, LifecycleOwner lifecycleOwner,
-                           Context context, String title) {
+    public EmptyPaneWindow(MainViewModel viewModel, LifecycleOwner lifecycleOwner, Context context,
+        String title) {
         super(context, title);
         this.lifecycleOwner = lifecycleOwner;
         this.mViewModel     = viewModel;
@@ -65,56 +65,52 @@ public class EmptyPaneWindow extends Pane {
         super.onViewCreated(view);
         mViewModel =
             new ViewModelProvider((ViewModelStoreOwner) requireContext()).get(MainViewModel.class);
-        mViewModel
-            .getDrawerInstance()
-            .observe(lifecycleOwner, isDrawerLayout -> {
-                if (isDrawerLayout) {
-                    styledString = new SpannableString(
-                        getString(R.string.open_file_tree,
-                            getString(R.string.explorer))
-                            // index 18-30
-                            + "\n"
-                            + getString(R.string.open_build_actions,
-                            getString(R.string.build_actions))); // index 25 - 37
+        mViewModel.getDrawerInstance().observe(lifecycleOwner, isDrawerLayout -> {
+            if (isDrawerLayout) {
+                styledString = new SpannableString(
+                    getString(R.string.open_file_tree, getString(R.string.explorer))
+                        // index 18-30
+                        + "\n"
+                        + getString(R.string.open_build_actions,
+                        getString(R.string.build_actions))); // index 25 - 37
 
-                    ClickableSpan opentreeSpan = new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            mViewModel.setDrawerState(true);
-                        }
-                    };
-                    ClickableSpan openactionSpan = new ClickableSpan() {
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            mViewModel.setBottomSheetExpanded(true);
-                        }
-                    };
+                ClickableSpan opentreeSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(@NonNull View widget) {
+                        mViewModel.setDrawerState(true);
+                    }
+                };
+                ClickableSpan openactionSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(@NonNull View widget) {
+                        mViewModel.setBottomSheetExpanded(true);
+                    }
+                };
 
-                    // Styled open primary side bar
-                    styledString.setSpan(opentreeSpan, 16, 24, 0);
-                    // Styled open build actions
-                    styledString.setSpan(openactionSpan, 45, 52, 0);
-                    // the url and clickable styles.
-                } else {
-                    styledString =
-                        new SpannableString(getString(R.string.open_build_actions,
-                            getString(R.string.build_actions)));
-                    ClickableSpan openactionSpan = new ClickableSpan() {
+                // Styled open primary side bar
+                styledString.setSpan(opentreeSpan, 16, 24, 0);
+                // Styled open build actions
+                styledString.setSpan(openactionSpan, 45, 52, 0);
+                // the url and clickable styles.
+            } else {
+                styledString = new SpannableString(getString(R.string.open_build_actions,
+                    getString(R.string.build_actions)));
+                ClickableSpan openactionSpan = new ClickableSpan() {
 
-                        @Override
-                        public void onClick(@NonNull View widget) {
-                            mViewModel.setBottomSheetExpanded(true);
-                        }
-                    };
-                    // Styled open build actions
-                    styledString.setSpan(openactionSpan, 13, 26, 0);
-                    //  the url and clickable styles.
-                }
-                binding.prompt.setMovementMethod(LinkMovementMethod.getInstance());
-                binding.prompt.setSelectAllOnFocus(false);
-                binding.prompt.setFocusable(false);
-                binding.prompt.setText(styledString);
-            });
+                    @Override
+                    public void onClick(@NonNull View widget) {
+                        mViewModel.setBottomSheetExpanded(true);
+                    }
+                };
+                // Styled open build actions
+                styledString.setSpan(openactionSpan, 13, 26, 0);
+                //  the url and clickable styles.
+            }
+            binding.prompt.setMovementMethod(LinkMovementMethod.getInstance());
+            binding.prompt.setSelectAllOnFocus(false);
+            binding.prompt.setFocusable(false);
+            binding.prompt.setText(styledString);
+        });
     }
 
     @Override

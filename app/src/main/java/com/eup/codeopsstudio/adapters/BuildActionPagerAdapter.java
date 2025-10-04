@@ -36,19 +36,19 @@ public class BuildActionPagerAdapter extends FragmentStateAdapter {
     private final List<Fragment> fragmentList = new ArrayList<>();
 
     public BuildActionPagerAdapter(@NonNull FragmentManager fragmentManager,
-                                   @NonNull Lifecycle lifecycle) {
+        @NonNull Lifecycle lifecycle) {
         super(fragmentManager, lifecycle);
-    }
-
-    @Override
-    public int getItemCount() {
-        return fragmentList.size();
     }
 
     @NonNull
     @Override
     public Fragment createFragment(int position) {
         return fragmentList.get(position);
+    }
+
+    @Override
+    public int getItemCount() {
+        return fragmentList.size();
     }
 
     public void addFragment(Fragment fragment) {

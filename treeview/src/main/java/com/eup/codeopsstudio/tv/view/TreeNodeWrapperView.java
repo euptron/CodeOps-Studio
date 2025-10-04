@@ -68,11 +68,11 @@ public class TreeNodeWrapperView extends LinearLayout {
         addView(nodeItemsContainer);
     }
 
-    public void insertNodeView(View nodeView) {
-        nodeContainer.addView(nodeView);
-    }
-
     public ViewGroup getNodeContainer() {
         return nodeContainer;
+    }
+
+    public void insertNodeView(View nodeView) {
+        nodeContainer.addView(nodeView);
     }
 }

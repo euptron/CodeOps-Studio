@@ -76,260 +76,6 @@ public class Wizard {
         mContext = context;
     }
 
-    public static synchronized String getUserID(Context context) {
-        return getInstallUserID(context);
-    }
-
-    /**
-     * Gets the unique id given to devices at first launch time
-     *
-     * @return the pesudo ID
-     */
-    public static synchronized String getInstallUserID(Context context) {
-        if (uniqueID == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(PREF_UNIQUE_ID,
-                Context.MODE_PRIVATE);
-            uniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
-            if (uniqueID == null) {
-                uniqueID = "user" + UUID
-                    .randomUUID()
-                    .toString() + ":" + getDeviceBuildID();
-                Editor editor = sharedPrefs.edit();
-                editor.putString(PREF_UNIQUE_ID, uniqueID);
-                editor.apply();
-            }
-        }
-        return uniqueID;
-    }
-
-    public static String getDeviceBuildID() {
-        return validate(Build.ID);
-    }
-
-    @NonNull
-    public static String validate(String str) {
-        return validate(str, "unavailable");
-    }
-
-    public static String validate(String str, String fallback) {
-        if (str == null || str
-            .trim()
-            .isEmpty() || str.equalsIgnoreCase("")) {
-            return fallback == null ? "" : fallback;
-        } else {
-            return str;
-        }
-    }
-
-    public static long getTime() {
-        return new Date().getTime();
-    }
-
-    public static String getDeviceCountry(Context context) {
-        return getLocaleCountry(context);
-    }
-
-    public static String getLocaleCountry(Context context) {
-        String param = null;
-        TelephonyManager tm =
-            (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        if (tm != null) {
-            if (!isEmpty(tm.getSimCountryIso())) {
-                param = tm.getSimCountryIso();
-            } else if (!isEmpty(tm.getNetworkCountryIso())) {
-                param = tm.getNetworkCountryIso();
-            }
-            if (!isEmpty(param) && param.length() == 2) {
-                return validate(param.toUpperCase());
-            }
-            Configuration configuration = context
-                .getResources()
-                .getConfiguration();
-            Locale locale;
-            locale = configuration
-                .getLocales()
-                .get(0);
-            return validate(locale.getCountry());
-        }
-        return validate(null);
-    }
-
-    public static boolean isEmpty(String str) {
-        return str == null || str
-            .trim()
-            .isEmpty() || str.equalsIgnoreCase("");
-    }
-
-    public static String getDeviceBuildModel() {
-        return validate(Build.MODEL);
-    }
-
-    public static String getDeviceSDKVersion() {
-        return validate(Build.VERSION.SDK);
-    }
-
-    public static String getDeviceReleaseVersion() {
-        return validate(Build.VERSION.RELEASE);
-    }
-
-    public static String getDeviceBoard() {
-        return validate(Build.BOARD);
-    }
-
-    public static String getDeviceManufacturer() {
-        return validate(Build.MANUFACTURER);
-    }
-
-    /**
-     * Retrieve the preferred ABI of the device. Some devices can support multiple ABIs and the
-     * first
-     * one returned in the preferred one.
-     *
-     * <p>Suppressed deprecation warning because that code path is only used below Lollipop.
-     *
-     * @return The preferred ABI of the device
-     */
-    @SuppressWarnings("deprecation")
-    public static String getDeviceArchitecture() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return validate(Build.SUPPORTED_ABIS[0]);
-        }
-        return validate(Build.CPU_ABI);
-    }
-
-    @NonNull
-    public static String getDeviceLocaleLanguage() {
-        var param = Locale
-            .getDefault()
-            .getLanguage();
-        return validate(param);
-    }
-
-    public static String toUpperCase(String inputString) {
-        String result = "";
-        for (int i = 0; i < inputString.length(); i++) {
-            char currentChar = inputString.charAt(i);
-            char currentCharToUpperCase = Character.toUpperCase(currentChar);
-            result = result + currentCharToUpperCase;
-        }
-        return result;
-    }
-
-    public static String toLowerCase(String inputString) {
-        String result = "";
-        for (int i = 0; i < inputString.length(); i++) {
-            char currentChar = inputString.charAt(i);
-            char currentCharToLowerCase = Character.toLowerCase(currentChar);
-            result = result + currentCharToLowerCase;
-        }
-        return result;
-    }
-
-    public static boolean isEmpty(@NonNull char[] chars) {
-        return chars.length == 0;
-    }
-
-    public static String getFilePathOrEmpty(File file) {
-        if (file != null) {
-            return validate(file.getAbsolutePath(), null);
-        }
-        return "";
-    }
-
-    public static String getAppVersionName(Context context) {
-        PackageManager packageManager = context.getPackageManager();
-        PackageInfo packageInfo;
-        try {
-            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
-            return validate(packageInfo.versionName);
-        } catch (PackageManager.NameNotFoundException e) {
-            ILog.error(LOG_TAG, "Failed to get application version name", e);
-            return validate(null);
-        }
-    }
-
-    public static String getAppVersionCode(Context context) {
-        return validate(String.valueOf(getAppVersionCodeInteger(context)));
-    }
-
-    public static int getAppVersionCodeInteger(Context context) {
-        PackageManager packageManager = context.getPackageManager();
-        PackageInfo packageInfo;
-        try {
-            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            ILog.error(LOG_TAG, "Failed to get application version code as integer", e);
-            return -1;
-        }
-    }
-
-    public static String getAppPackageName(Context context) {
-        return validate(context.getPackageName());
-    }
-
-    public static String getAppName(Context context) {
-        PackageManager packageManager = context.getPackageManager();
-        PackageInfo packageInfo;
-        try {
-            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
-            var param = (String) packageInfo.applicationInfo.loadLabel(packageManager);
-            return validate(param);
-        } catch (PackageManager.NameNotFoundException e) {
-            ILog.error(LOG_TAG, "Failed to get application name", e);
-            return validate(null);
-        }
-    }
-
-    public static String prettyPrintJson(String jsonString) {
-        CompletableFuture<String> resultFuture = new CompletableFuture<>();
-        prettyPrintJsonAsync(jsonString, (result) -> {
-            if (result != null) {
-                resultFuture.complete(result);
-            }
-        });
-        try {
-            // Wait for the result and return it
-            return resultFuture.get();
-        } catch (Exception e) {
-            ILog.error("EditorManager.JsonBuilder",
-                "Error occurred during pretty printing: " + e.getMessage());
-            return jsonString;
-        }
-    }
-
-    private static String prettyPrintJsonAsync(String jsonString,
-        AsyncTask.Callback<String> callback) {
-        AsyncTask.runNonCancelable(() -> {
-            try {
-                return new GsonBuilder()
-                    .setPrettyPrinting()
-                    .create()
-                    .toJson(JsonParser.parseString(jsonString));
-            } catch (Exception e) {
-                ILog.error("EditorManager.JsonBuilder",
-                    "Error occurred when pretty printing json:" + e.getMessage());
-                return null;
-            }
-        }, callback);
-        return jsonString;
-    }
-
-    /**
-     * Returns whether the app is running on a TV device.
-     *
-     * @param context Any context.
-     * @return Whether the app is running on a TV device.
-     */
-    public static boolean isTv(Context context) {
-        // See https://developer.android.com/training/tv/start/hardware.html#runtime-check.
-        @Nullable UiModeManager uiModeManager = (UiModeManager) context
-            .getApplicationContext()
-            .getSystemService(UI_MODE_SERVICE);
-        return uiModeManager != null
-            && uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
-    }
-
     /**
      * Tests whether an {@code items} array contains an object equal to {@code item}, according to
      * {@link Object#equals(Object)}.
@@ -361,6 +107,194 @@ public class Wizard {
         return Objects.equals(o1, o2);
     }
 
+    public static String getAppName(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo;
+        try {
+            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+            var param = (String) packageInfo.applicationInfo.loadLabel(packageManager);
+            return validate(param);
+        } catch (PackageManager.NameNotFoundException e) {
+            ILog.error(LOG_TAG, "Failed to get application name", e);
+            return validate(null);
+        }
+    }
+
+    public static String getAppPackageName(Context context) {
+        return validate(context.getPackageName());
+    }
+
+    public static String getAppVersionCode(Context context) {
+        return validate(String.valueOf(getAppVersionCodeInteger(context)));
+    }
+
+    public static int getAppVersionCodeInteger(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo;
+        try {
+            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            ILog.error(LOG_TAG, "Failed to get application version code as integer", e);
+            return -1;
+        }
+    }
+
+    public static String getAppVersionName(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo;
+        try {
+            packageInfo = packageManager.getPackageInfo(context.getPackageName(), 0);
+            return validate(packageInfo.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            ILog.error(LOG_TAG, "Failed to get application version name", e);
+            return validate(null);
+        }
+    }
+
+    /**
+     * Retrieve the preferred ABI of the device. Some devices can support multiple ABIs and the
+     * first
+     * one returned in the preferred one.
+     *
+     * <p>Suppressed deprecation warning because that code path is only used below Lollipop.
+     *
+     * @return The preferred ABI of the device
+     */
+    @SuppressWarnings("deprecation")
+    public static String getDeviceArchitecture() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return validate(Build.SUPPORTED_ABIS[0]);
+        }
+        return validate(Build.CPU_ABI);
+    }
+
+    public static String getDeviceBoard() {
+        return validate(Build.BOARD);
+    }
+
+    public static String getDeviceBuildModel() {
+        return validate(Build.MODEL);
+    }
+
+    public static String getDeviceCountry(Context context) {
+        return getLocaleCountry(context);
+    }
+
+    public static String getLocaleCountry(Context context) {
+        String param = null;
+        TelephonyManager tm =
+            (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (tm != null) {
+            if (!isEmpty(tm.getSimCountryIso())) {
+                param = tm.getSimCountryIso();
+            } else if (!isEmpty(tm.getNetworkCountryIso())) {
+                param = tm.getNetworkCountryIso();
+            }
+            if (!isEmpty(param) && param.length() == 2) {
+                return validate(param.toUpperCase());
+            }
+            Configuration configuration = context.getResources().getConfiguration();
+            Locale locale;
+            locale = configuration.getLocales().get(0);
+            return validate(locale.getCountry());
+        }
+        return validate(null);
+    }
+
+    public static boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty() || str.equalsIgnoreCase("");
+    }
+
+    @NonNull
+    public static String getDeviceLocaleLanguage() {
+        var param = Locale.getDefault().getLanguage();
+        return validate(param);
+    }
+
+    public static String getDeviceManufacturer() {
+        return validate(Build.MANUFACTURER);
+    }
+
+    public static String getDeviceReleaseVersion() {
+        return validate(Build.VERSION.RELEASE);
+    }
+
+    public static String getDeviceSDKVersion() {
+        return validate(Build.VERSION.SDK);
+    }
+
+    public static String getFilePathOrEmpty(File file) {
+        if (file != null) {
+            return validate(file.getAbsolutePath(), null);
+        }
+        return "";
+    }
+
+    public static String getMimeType(Context context, File file) {
+        var extension = MimeTypeMap.getFileExtensionFromUrl(getUriForFile(context, file).getPath());
+        var type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+        return (type != null) ? type : "*/*";
+    }
+
+    /**
+     * @return mimeType of a file
+     */
+    public String getMimeType(Context context, Uri uri) {
+        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+            return context.getContentResolver().getType(uri);
+        }
+        var file = new File(uri.getPath());
+        var extension = MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(file).toString());
+        var type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+        return (type != null) ? type : "*/*";
+    }
+
+    public static long getTime() {
+        return new Date().getTime();
+    }
+
+    public static synchronized String getUserID(Context context) {
+        return getInstallUserID(context);
+    }
+
+    /**
+     * Gets the unique id given to devices at first launch time
+     *
+     * @return the pesudo ID
+     */
+    public static synchronized String getInstallUserID(Context context) {
+        if (uniqueID == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(PREF_UNIQUE_ID,
+                Context.MODE_PRIVATE);
+            uniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
+            if (uniqueID == null) {
+                uniqueID = "user" + UUID.randomUUID().toString() + ":" + getDeviceBuildID();
+                Editor editor = sharedPrefs.edit();
+                editor.putString(PREF_UNIQUE_ID, uniqueID);
+                editor.apply();
+            }
+        }
+        return uniqueID;
+    }
+
+    public static String getDeviceBuildID() {
+        return validate(Build.ID);
+    }
+
+    @NonNull
+    public static String validate(String str) {
+        return validate(str, "unavailable");
+    }
+
+    public static String validate(String str, String fallback) {
+        if (str == null || str.trim().isEmpty() || str.equalsIgnoreCase("")) {
+            return fallback == null ? "" : fallback;
+        } else {
+            return str;
+        }
+    }
+
     public static void installApplication(Context context, File file) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(getUriForFile(context, file),
@@ -379,30 +313,31 @@ public class Wizard {
         return FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
     }
 
-    public static String getMimeType(Context context, File file) {
-        var extension = MimeTypeMap.getFileExtensionFromUrl(getUriForFile(context, file).getPath());
-        var type = MimeTypeMap
-            .getSingleton()
-            .getMimeTypeFromExtension(extension.toLowerCase());
-        return (type != null) ? type : "*/*";
-    }
-
-    @NonNull
-    public static List<String> listOf(String... args) {
-        List<String> values = new ArrayList<>();
-        Collections.addAll(values, args);
-        return values;
-    }
-
     /**
      * Returns whether the app is running on an automotive device.
      *
      * @return Whether the app is running on an automotive device.
      */
     public boolean isAutomotive() {
-        return mContext
-            .getPackageManager()
-            .hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE);
+        return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE);
+    }
+
+    public static boolean isEmpty(@NonNull char[] chars) {
+        return chars.length == 0;
+    }
+
+    /**
+     * Returns whether the app is running on a TV device.
+     *
+     * @param context Any context.
+     * @return Whether the app is running on a TV device.
+     */
+    public static boolean isTv(Context context) {
+        // See https://developer.android.com/training/tv/start/hardware.html#runtime-check.
+        @Nullable UiModeManager uiModeManager = (UiModeManager) context.getApplicationContext()
+                                                                       .getSystemService(UI_MODE_SERVICE);
+        return uiModeManager != null
+            && uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
     }
 
     /**
@@ -413,29 +348,68 @@ public class Wizard {
      */
     public boolean isTv() {
         // See https://developer.android.com/training/tv/start/hardware.html#runtime-check.
-        @Nullable UiModeManager uiModeManager = (UiModeManager) mContext
-            .getApplicationContext()
-            .getSystemService(UI_MODE_SERVICE);
+        @Nullable UiModeManager uiModeManager = (UiModeManager) mContext.getApplicationContext()
+                                                                        .getSystemService(UI_MODE_SERVICE);
         return uiModeManager != null
             && uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
     }
 
-    /**
-     * @return mimeType of a file
-     */
-    public String getMimeType(Context context, Uri uri) {
-        if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
-            return context
-                .getContentResolver()
-                .getType(uri);
+    @NonNull
+    public static List<String> listOf(String... args) {
+        List<String> values = new ArrayList<>();
+        Collections.addAll(values, args);
+        return values;
+    }
+
+    public static String prettyPrintJson(String jsonString) {
+        CompletableFuture<String> resultFuture = new CompletableFuture<>();
+        prettyPrintJsonAsync(jsonString, (result) -> {
+            if (result != null) {
+                resultFuture.complete(result);
+            }
+        });
+        try {
+            // Wait for the result and return it
+            return resultFuture.get();
+        } catch (Exception e) {
+            ILog.error("EditorManager.JsonBuilder",
+                "Error occurred during pretty printing: " + e.getMessage());
+            return jsonString;
         }
-        var file = new File(uri.getPath());
-        var extension = MimeTypeMap.getFileExtensionFromUrl(Uri
-            .fromFile(file)
-            .toString());
-        var type = MimeTypeMap
-            .getSingleton()
-            .getMimeTypeFromExtension(extension.toLowerCase());
-        return (type != null) ? type : "*/*";
+    }
+
+    private static String prettyPrintJsonAsync(String jsonString,
+        AsyncTask.Callback<String> callback) {
+        AsyncTask.runNonCancelable(() -> {
+            try {
+                return new GsonBuilder().setPrettyPrinting().create()
+                                        .toJson(JsonParser.parseString(jsonString));
+            } catch (Exception e) {
+                ILog.error("EditorManager.JsonBuilder",
+                    "Error occurred when pretty printing json:" + e.getMessage());
+                return null;
+            }
+        }, callback);
+        return jsonString;
+    }
+
+    public static String toLowerCase(String inputString) {
+        String result = "";
+        for (int i = 0; i < inputString.length(); i++) {
+            char currentChar = inputString.charAt(i);
+            char currentCharToLowerCase = Character.toLowerCase(currentChar);
+            result = result + currentCharToLowerCase;
+        }
+        return result;
+    }
+
+    public static String toUpperCase(String inputString) {
+        String result = "";
+        for (int i = 0; i < inputString.length(); i++) {
+            char currentChar = inputString.charAt(i);
+            char currentCharToUpperCase = Character.toUpperCase(currentChar);
+            result = result + currentCharToUpperCase;
+        }
+        return result;
     }
 }

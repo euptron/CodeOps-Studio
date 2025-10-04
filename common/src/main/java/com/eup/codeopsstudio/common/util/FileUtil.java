@@ -53,6 +53,66 @@ public class FileUtil {
 
     public static final String TAG = "FileUtil";
 
+    @Nullable
+    public static String calculateMD5(int bufferSize, File updateFile) {
+        InputStream is;
+        try {
+            is = new FileInputStream(updateFile);
+        } catch (FileNotFoundException e) {
+            ILog.error(TAG, "Exception while getting FileInputStream for calculateMD5", e);
+            return null;
+        }
+        return calculateMD5(bufferSize, is);
+    }
+
+    @Nullable
+    public static String calculateMD5(int bufferSize, @NonNull InputStream is) {
+        byte[] buffer = new byte[bufferSize];
+
+        try (is) {
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+
+            int read;
+            while ((read = is.read(buffer)) > 0) {
+                digest.update(buffer, 0, read);
+            }
+
+            BigInteger bigInteger = new BigInteger(1, digest.digest());
+            String md5 = bigInteger.toString(16);
+
+            return String.format("%32s", md5).replace(' ', '0');
+        } catch (IOException e) {
+            ILog.error(TAG, "Unable to process file for MD5 calculation", e);
+            return null;
+        } catch (NoSuchAlgorithmException e) {
+            ILog.error(TAG, "Exception while getting MD5 Digest", e);
+            return null;
+        } catch (NullPointerException e) {
+            ILog.error(TAG, "NPE occurred while calculating MD5", e);
+            return null;
+        }
+    }
+
+    public static void clearAppCache(Context context) {
+        try {
+            File dir = context.getCacheDir();
+            org.apache.commons.io.FileUtils.delete(new File(dir.getAbsolutePath()));
+        } catch (Exception e) {
+            ILog.debug(TAG, "Failed to clear cache", e);
+        }
+    }
+
+    /**
+     * Checks if a directory contains files or subdirectories (non-empty).
+     *
+     * @param dir The directory to check
+     * @return {@code true} if the directory contains files or folders, otherwise {@code false}
+     */
+    public static boolean containsFiles(@NonNull File dir) {
+        File[] files = dir.listFiles();
+        return files != null && files.length > 0;
+    }
+
     public static boolean createOrExistsFile(final File file) {
         if (file == null) return false;
         if (file.exists()) return file.isFile();
@@ -74,6 +134,184 @@ public class FileUtil {
      */
     public static boolean createOrExistsDir(final File file) {
         return file != null && (file.exists() ? file.isDirectory() : file.mkdirs());
+    }
+
+    public static String findFreeFileName(String filename) {
+        if (filename == null) {
+            return null;
+        }
+
+        File f = new File(filename);
+        if (!f.exists()) {
+            return filename;
+        }
+        int dot = filename.lastIndexOf('.');
+
+        String name;
+        String ext;
+        if (dot != -1) {
+            name = filename.substring(0, dot);
+            ext  = filename.substring(dot);
+        } else {
+            name = filename;
+            ext  = "";
+        }
+
+        int num = 0;
+        do {
+            f = new File(name + (++num == 1 ? "" : " (" + num + ")") + ext);
+        } while (f.exists());
+
+        return name + (num == 1 ? "" : " (" + num + ")") + ext;
+    }
+
+    /**
+     * Searches a directory for a file with the given relative path.
+     *
+     * @param currentDir   the root directory to search in
+     * @param relativePath the path relative to the parent volume e.g /storage/emulated/0/
+     * @return the file if it exists in any volume, may be {@code null}
+     */
+    public static File findInStorageDirectory(@Nullable File currentDir,
+        @Nullable String relativePath) {
+        if (currentDir == null || !currentDir.exists() || !currentDir.isDirectory()
+            || relativePath == null) {
+            return null;
+        }
+
+        File targetFile = new File(currentDir, relativePath);
+        ILog.debug(TAG, "Searching " + targetFile.getPath());
+
+        if (targetFile.exists()) {
+            ILog.debug(TAG, "File found in " + targetFile.getPath());
+            return targetFile;
+        }
+
+        File[] files = currentDir.listFiles();
+
+        if (files == null) {
+            return null;
+        }
+
+        for (File file : files) {
+            if (file.isDirectory() && containsFiles(file)) {
+                File result = findInStorageDirectory(file, relativePath);
+                if (result != null) {
+                    ILog.debug(TAG, "Found at " + result.getPath());
+                    return result;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public static File findInVolumes(@NonNull List<File> volumes, @NonNull String relativePath) {
+        for (File dir : volumes) {
+            File found = findInStorageDirectory(dir, relativePath);
+            if (found != null) {
+                ILog.info(TAG, "File has been found in" + dir.getPath());
+                return found;
+            }
+        }
+        return null;
+    }
+
+    @NonNull
+    public static String getExternalStorageDir() {
+        return Environment.getExternalStorageDirectory().getAbsolutePath();
+    }
+
+    @NonNull
+    public static File[] getExternalStorageVolumeDirs(Context context) {
+        return ContextCompat.getExternalFilesDirs(context, null);
+    }
+
+    @NonNull
+    public static String getFileExtension(final File file) {
+        if (file == null) return "";
+        return getFileExtension(file.getPath());
+    }
+
+    @NonNull
+    public static String getFileExtension(final String filePath) {
+        if (isSpace(filePath)) return "";
+        int lastPoi = filePath.lastIndexOf('.');
+        int lastSep = filePath.lastIndexOf(File.separator);
+        if (lastPoi == -1 || lastSep >= lastPoi) return "";
+        return filePath.substring(lastPoi + 1);
+    }
+
+    @NonNull
+    public static String getFileNameWithoutExtension(File file) {
+        if (file == null) return "";
+        return getFileNameWithoutExtension(file.getPath());
+    }
+
+    public static String getFileNameWithoutExtension(String filePath) {
+        if (isSpace(filePath)) return "";
+        int lastPoi = filePath.lastIndexOf('.');
+        int lastSep = filePath.lastIndexOf(File.separator);
+        if (lastSep == -1) {
+            return (lastPoi == -1 ? filePath : filePath.substring(0, lastPoi));
+        }
+        if (lastPoi == -1 || lastSep > lastPoi) {
+            return filePath.substring(lastSep + 1);
+        }
+        return filePath.substring(lastSep + 1, lastPoi);
+    }
+
+    @NonNull
+    public static String getPackageDataDir(Context context) {
+        return Objects.requireNonNull(context.getExternalFilesDir(null)).getAbsolutePath();
+    }
+
+    @NonNull
+    public static String getPackageDataDir(Context context, String dir) {
+        return Objects.requireNonNull(context.getExternalFilesDir(dir)).getAbsolutePath();
+    }
+
+    @NonNull
+    public static String getPublicDir(String type) {
+        return Environment.getExternalStoragePublicDirectory(type).getAbsolutePath();
+    }
+
+    public static String[] listAllFileNamesInFileDir() {
+        return ContextManager.getApplicationContext().fileList();
+    }
+
+    @NonNull
+    public static File[] listFiles(@NonNull File parent) {
+        File[] children = parent.listFiles();
+        return (children == null) ? new File[0] : children;
+    }
+
+    public static void recursiveDelete(@NonNull File source,
+        DeleteListener deleteListener) throws IOException {
+        Objects.requireNonNull(source, "File or Directory cannot be null");
+
+        File[] directoryFiles = source.listFiles();
+        if (directoryFiles != null) {
+            for (File child : directoryFiles) {
+                recursiveDelete(child, deleteListener);
+            }
+        }
+
+        if (deleteListener != null) {
+            deleteListener.onDelete(source.getAbsolutePath());
+        }
+
+        try {
+            if (source.isFile()) {
+                FileUtils.delete(source);
+            } else if (source.isDirectory()) {
+                FileUtils.deleteDirectory(source);
+            }
+        } catch (IOException e) {
+            ILog.error(TAG, "Failed to recursively delete file or folder", e);
+            throw e;
+        }
     }
 
     public static boolean rename(final String filePath, final String newName) {
@@ -124,256 +362,6 @@ public class FileUtil {
         return true;
     }
 
-    @Nullable
-    public static String calculateMD5(int bufferSize, File updateFile) {
-        InputStream is;
-        try {
-            is = new FileInputStream(updateFile);
-        } catch (FileNotFoundException e) {
-            ILog.error(TAG, "Exception while getting FileInputStream for calculateMD5", e);
-            return null;
-        }
-        return calculateMD5(bufferSize, is);
-    }
-
-    @Nullable
-    public static String calculateMD5(int bufferSize, @NonNull InputStream is) {
-        byte[] buffer = new byte[bufferSize];
-
-        try (is) {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-
-            int read;
-            while ((read = is.read(buffer)) > 0) {
-                digest.update(buffer, 0, read);
-            }
-
-            BigInteger bigInteger = new BigInteger(1, digest.digest());
-            String md5 = bigInteger.toString(16);
-
-            return String
-                .format("%32s", md5)
-                .replace(' ', '0');
-        } catch (IOException e) {
-            ILog.error(TAG, "Unable to process file for MD5 calculation", e);
-            return null;
-        } catch (NoSuchAlgorithmException e) {
-            ILog.error(TAG, "Exception while getting MD5 Digest", e);
-            return null;
-        } catch (NullPointerException e) {
-            ILog.error(TAG, "NPE occurred while calculating MD5", e);
-            return null;
-        }
-    }
-
-    @NonNull
-    public static String getFileNameWithoutExtension(File file) {
-        if (file == null) return "";
-        return getFileNameWithoutExtension(file.getPath());
-    }
-
-    public static String getFileNameWithoutExtension(String filePath) {
-        if (isSpace(filePath)) return "";
-        int lastPoi = filePath.lastIndexOf('.');
-        int lastSep = filePath.lastIndexOf(File.separator);
-        if (lastSep == -1) {
-            return (lastPoi == -1 ? filePath : filePath.substring(0, lastPoi));
-        }
-        if (lastPoi == -1 || lastSep > lastPoi) {
-            return filePath.substring(lastSep + 1);
-        }
-        return filePath.substring(lastSep + 1, lastPoi);
-    }
-
-    @NonNull
-    public static String getFileExtension(final File file) {
-        if (file == null) return "";
-        return getFileExtension(file.getPath());
-    }
-
-    @NonNull
-    public static String getFileExtension(final String filePath) {
-        if (isSpace(filePath)) return "";
-        int lastPoi = filePath.lastIndexOf('.');
-        int lastSep = filePath.lastIndexOf(File.separator);
-        if (lastPoi == -1 || lastSep >= lastPoi) return "";
-        return filePath.substring(lastPoi + 1);
-    }
-
-    @NonNull
-    public static String getExternalStorageDir() {
-        return Environment
-            .getExternalStorageDirectory()
-            .getAbsolutePath();
-    }
-
-    @NonNull
-    public static String getPackageDataDir(Context context) {
-        return Objects
-            .requireNonNull(context.getExternalFilesDir(null))
-            .getAbsolutePath();
-    }
-
-    @NonNull
-    public static String getPackageDataDir(Context context, String dir) {
-        return Objects
-            .requireNonNull(context.getExternalFilesDir(dir))
-            .getAbsolutePath();
-    }
-
-    @NonNull
-    public static String getPublicDir(String type) {
-        return Environment
-            .getExternalStoragePublicDirectory(type)
-            .getAbsolutePath();
-    }
-
-    public static void clearAppCache(Context context) {
-        try {
-            File dir = context.getCacheDir();
-            org.apache.commons.io.FileUtils.delete(new File(dir.getAbsolutePath()));
-        } catch (Exception e) {
-            ILog.debug(TAG, "Failed to clear cache", e);
-        }
-    }
-
-    public static String findFreeFileName(String filename) {
-        if (filename == null) {
-            return null;
-        }
-
-        File f = new File(filename);
-        if (!f.exists()) {
-            return filename;
-        }
-        int dot = filename.lastIndexOf('.');
-
-        String name;
-        String ext;
-        if (dot != -1) {
-            name = filename.substring(0, dot);
-            ext  = filename.substring(dot);
-        } else {
-            name = filename;
-            ext  = "";
-        }
-
-        int num = 0;
-        do {
-            f = new File(name + (++num == 1 ? "" : " (" + num + ")") + ext);
-        } while (f.exists());
-
-        return name + (num == 1 ? "" : " (" + num + ")") + ext;
-    }
-
-    public static void recursiveDelete(@NonNull File source,
-        DeleteListener deleteListener) throws IOException {
-        Objects.requireNonNull(source, "File or Directory cannot be null");
-
-        File[] directoryFiles = source.listFiles();
-        if (directoryFiles != null) {
-            for (File child : directoryFiles) {
-                recursiveDelete(child, deleteListener);
-            }
-        }
-
-        if (deleteListener != null) {
-            deleteListener.onDelete(source.getAbsolutePath());
-        }
-
-        try {
-            if (source.isFile()) {
-                FileUtils.delete(source);
-            } else if (source.isDirectory()) {
-                FileUtils.deleteDirectory(source);
-            }
-        } catch (IOException e) {
-            ILog.error(TAG, "Failed to recursively delete file or folder", e);
-            throw e;
-        }
-    }
-
-    public static String[] listAllFileNamesInFileDir() {
-        return ContextManager
-            .getApplicationContext()
-            .fileList();
-    }
-
-    @NonNull
-    public static File[] getExternalStorageVolumeDirs(Context context) {
-        return ContextCompat.getExternalFilesDirs(context, null);
-    }
-
-    @Nullable
-    public static File findInVolumes(@NonNull List<File> volumes, @NonNull String relativePath) {
-        for (File dir : volumes) {
-            File found = findInStorageDirectory(dir, relativePath);
-            if (found != null) {
-                ILog.info(TAG, "File has been found in" + dir.getPath());
-                return found;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Searches a directory for a file with the given relative path.
-     *
-     * @param currentDir   the root directory to search in
-     * @param relativePath the path relative to the parent volume e.g /storage/emulated/0/
-     * @return the file if it exists in any volume, may be {@code null}
-     */
-    public static File findInStorageDirectory(@Nullable File currentDir,
-        @Nullable String relativePath) {
-        if (currentDir == null || !currentDir.exists() || !currentDir.isDirectory()
-            || relativePath == null) {
-            return null;
-        }
-
-        File targetFile = new File(currentDir, relativePath);
-        ILog.debug(TAG, "Searching " + targetFile.getPath());
-
-        if (targetFile.exists()) {
-            ILog.debug(TAG, "File found in " + targetFile.getPath());
-            return targetFile;
-        }
-
-        File[] files = currentDir.listFiles();
-
-        if (files == null) {
-            return null;
-        }
-
-        for (File file : files) {
-            if (file.isDirectory() && containsFiles(file)) {
-                File result = findInStorageDirectory(file, relativePath);
-                if (result != null) {
-                    ILog.debug(TAG, "Found at " + result.getPath());
-                    return result;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Checks if a directory contains files or subdirectories (non-empty).
-     *
-     * @param dir The directory to check
-     * @return {@code true} if the directory contains files or folders, otherwise {@code false}
-     */
-    public static boolean containsFiles(@NonNull File dir) {
-        File[] files = dir.listFiles();
-        return files != null && files.length > 0;
-    }
-
-    @NonNull
-    public static File[] listFiles(@NonNull File parent) {
-        File[] children = parent.listFiles();
-        return (children == null) ? new File[0] : children;
-    }
-
     /**
      * Listener that is called periodically as a file is deleted.
      */
@@ -385,13 +373,11 @@ public class FileUtil {
 
         @NonNull
         public static final File PLUGINS_FOLDER = Objects.requireNonNull(ContextManager
-            .getApplicationContext()
-            .getExternalFilesDir("plugins"));
+            .getApplicationContext().getExternalFilesDir("plugins"));
         public static final File ERUDA_CONSOLE = new File(PLUGINS_FOLDER, "eruda.min.js");
         // Recommended directory for file persistence
         public static final File ANCESTOR_PERSISTENT_DIRECTORY = ContextManager
-            .getApplicationContext()
-            .getFilesDir();
+            .getApplicationContext().getFilesDir();
         /**
          * App specific persistent directory
          * The file PERSISTENT_CUES_JSON stores information about persisted cues (Opened Pane and

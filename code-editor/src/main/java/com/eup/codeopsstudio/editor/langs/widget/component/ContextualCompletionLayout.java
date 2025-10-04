@@ -60,10 +60,6 @@ public class ContextualCompletionLayout extends DefaultCompletionLayout {
         editor = codeEditor;
     }
 
-    public boolean isAnimationEnabled() {
-        return enabledAnimation;
-    }
-
     @Override
     public void setEditorCompletion(@NonNull EditorAutoCompletion completion) {
         editorAutoCompletion = completion;
@@ -120,8 +116,7 @@ public class ContextualCompletionLayout extends DefaultCompletionLayout {
         GradientDrawable gd = new GradientDrawable();
         gd.setCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
             layoutCornerRadius, context
-            .getResources()
-            .getDisplayMetrics()));
+            .getResources().getDisplayMetrics()));
 
         rootLayout.setBackground(gd);
 
@@ -143,13 +138,15 @@ public class ContextualCompletionLayout extends DefaultCompletionLayout {
         GradientDrawable gd = new GradientDrawable();
         gd.setCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
             layoutCornerRadius, editorAutoCompletion
-            .getContext()
-            .getResources()
-            .getDisplayMetrics()));
+            .getContext().getResources().getDisplayMetrics()));
         gd.setStroke(1, MaterialColors.getColor(editor.getContext(),
             com.google.android.material.R.attr.colorOutline, 0));
         gd.setColor(SurfaceColors.SURFACE_1.getColor(editor.getContext()));
         rootView.setBackground(gd);
+    }
+
+    public boolean isAnimationEnabled() {
+        return enabledAnimation;
     }
 
     public boolean isLoading() {

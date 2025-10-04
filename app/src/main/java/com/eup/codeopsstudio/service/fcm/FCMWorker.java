@@ -34,9 +34,7 @@ public class FCMWorker extends Worker {
             return Result.success();
         } catch (InterruptedException e) {
             ILog.error(TAG, "Long running task interrupted", e);
-            Thread
-                .currentThread()
-                .interrupt(); // Restore interrupted status
+            Thread.currentThread().interrupt(); // Restore interrupted status
             return Result.failure();
         } catch (Exception e) {
             ILog.error(TAG, "Error in long running task", e);

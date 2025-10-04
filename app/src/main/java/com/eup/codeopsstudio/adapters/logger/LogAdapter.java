@@ -45,9 +45,7 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
     public static final DiffUtil.ItemCallback<Log> DIFF_CALLBACK = new DiffUtil.ItemCallback<>() {
         @Override
         public boolean areItemsTheSame(@NonNull Log oldLog, @NonNull Log newLog) {
-            return oldLog
-                .getID()
-                .equals(newLog.getID());
+            return oldLog.getID().equals(newLog.getID());
         }
 
         @Override
@@ -61,10 +59,6 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
         // Default
     }
 
-    public void submitList(List<Log> newData) {
-        mDiffer.submitList(newData);
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -73,9 +67,7 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Log log = mDiffer
-            .getCurrentList()
-            .get(position);
+        Log log = mDiffer.getCurrentList().get(position);
         if (log == null) return;
 
         SpannableStringBuilder sb = new SpannableStringBuilder();
@@ -98,9 +90,7 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
             hasPrevious = true;
         }
 
-        String message = log
-            .getMessage()
-            .toString();
+        String message = log.getMessage().toString();
         if (!TextUtils.isEmpty(message)) {
             if (hasPrevious) sb.append("  ");
             sb.append(message);
@@ -109,16 +99,16 @@ public class LogAdapter extends RecyclerView.Adapter<LogAdapter.ViewHolder> {
             sb.append("[No message]");
         }
 
-        holder
-            .getTextView()
-            .setText(sb);
+        holder.getTextView().setText(sb);
     }
 
     @Override
     public int getItemCount() {
-        return mDiffer
-            .getCurrentList()
-            .size();
+        return mDiffer.getCurrentList().size();
+    }
+
+    public void submitList(List<Log> newData) {
+        mDiffer.submitList(newData);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

@@ -98,17 +98,6 @@ public class EditorManager {
         private final ArrayList<HashMap<String, Object>> listMap = new ArrayList<>();
         private HashMap<String, Object> selectedEditorMap = new HashMap<>();
 
-        public JsonBuilder addPageEditor(final String id) {
-            createMap(jsonMap);
-            jsonMap.put("type", EditorType.PAGE_EDITOR);
-            jsonMap.put("id", id);
-            return this;
-        }
-
-        private void createMap(HashMap<String, Object> hashMap) {
-            hashMap.clear();
-        }
-
         public JsonBuilder addCodeEditor(String id, StartSelection startSelection,
             EndSelection endSelection) {
             createMap(jsonMap);
@@ -127,6 +116,17 @@ public class EditorManager {
             listMap.add(jsonMap);
             jsonMap.put("allEditors", listMap);
             return this;
+        }
+
+        public JsonBuilder addPageEditor(final String id) {
+            createMap(jsonMap);
+            jsonMap.put("type", EditorType.PAGE_EDITOR);
+            jsonMap.put("id", id);
+            return this;
+        }
+
+        private void createMap(HashMap<String, Object> hashMap) {
+            hashMap.clear();
         }
 
         public JsonBuilder addSelectedEditor(String id, EditorType type) {
@@ -166,10 +166,8 @@ public class EditorManager {
             AsyncTask.Callback<String> callback) {
             AsyncTask.runNonCancelable(() -> {
                 try {
-                    return new GsonBuilder()
-                        .setPrettyPrinting()
-                        .create()
-                        .toJson(JsonParser.parseString(jsonString));
+                    return new GsonBuilder().setPrettyPrinting().create()
+                                            .toJson(JsonParser.parseString(jsonString));
                 } catch (Exception e) {
                     ILog.error("EditorManager.JsonBuilder",
                         "Error occurred when pretty printing json:" + e.getMessage());

@@ -32,7 +32,8 @@ import com.bumptech.glide.module.AppGlideModule;
  * <p>This module configures Glide for the application. It is required to resolve a startup
  * warning from {@code com.google.firebase:firebase-inappmessaging-display}, which uses Glide.
  *
- * <p>The {@code @GlideModule} annotation triggers the generation of {@code GeneratedAppGlideModule},
+ * <p>The {@code @GlideModule} annotation triggers the generation of {@code
+ * GeneratedAppGlideModule},
  * which Glide uses for initialization, preventing the warning.
  *
  * <p><b>IMPORTANT:</b> Do not delete this class. It is crucial for Glide's initialization.

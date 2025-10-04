@@ -25,8 +25,8 @@ package com.eup.codeopsstudio.models;
 
 import androidx.annotation.NonNull;
 
-import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.R;
+import com.eup.codeopsstudio.common.util.PreferencesUtils;
 
 /**
  * Manages associations between file extensions and their corresponding icons.

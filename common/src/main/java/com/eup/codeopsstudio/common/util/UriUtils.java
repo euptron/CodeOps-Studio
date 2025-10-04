@@ -59,173 +59,22 @@ public class UriUtils {
 
     public static final String TAG = "UriUtils";
 
-    public static String readDocumentToString(Context context, Uri uri) throws IOException {
-        return readDocumentToString(context, uri, Constants.DEFAULT_CHAR_SET);
-    }
-
     /**
-     * Reads the contents of a uri into a String. The uri is always closed.
+     * Checks if a uri is writeable
      *
-     * @param uri         the uri to read, must not be {@code null}
-     * @param charsetName the name of the requested charset, {@code null} means platform default
-     * @return the uri contents, never {@code null}
-     * @throws NullPointerException if uri is {@code null}.
-     * @throws IOException          if an I/O error occurs, including when the uri does not
-     *                              exist, is a
-     *                              directory rather than a regular uri, or for some other reason
-     *                              why the uri cannot be opened
-     *                              for reading.
+     * @param uri     the uri to check is writeable
+     * @param context the context used to open the uri
      */
-    public static String readDocumentToString(Context context, Uri uri,
-        final Charset charset) throws IOException {
-        return IOUtils.toString(() -> getInputStream(context, uri), Charsets.toCharset(charset));
-    }
-
-    public static InputStream getInputStream(Context context, Uri uri) throws IOException {
+    public boolean canWrite(Uri uri, Context context) {
         try {
-            return context
-                .getContentResolver()
-                .openInputStream(uri);
-        } catch (FileNotFoundException e) {
-            throw new IOException(e.getMessage(), e.getCause());
+            OutputStream os = context.getContentResolver().openOutputStream(uri, "wa");
+            if (os != null) {
+                os.close();
+                return true;
+            }
+        } catch (Exception ignored) {
         }
-    }
-
-    public static String readDocumentToString(Context context, Uri uri,
-        final String charsetName) throws IOException {
-        return readDocumentToString(context, uri, Charsets.toCharset(charsetName));
-    }
-
-    public static void writeToDocument(final Context context, final Uri uri,
-        final CharSequence data) throws IOException {
-        writeToDocument(context, uri, Objects.toString(data, null), Constants.DEFAULT_CHAR_SET,
-            false);
-    }
-
-    /**
-     * Writes a CharSequence to a uri creating the uri if it does not exist.
-     *
-     * @param uri     the uri to write
-     * @param data    the content to write to the uri
-     * @param charset the charset to use, {@code null} means platform default
-     * @param append  if {@code true}, then the data will be added to the end of the uri rather than
-     *                overwriting
-     * @throws IOException in case of an I/O error
-     */
-    public static void writeToDocument(final Context context, final Uri uri,
-        final CharSequence data, final Charset charset, final boolean append) throws IOException {
-        writeStringToDocument(context, uri, Objects.toString(data, null), charset, append);
-    }
-
-    /**
-     * Writes a String to a uri, creating the uri if it does not exist. The parent directories of
-     * the
-     * uri are created if they do not exist.
-     *
-     * @param uri         the uri to write
-     * @param data        the content to write to the uri
-     * @param charsetName the name of the requested charset, {@code null} means platform default
-     * @param append      if {@code true}, then the String will be added to the end of the uri
-     *                    rather than
-     *                    overwriting
-     * @throws IOException                                  in case of an I/O error
-     * @throws java.nio.charset.UnsupportedCharsetException if the encoding is not supported by
-     *                                                      the VM
-     */
-    public static void writeStringToDocument(final Context context, final Uri uri,
-        final String data, final Charset charset, final boolean append) throws IOException {
-
-        String mode = (append) ? "wa" : " w";
-
-        try (OutputStream out = context
-            .getContentResolver()
-            .openOutputStream(uri, mode)) {
-            IOUtils.write(data, out, charset);
-        }
-    }
-
-    public static void writeToDocument(final Context context, final Uri uri,
-        final CharSequence data, final String charsetName) throws IOException {
-        writeToDocument(context, uri, Objects.toString(data, null),
-            Charsets.toCharset(charsetName), false);
-    }
-
-    public static void writeToDocument(final Context context, final Uri uri,
-        final CharSequence data, final String charsetName,
-        final boolean append) throws IOException {
-        writeToDocument(context, uri, Objects.toString(data, null),
-            Charsets.toCharset(charsetName), append);
-    }
-
-    public static void writeStringToDocument(final Context context, final Uri uri,
-        final String data) throws IOException {
-        writeStringToDocument(context, uri, data, Constants.DEFAULT_CHAR_SET, false);
-    }
-
-    public static void writeStringToDocument(final Context context, final Uri uri,
-        final String data, final String charsetName) throws IOException {
-        writeStringToDocument(context, uri, data, Charsets.toCharset(charsetName), false);
-    }
-
-    public static void writeStringToDocument(final Context context, final Uri uri,
-        final String data, final Charset charset) throws IOException {
-        writeStringToDocument(context, uri, data, charset, false);
-    }
-
-    /**
-     * Over writes a document uri with a new content.
-     *
-     * @param uri  the uri to write
-     * @param data the content to write to the uri
-     * @throws IOException           in case of an I/O error
-     * @throws FileNotFoundException
-     */
-    public static void overWriteDocument(final Context context, final Uri uri,
-        final String data) throws IOException {
-        try {
-            ParcelFileDescriptor pfd = context
-                .getContentResolver()
-                .openFileDescriptor(uri, "w");
-            var fos = new FileOutputStream(pfd.getFileDescriptor());
-            fos.write(data.getBytes());
-            fos.close();
-            pfd.close();
-            ILog.info(TAG, "File saved successfully");
-        } catch (Exception e) {
-            throw new IOException(e.getMessage(), e.getCause());
-        }
-    }
-
-    public static void takePersistableUriPermission(Context context, Uri uri, int flags) {
-        try {
-            context
-                .getContentResolver()
-                .takePersistableUriPermission(uri, flags);
-            toast(context, "Permission granted for selected resource");
-        } catch (Exception e) {
-            toast(context, "Error taking permission: for selected resource" + e.getMessage());
-        }
-    }
-
-    private static void toast(Context context, String msg) {
-        Toast
-            .makeText(context, msg, Toast.LENGTH_LONG)
-            .show();
-    }
-
-    /**
-     * Maps an existing directory {@code Uri} to its root directory
-     *
-     * <p>Root access always requires a tree URI, regardless of input type
-     *
-     * @param uri   Original URI (used to extract authority)
-     * @param docID Root document ID (e.g., "primary:", "home:") also the first part of the
-     *              documentID
-     * @return Root URI in tree format for directory access
-     */
-    public static Uri revertPathToRoot(final Uri uri, final String docID) {
-        final String authority = uri.getAuthority();
-        return DocumentsContract.buildTreeDocumentUri(authority, docID);
+        return false;
     }
 
     public static boolean isEditable(Context context, Uri uri) {
@@ -247,8 +96,6 @@ public class UriUtils {
                 && (flags & DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0;
         }
     }
-
-    // Adopted from androidx.documentfile.provider.DocumentsContractApi19
 
     @Nullable
     private static String getRawType(Context context, Uri self) {
@@ -311,22 +158,163 @@ public class UriUtils {
     }
 
     /**
-     * Checks if a uri is writeable
+     * Over writes a document uri with a new content.
      *
-     * @param uri     the uri to check is writeable
-     * @param context the context used to open the uri
+     * @param uri  the uri to write
+     * @param data the content to write to the uri
+     * @throws IOException           in case of an I/O error
+     * @throws FileNotFoundException
      */
-    public boolean canWrite(Uri uri, Context context) {
+    public static void overWriteDocument(final Context context, final Uri uri,
+        final String data) throws IOException {
         try {
-            OutputStream os = context
-                .getContentResolver()
-                .openOutputStream(uri, "wa");
-            if (os != null) {
-                os.close();
-                return true;
-            }
-        } catch (Exception ignored) {
+            ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "w");
+            var fos = new FileOutputStream(pfd.getFileDescriptor());
+            fos.write(data.getBytes());
+            fos.close();
+            pfd.close();
+            ILog.info(TAG, "File saved successfully");
+        } catch (Exception e) {
+            throw new IOException(e.getMessage(), e.getCause());
         }
-        return false;
+    }
+
+    public static String readDocumentToString(Context context, Uri uri) throws IOException {
+        return readDocumentToString(context, uri, Constants.DEFAULT_CHAR_SET);
+    }
+
+    /**
+     * Reads the contents of a uri into a String. The uri is always closed.
+     *
+     * @param uri         the uri to read, must not be {@code null}
+     * @param charsetName the name of the requested charset, {@code null} means platform default
+     * @return the uri contents, never {@code null}
+     * @throws NullPointerException if uri is {@code null}.
+     * @throws IOException          if an I/O error occurs, including when the uri does not
+     *                              exist, is a
+     *                              directory rather than a regular uri, or for some other reason
+     *                              why the uri cannot be opened
+     *                              for reading.
+     */
+    public static String readDocumentToString(Context context, Uri uri,
+        final Charset charset) throws IOException {
+        return IOUtils.toString(() -> getInputStream(context, uri), Charsets.toCharset(charset));
+    }
+
+    public static InputStream getInputStream(Context context, Uri uri) throws IOException {
+        try {
+            return context.getContentResolver().openInputStream(uri);
+        } catch (FileNotFoundException e) {
+            throw new IOException(e.getMessage(), e.getCause());
+        }
+    }
+
+    public static String readDocumentToString(Context context, Uri uri,
+        final String charsetName) throws IOException {
+        return readDocumentToString(context, uri, Charsets.toCharset(charsetName));
+    }
+
+    /**
+     * Maps an existing directory {@code Uri} to its root directory
+     *
+     * <p>Root access always requires a tree URI, regardless of input type
+     *
+     * @param uri   Original URI (used to extract authority)
+     * @param docID Root document ID (e.g., "primary:", "home:") also the first part of the
+     *              documentID
+     * @return Root URI in tree format for directory access
+     */
+    public static Uri revertPathToRoot(final Uri uri, final String docID) {
+        final String authority = uri.getAuthority();
+        return DocumentsContract.buildTreeDocumentUri(authority, docID);
+    }
+
+    public static void takePersistableUriPermission(Context context, Uri uri, int flags) {
+        try {
+            context.getContentResolver().takePersistableUriPermission(uri, flags);
+            toast(context, "Permission granted for selected resource");
+        } catch (Exception e) {
+            toast(context, "Error taking permission: for selected resource" + e.getMessage());
+        }
+    }
+
+    private static void toast(Context context, String msg) {
+        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+    }
+
+    public static void writeStringToDocument(final Context context, final Uri uri,
+        final String data) throws IOException {
+        writeStringToDocument(context, uri, data, Constants.DEFAULT_CHAR_SET, false);
+    }
+
+    public static void writeStringToDocument(final Context context, final Uri uri,
+        final String data, final String charsetName) throws IOException {
+        writeStringToDocument(context, uri, data, Charsets.toCharset(charsetName), false);
+    }
+
+    // Adopted from androidx.documentfile.provider.DocumentsContractApi19
+
+    public static void writeStringToDocument(final Context context, final Uri uri,
+        final String data, final Charset charset) throws IOException {
+        writeStringToDocument(context, uri, data, charset, false);
+    }
+
+    public static void writeToDocument(final Context context, final Uri uri,
+        final CharSequence data) throws IOException {
+        writeToDocument(context, uri, Objects.toString(data, null), Constants.DEFAULT_CHAR_SET,
+            false);
+    }
+
+    /**
+     * Writes a CharSequence to a uri creating the uri if it does not exist.
+     *
+     * @param uri     the uri to write
+     * @param data    the content to write to the uri
+     * @param charset the charset to use, {@code null} means platform default
+     * @param append  if {@code true}, then the data will be added to the end of the uri rather than
+     *                overwriting
+     * @throws IOException in case of an I/O error
+     */
+    public static void writeToDocument(final Context context, final Uri uri,
+        final CharSequence data, final Charset charset, final boolean append) throws IOException {
+        writeStringToDocument(context, uri, Objects.toString(data, null), charset, append);
+    }
+
+    /**
+     * Writes a String to a uri, creating the uri if it does not exist. The parent directories of
+     * the
+     * uri are created if they do not exist.
+     *
+     * @param uri         the uri to write
+     * @param data        the content to write to the uri
+     * @param charsetName the name of the requested charset, {@code null} means platform default
+     * @param append      if {@code true}, then the String will be added to the end of the uri
+     *                    rather than
+     *                    overwriting
+     * @throws IOException                                  in case of an I/O error
+     * @throws java.nio.charset.UnsupportedCharsetException if the encoding is not supported by
+     *                                                      the VM
+     */
+    public static void writeStringToDocument(final Context context, final Uri uri,
+        final String data, final Charset charset, final boolean append) throws IOException {
+
+        String mode = (append) ? "wa" : " w";
+
+        try (OutputStream out = context.getContentResolver().openOutputStream(uri, mode)) {
+            IOUtils.write(data, out, charset);
+        }
+    }
+
+    public static void writeToDocument(final Context context, final Uri uri,
+        final CharSequence data, final String charsetName) throws IOException {
+        writeToDocument(context, uri, Objects.toString(data, null),
+            Charsets.toCharset(charsetName), false);
+    }
+
+    public static void writeToDocument(final Context context, final Uri uri,
+        final CharSequence data, final String charsetName,
+        final boolean append) throws IOException {
+        writeToDocument(context, uri, Objects.toString(data, null),
+            Charsets.toCharset(charsetName), append);
     }
 }

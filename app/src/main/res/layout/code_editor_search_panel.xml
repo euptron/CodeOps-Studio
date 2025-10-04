@@ -39,17 +39,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
+    <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/search_input"
-        style="@style/Widget.AppCompat.EditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:autofillHints="name"
         android:hint="@string/search"
-        android:imeOptions="actionSearch"
+        android:importantForAutofill="no"
         android:inputType="text"
         android:maxLines="1"
         android:minHeight="@dimen/dimen48dp"
+        android:textSize="@dimen/dimen16sp"
         app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toStartOf="@id/more_options"
         app:layout_constraintStart_toStartOf="parent"
@@ -62,42 +61,51 @@
         android:layout_height="@dimen/dimen48dp"
         android:background="?selectableItemBackgroundBorderless"
         android:contentDescription="@string/more"
+        android:scaleType="centerInside"
         android:src="@drawable/ic_dots_vertical_24"
         app:layout_constraintBottom_toBottomOf="@id/search_input"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/search_input" />
 
-    <com.google.android.material.button.MaterialButton
+
+    <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/prev"
-        style="@style/Widget.Material3.Button.TextButton.Icon"
         android:layout_width="@dimen/dimen48dp"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/dimen48dp"
+        android:background="@android:color/transparent"
         android:contentDescription="@string/previous_occurrence"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_round_arrow_upward"
         android:tooltipText="@string/previous_occurrence"
-        app:icon="@drawable/ic_round_arrow_upward"
         app:layout_constraintEnd_toStartOf="@id/next"
         app:layout_constraintHorizontal_weight="0.10"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/search_input" />
 
-    <com.google.android.material.button.MaterialButton
+    <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/next"
-        style="@style/Widget.Material3.Button.TextButton.Icon"
         android:layout_width="@dimen/dimen48dp"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/dimen48dp"
+        android:background="@android:color/transparent"
         android:contentDescription="@string/next_occurrence"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_round_arrow_downward"
         android:tooltipText="@string/next_occurrence"
-        app:icon="@drawable/ic_round_arrow_downward"
         app:layout_constraintEnd_toStartOf="@id/replace"
         app:layout_constraintHorizontal_weight="0.10"
         app:layout_constraintStart_toEndOf="@id/prev"
         app:layout_constraintTop_toBottomOf="@id/search_input" />
 
-    <com.google.android.material.button.MaterialButton
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/replace"
-        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/dimen48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:gravity="center"
         android:text="@string/replace"
         android:textAllCaps="true"
         app:layout_constraintEnd_toStartOf="@id/search_result"
@@ -108,10 +116,10 @@
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/search_result"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="@dimen/dimen48dp"
         android:gravity="center"
         android:minWidth="@dimen/dimen48dp"
-        android:textAppearance="?textAppearanceLabelLarge"
+        android:textAppearance="?textAppearanceLabelMedium"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="0.50"

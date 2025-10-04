@@ -79,10 +79,7 @@ public class DefaultFileEncodingDialogPreference extends Preference {
                 notifyChanged();
                 // dialog.cancel();
                 dialog.dismiss();
-            })
-            .setNegativeButton(R.string.close, (d, w) -> d.dismiss())
-            .setCancelable(false)
-            .show();
+            }).setNegativeButton(R.string.close, (d, w) -> d.dismiss()).setCancelable(false).show();
     }
 
     @Override

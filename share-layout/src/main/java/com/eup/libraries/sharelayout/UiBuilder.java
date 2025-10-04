@@ -37,7 +37,7 @@ public class UiBuilder {
     }
 
     public LinearLayout.LayoutParams createLinear(int width, int height, float weight,
-                                                  int gravity) {
+        int gravity) {
         var layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height), weight);
         layoutParams.gravity = gravity;
         return layoutParams;
@@ -51,9 +51,7 @@ public class UiBuilder {
         if (px == 0) {
             return 0;
         }
-        return Math.round(context
-            .getResources()
-            .getDisplayMetrics().density * px);
+        return Math.round(context.getResources().getDisplayMetrics().density * px);
     }
 
     public LinearLayout.LayoutParams createLinear(int width, int height, int gravity) {

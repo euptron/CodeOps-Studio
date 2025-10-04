@@ -68,12 +68,6 @@ public class MainActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private ActivityResultLauncher<String> requestNotificationPermissionLauncherApi33;
 
-    public static String getStoragePermissionName() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? MANAGE_EXTERNAL_STORAGE_PERMISSION
-            : Manifest.permission.READ_EXTERNAL_STORAGE.concat(", ")
-                + Manifest.permission.WRITE_EXTERNAL_STORAGE;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,82 +124,14 @@ public class MainActivity extends AppCompatActivity {
         showMainFragment();
     }
 
-    private void showMainFragment() {
-        if (getSupportFragmentManager().findFragmentByTag(MainFragment.TAG) == null) {
-            getSupportFragmentManager()
-                .beginTransaction()
-                .add(com.eup.codeopsstudio.R.id.fragment_container, MainFragment.newInstance(),
-                    MainFragment.TAG)
-                .commit();
-        }
-    }
-
-    private void showStoragePermissionDeniedDialog(Runnable positiveAction,
-        Runnable negativeAction) {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.storage_permission_denied)
-            .setMessage(getString(R.string.storage_permission_denial_prompt,
-                getString(R.string.app_name)))
-            .setPositiveButton(R.string.storage_permission_request_again, (d, which) -> {
-                if (positiveAction != null) {
-                    positiveAction.run();
-                }
-            })
-            .setNegativeButton(R.string.exit, (d, which) -> {
-                if (negativeAction != null) {
-                    negativeAction.run();
-                }
-            })
-            .setCancelable(false)
-            .show();
-    }
-
-    private void showNotificationSettingsRationale() {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.msg_grant_notification_permission)
-            .setMessage(R.string.msg_request_notification_rationale)
-            .setPositiveButton(R.string.ok_turn_on,
-                (d, which) -> launchDeviceSettingsActivity(Settings.ACTION_APP_NOTIFICATION_SETTINGS))
-            .setNegativeButton(R.string.cancel, null)
-            .setCancelable(false)
-            .show();
-    }
-
-    private void launchDeviceSettingsActivity(String section) {
-        String packageName = getPackageName();
-        ILog.debug(TAG, "Package Name for settings: " + packageName);
-        if (packageName == null || packageName.isEmpty()) {
-            ILog.error(TAG, "Package name is null or empty. Cannot launch settings.");
-            BaseUtil.toastLong("Error: Could not determine package name.");
-            return;
-        }
-
-        try {
-            startActivity(new Intent(section, Uri.fromParts("package", getPackageName(), null)));
-        } catch (ActivityNotFoundException e) {
-            var msg = "Could not open " + section;
-            ILog.error(TAG, msg);
-            BaseUtil.toastLong("Error: " + msg);
-
-            if (!section.equals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)) {
-                launchDeviceSettingsActivity();
+    public void ensureNotificationPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (isNotificationPermissionGranted()) {
+                showNotificationSettingsRationaleIfAllowed();
+            } else {
+                requestNotificationPermission();
             }
         }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-    private void showNotificationPermissionRationale() {
-        new MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.msg_grant_notification_permission)
-            .setMessage(R.string.msg_request_notification_rationale)
-            .setPositiveButton(R.string.ok, (d, which) -> requestNotificationPermission())
-            .setNegativeButton(R.string.cancel, null)
-            .setCancelable(false)
-            .show();
-    }
-
-    public ContextualLifecycleObserver getLifecycleObserver() {
-        return this.lifecycleObserver;
     }
 
     public void ensureStoragePermissionGranted() {
@@ -277,6 +203,16 @@ public class MainActivity extends AppCompatActivity {
         requestStoragePermissionLauncherApi19.launch(permissions);
     }
 
+    public ContextualLifecycleObserver getLifecycleObserver() {
+        return this.lifecycleObserver;
+    }
+
+    public static String getStoragePermissionName() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? MANAGE_EXTERNAL_STORAGE_PERMISSION
+            : Manifest.permission.READ_EXTERNAL_STORAGE.concat(", ")
+                + Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    }
+
     public void openStoragePermissionSettings() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             requestStoragePermissionApi30();
@@ -285,18 +221,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchDeviceSettingsActivity() {
-        launchDeviceSettingsActivity(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-    }
-
-    public void ensureNotificationPermissionGranted() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (isNotificationPermissionGranted()) {
-                showNotificationSettingsRationaleIfAllowed();
-            } else {
-                requestNotificationPermission();
-            }
-        }
+    private boolean areNotificationsAllowed() {
+        NotificationManager notificationManager =
+            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        return notificationManager.areNotificationsEnabled();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -304,6 +232,32 @@ public class MainActivity extends AppCompatActivity {
         int grantStatus = ContextCompat.checkSelfPermission(this,
             Manifest.permission.POST_NOTIFICATIONS);
         return grantStatus == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void launchDeviceSettingsActivity(String section) {
+        String packageName = getPackageName();
+        ILog.debug(TAG, "Package Name for settings: " + packageName);
+        if (packageName == null || packageName.isEmpty()) {
+            ILog.error(TAG, "Package name is null or empty. Cannot launch settings.");
+            BaseUtil.toastLong("Error: Could not determine package name.");
+            return;
+        }
+
+        try {
+            startActivity(new Intent(section, Uri.fromParts("package", getPackageName(), null)));
+        } catch (ActivityNotFoundException e) {
+            var msg = "Could not open " + section;
+            ILog.error(TAG, msg);
+            BaseUtil.toastLong("Error: " + msg);
+
+            if (!section.equals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)) {
+                launchDeviceSettingsActivity();
+            }
+        }
+    }
+
+    private void launchDeviceSettingsActivity() {
+        launchDeviceSettingsActivity(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
@@ -315,6 +269,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void showMainFragment() {
+        if (getSupportFragmentManager().findFragmentByTag(MainFragment.TAG) == null) {
+            getSupportFragmentManager().beginTransaction()
+                                       .add(com.eup.codeopsstudio.R.id.fragment_container,
+                                           MainFragment.newInstance(), MainFragment.TAG)
+                                       .commit();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void showNotificationPermissionRationale() {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.msg_grant_notification_permission)
+                                            .setMessage(R.string.msg_request_notification_rationale)
+                                            .setPositiveButton(R.string.ok,
+                                                (d, which) -> requestNotificationPermission())
+                                            .setNegativeButton(R.string.cancel, null)
+                                            .setCancelable(false).show();
+    }
+
+    private void showNotificationSettingsRationale() {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.msg_grant_notification_permission)
+                                            .setMessage(R.string.msg_request_notification_rationale)
+                                            .setPositiveButton(R.string.ok_turn_on,
+                                                (d, which) -> launchDeviceSettingsActivity(Settings.ACTION_APP_NOTIFICATION_SETTINGS))
+                                            .setNegativeButton(R.string.cancel, null)
+                                            .setCancelable(false).show();
+    }
+
     private void showNotificationSettingsRationaleIfAllowed() {
         if (areNotificationsAllowed()) {
             ILog.debug(TAG, "Notifications allowed");
@@ -323,9 +305,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean areNotificationsAllowed() {
-        NotificationManager notificationManager =
-            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        return notificationManager.areNotificationsEnabled();
+    private void showStoragePermissionDeniedDialog(Runnable positiveAction,
+        Runnable negativeAction) {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.storage_permission_denied)
+                                            .setMessage(getString(R.string.storage_permission_denial_prompt, getString(R.string.app_name)))
+                                            .setPositiveButton(R.string.storage_permission_request_again, (d, which) -> {
+                                                if (positiveAction != null) {
+                                                    positiveAction.run();
+                                                }
+                                            }).setNegativeButton(R.string.exit, (d, which) -> {
+                                                if (negativeAction != null) {
+                                                    negativeAction.run();
+                                                }
+                                            }).setCancelable(false).show();
     }
 }

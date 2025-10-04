@@ -46,53 +46,6 @@ import java.util.UUID;
 public interface PaneFactory {
     String TAG = PaneFactory.class.getSimpleName();
 
-    @Nullable
-    Context getContext();
-
-    @Nullable
-    LifecycleOwner getLifecycleOwner();
-
-    /**
-     * Restores pane states from a pre-loaded list.
-     *
-     * @param panes Existing panes to hydrate (must not be null).
-     */
-    void restorePanes(@NonNull List<Pane> panes);
-
-    /**
-     * Loads panes from JSON-formatted data.
-     *
-     * @return Non-null list of panes (possibly empty).
-     */
-    @NonNull
-    List<Pane> loadPanes(@NonNull String json);
-
-    /**
-     * Casts a pane to a specific type or throws.
-     *
-     * @throws ClassCastException If the pane is of the wrong type.
-     */
-    @NonNull
-    default <T> T requirePane(@NonNull Pane pane, @NonNull Class<T> clazz) {
-        T instance = getPane(pane, clazz);
-        if (instance == null) {
-            throw new ClassCastException("Expected " + clazz.getSimpleName() + ", got " + pane
-                .getClass()
-                .getSimpleName());
-        }
-        return instance;
-    }
-
-    /**
-     * Safely casts a pane to a specific type.
-     *
-     * @return Null if the pane is not an instance of the target class.
-     */
-    @Nullable
-    default <T> T getPane(@NonNull Pane pane, @NonNull Class<T> clazz) {
-        return clazz.isInstance(pane) ? clazz.cast(pane) : null;
-    }
-
     /**
      * Creates a pane from JSON data.
      *
@@ -113,9 +66,10 @@ public interface PaneFactory {
      * Creates a pane from a structured argument map.
      *
      * @param arguments Non-null map of key-value pairs.
+     * @throws UnsupportedOperationException If an unsupported pane is passed in arguments.
      */
     @NonNull
-    Pane createPane(@NonNull Map<String, Object> arguments);
+    Pane createPane(@NonNull Map<String, Object> arguments) throws UnsupportedOperationException;
 
     /**
      * Returns an immutable view of default pane arguments.
@@ -123,9 +77,48 @@ public interface PaneFactory {
     @NonNull
     Map<String, Object> getArguments();
 
+    @Nullable
+    Context getContext();
+
     /**
      * Extracts a pane's UUID from JSON (null if missing/invalid).
      */
     @Nullable
     UUID getID(@NonNull JSONObject json);
+
+    @Nullable
+    LifecycleOwner getLifecycleOwner();
+
+    /**
+     * Loads panes from JSON-formatted data.
+     *
+     * @return Non-null list of panes (possibly empty).
+     */
+    @NonNull
+    List<Pane> loadPanes(@NonNull String json);
+
+    /**
+     * Casts a pane to a specific type or throws.
+     *
+     * @throws ClassCastException If the pane is of the wrong type.
+     */
+    @NonNull
+    default <T> T requirePane(@NonNull Pane pane, @NonNull Class<T> clazz) {
+        T instance = getPane(pane, clazz);
+        if (instance == null) {
+            throw new ClassCastException(
+                "Expected " + clazz.getSimpleName() + ", got " + pane.getClass().getSimpleName());
+        }
+        return instance;
+    }
+
+    /**
+     * Safely casts a pane to a specific type.
+     *
+     * @return Null if the pane is not an instance of the target class.
+     */
+    @Nullable
+    static <T> T getPane(@NonNull Pane pane, @NonNull Class<T> clazz) {
+        return clazz.isInstance(pane) ? clazz.cast(pane) : null;
+    }
 }

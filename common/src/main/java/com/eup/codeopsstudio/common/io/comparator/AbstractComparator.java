@@ -38,6 +38,12 @@ import java.util.List;
  */
 public abstract class AbstractComparator<T> implements Comparator<T> {
 
+    @NonNull
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
+
     public T[] sort(final T[] types) {
         if (types != null) {
             Arrays.sort(types, this);
@@ -50,11 +56,5 @@ public abstract class AbstractComparator<T> implements Comparator<T> {
             types.sort(this);
         }
         return types;
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
     }
 }

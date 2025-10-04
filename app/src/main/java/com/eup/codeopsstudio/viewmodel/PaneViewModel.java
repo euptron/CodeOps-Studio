@@ -56,15 +56,6 @@ public class PaneViewModel extends ViewModel {
         new MutableLiveData<>(INVALID_CURRENT_RAP);
 
     /**
-     * Set the list of {@see RandomAccessPane} (RandomAccessPanes) to be opened in the editor.
-     *
-     * @param randomAccessPanes The list of random access panes to open
-     */
-    public void setRandomAccessPane(@NonNull List<RandomAccessPane> randomAccessPanes) {
-        rapsLiveData.setValue(randomAccessPanes);
-    }
-
-    /**
      * Adds a new {@code RandomAccessPane} to the editor
      *
      * @param randomAccessPane The {@see RandomAccessPane} representation of a {@link Pane}
@@ -72,22 +63,7 @@ public class PaneViewModel extends ViewModel {
      */
     public void addRandomAccessPane(@NonNull RandomAccessPane randomAccessPane) {
         final List<RandomAccessPane> randomAccessPanes = rapsLiveData.getValue();
-        Objects
-            .requireNonNull(randomAccessPanes)
-            .add(randomAccessPane);
-        rapsLiveData.setValue(randomAccessPanes);
-    }
-
-    /**
-     * Removes a {@code RandomAccessPane} reprsentation of a pane from the editor
-     *
-     * @param rap The RandomAccessPane to remove
-     */
-    public void removeRandomAccessPane(@NonNull RandomAccessPane randomAccessPane) {
-        final List<RandomAccessPane> randomAccessPanes = rapsLiveData.getValue();
-        Objects
-            .requireNonNull(randomAccessPanes)
-            .remove(randomAccessPane);
+        Objects.requireNonNull(randomAccessPanes).add(randomAccessPane);
         rapsLiveData.setValue(randomAccessPanes);
     }
 
@@ -97,49 +73,6 @@ public class PaneViewModel extends ViewModel {
     public void clearRandomAccessPanes() {
         rapsLiveData.setValue(new LinkedList<>());
         setCurrentRap(INVALID_CURRENT_RAP);
-    }
-
-    @VisibleForTesting
-    public LiveData<List<RandomAccessPane>> getRapsLiveData() {
-        return rapsLiveData;
-    }
-
-    @NonNull
-    public List<RandomAccessPane> getRaps() {
-        return rapsLiveData.getValue() == null ? new LinkedList<>() : rapsLiveData.getValue();
-    }
-
-    /**
-     * Updates a particular {@code RandomAccessPane} in the #rrapsLiveData List
-     *
-     * @param updateRandomAccessPane The {@code RandomAccessPane} containing an update
-     */
-    public void updateRap(RandomAccessPane updateRandomAccessPane) {
-        List<RandomAccessPane> randomAccessPaneList = rapsLiveData.getValue();
-        if (randomAccessPaneList != null) {
-            for (int i = 0; i < randomAccessPaneList.size(); i++) {
-                RandomAccessPane randomAccessPane = randomAccessPaneList.get(i);
-                if (randomAccessPane
-                    .getArguments()
-                    .equals(updateRandomAccessPane.getArguments())) {
-                    randomAccessPaneList.set(i, updateRandomAccessPane);
-                    rapsLiveData.setValue(randomAccessPaneList);
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * Gets the position of the currently selected opened {@link Pane} {@code RandomAccessPane}
-     *
-     * @return The selected RandomAccessPane position
-     */
-    public int getCurrentRapPosition() {
-        if (this.currentRandomAccessPane.getValue() == null) {
-            return -1;
-        }
-        return this.currentRandomAccessPane.getValue().first;
     }
 
     /**
@@ -164,15 +97,25 @@ public class PaneViewModel extends ViewModel {
     }
 
     /**
-     * Sets the Current {@code Pane} RandomAccessPane at the selected tab position
+     * Gets the position of the currently selected opened {@link Pane} {@code RandomAccessPane}
      *
-     * @param position         The index or position of the {@code Pane} RandomAccessPane
-     * @param randomAccessPane The {@link RandomAccessPane} associated with the selected tab
-     *                         position
+     * @return The selected RandomAccessPane position
      */
-    public void setCurrentRap(final int position,
-                              @Nullable final RandomAccessPane randomAccessPane) {
-        setCurrentRap(Pair.create(position, randomAccessPane));
+    public int getCurrentRapPosition() {
+        if (this.currentRandomAccessPane.getValue() == null) {
+            return -1;
+        }
+        return this.currentRandomAccessPane.getValue().first;
+    }
+
+    @NonNull
+    public List<RandomAccessPane> getRaps() {
+        return rapsLiveData.getValue() == null ? new LinkedList<>() : rapsLiveData.getValue();
+    }
+
+    @VisibleForTesting
+    public LiveData<List<RandomAccessPane>> getRapsLiveData() {
+        return rapsLiveData;
     }
 
     /**
@@ -181,8 +124,8 @@ public class PaneViewModel extends ViewModel {
      * @param lifecycleOwner The lifecycle owner.
      * @param observer       The observer.
      */
-    public void observeCurrentRap(LifecycleOwner lifecycleOwner, Observer<Pair<Integer,
-        RandomAccessPane>> observer) {
+    public void observeCurrentRap(LifecycleOwner lifecycleOwner,
+        Observer<Pair<Integer, RandomAccessPane>> observer) {
         this.currentRandomAccessPane.observe(lifecycleOwner, observer);
     }
 
@@ -193,7 +136,58 @@ public class PaneViewModel extends ViewModel {
      * @param observer       The observer.
      */
     public void observerRaps(LifecycleOwner lifecycleOwner,
-                             Observer<List<RandomAccessPane>> observer) {
+        Observer<List<RandomAccessPane>> observer) {
         this.rapsLiveData.observe(lifecycleOwner, observer);
+    }
+
+    /**
+     * Removes a {@code RandomAccessPane} reprsentation of a pane from the editor
+     *
+     * @param rap The RandomAccessPane to remove
+     */
+    public void removeRandomAccessPane(@NonNull RandomAccessPane randomAccessPane) {
+        final List<RandomAccessPane> randomAccessPanes = rapsLiveData.getValue();
+        Objects.requireNonNull(randomAccessPanes).remove(randomAccessPane);
+        rapsLiveData.setValue(randomAccessPanes);
+    }
+
+    /**
+     * Sets the Current {@code Pane} RandomAccessPane at the selected tab position
+     *
+     * @param position         The index or position of the {@code Pane} RandomAccessPane
+     * @param randomAccessPane The {@link RandomAccessPane} associated with the selected tab
+     *                         position
+     */
+    public void setCurrentRap(final int position,
+        @Nullable final RandomAccessPane randomAccessPane) {
+        setCurrentRap(Pair.create(position, randomAccessPane));
+    }
+
+    /**
+     * Set the list of {@see RandomAccessPane} (RandomAccessPanes) to be opened in the editor.
+     *
+     * @param randomAccessPanes The list of random access panes to open
+     */
+    public void setRandomAccessPane(@NonNull List<RandomAccessPane> randomAccessPanes) {
+        rapsLiveData.setValue(randomAccessPanes);
+    }
+
+    /**
+     * Updates a particular {@code RandomAccessPane} in the #rrapsLiveData List
+     *
+     * @param updateRandomAccessPane The {@code RandomAccessPane} containing an update
+     */
+    public void updateRap(RandomAccessPane updateRandomAccessPane) {
+        List<RandomAccessPane> randomAccessPaneList = rapsLiveData.getValue();
+        if (randomAccessPaneList != null) {
+            for (int i = 0; i < randomAccessPaneList.size(); i++) {
+                RandomAccessPane randomAccessPane = randomAccessPaneList.get(i);
+                if (randomAccessPane.getArguments().equals(updateRandomAccessPane.getArguments())) {
+                    randomAccessPaneList.set(i, updateRandomAccessPane);
+                    rapsLiveData.setValue(randomAccessPaneList);
+                    break;
+                }
+            }
+        }
     }
 }

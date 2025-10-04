@@ -35,11 +35,9 @@ import com.eup.codeopsstudio.ui.editor.BaseFragment;
  * @see MainFragment
  * @see BaseFragment
  */
-public class PaneEvent extends BaseEvent {
-
-    public final Pane pane;
+public class PaneEvent extends BaseEvent<Pane> {
 
     public PaneEvent(Pane pane) {
-        this.pane = pane;
+        super(pane);
     }
 }

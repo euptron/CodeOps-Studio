@@ -49,8 +49,8 @@ public class AllowChildInterceptDrawerLayout extends DrawerLayout {
         super(context, attrs);
     }
 
-    public AllowChildInterceptDrawerLayout(@NonNull Context context, @Nullable AttributeSet attrs
-        , int defStyleAttr) {
+    public AllowChildInterceptDrawerLayout(@NonNull Context context, @Nullable AttributeSet attrs,
+        int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

@@ -73,9 +73,7 @@ public class BreadCrumbAdapter extends RecyclerView.Adapter<BreadCrumbAdapter.Vi
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        var crumb = mDiffer
-            .getCurrentList()
-            .get(position);
+        var crumb = mDiffer.getCurrentList().get(position);
         holder.bind(crumb);
 
         if (position == getItemCount() - 1) {
@@ -101,9 +99,11 @@ public class BreadCrumbAdapter extends RecyclerView.Adapter<BreadCrumbAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return mDiffer
-            .getCurrentList()
-            .size();
+        return mDiffer.getCurrentList().size();
+    }
+
+    public void setColorScheme(EditorColorScheme colorScheme) {
+        this.colorScheme = colorScheme;
     }
 
     /**
@@ -127,10 +127,6 @@ public class BreadCrumbAdapter extends RecyclerView.Adapter<BreadCrumbAdapter.Vi
     public void submitList(List<BreadCrumb> newItems) {
         mDiffer.submitList(newItems);
         notifyDataSetChanged();
-    }
-
-    public void setColorScheme(EditorColorScheme colorScheme) {
-        this.colorScheme = colorScheme;
     }
 
     /**
@@ -179,9 +175,7 @@ public class BreadCrumbAdapter extends RecyclerView.Adapter<BreadCrumbAdapter.Vi
         }
 
         public void bind(BreadCrumb crumb) {
-            if (crumb
-                .getFile()
-                .isFile()) {
+            if (crumb.getFile().isFile()) {
                 crumb_icon.setVisibility(View.INVISIBLE);
             } else {
                 crumb_icon.setVisibility(View.VISIBLE);

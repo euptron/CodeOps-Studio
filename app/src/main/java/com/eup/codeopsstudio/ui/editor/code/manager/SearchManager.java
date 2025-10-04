@@ -76,16 +76,10 @@ public class SearchManager {
         searchMenu.setOnMenuItemClickListener(this::onMenuItemClick);
 
         if (selectedItem != -1) {
-            searchMenu
-                .getMenu()
-                .findItem(selectedItem)
-                .setChecked(true);
+            searchMenu.getMenu().findItem(selectedItem).setChecked(true);
         }
         if (isMatchCaseSelected != -1) {
-            searchMenu
-                .getMenu()
-                .findItem(isMatchCaseSelected)
-                .setChecked(true);
+            searchMenu.getMenu().findItem(isMatchCaseSelected).setChecked(true);
         }
         searchMenu.show();
     }
@@ -107,24 +101,19 @@ public class SearchManager {
         } else if (itemId == matchCaseId) {
             isMatchCaseSelected = isChecked ? -1 : matchCaseId;
         } else if (itemId == closeId) {
-            binding.editor
-                .getSearcher()
-                .stopSearch();
+            binding.editor.getSearcher().stopSearch();
             openSearchPanel(false);
         }
 
-        boolean ignoreCase = !searchMenu
-            .getMenu()
-            .findItem(com.eup.codeopsstudio.R.id.search_option_match_case)
-            .isChecked();
-        boolean regex = searchMenu
-            .getMenu()
-            .findItem(com.eup.codeopsstudio.R.id.search_option_regex)
-            .isChecked();
-        boolean wholeWord = searchMenu
-            .getMenu()
-            .findItem(com.eup.codeopsstudio.R.id.search_option_whole_word)
-            .isChecked();
+        boolean ignoreCase = !searchMenu.getMenu()
+                                        .findItem(com.eup.codeopsstudio.R.id.search_option_match_case)
+                                        .isChecked();
+        boolean regex = searchMenu.getMenu()
+                                  .findItem(com.eup.codeopsstudio.R.id.search_option_regex)
+                                  .isChecked();
+        boolean wholeWord = searchMenu.getMenu()
+                                      .findItem(com.eup.codeopsstudio.R.id.search_option_whole_word)
+                                      .isChecked();
 
         int searchType = EditorSearcher.SearchOptions.TYPE_NORMAL;
         if (regex) {
@@ -147,21 +136,28 @@ public class SearchManager {
 
         if (opened) {
             isStoppingSearch = false;
-            binding.editor
-                .getSearcher()
-                .stopSearch();
-            binding.searchPanel
-                .getRoot()
-                .setVisibility(View.VISIBLE);
+            binding.editor.getSearcher().stopSearch();
+            binding.searchPanel.getRoot().setVisibility(View.VISIBLE);
             BaseUtil.showSoftInput(binding.searchPanel.searchInput);
         } else {
             isStoppingSearch = true;
-            binding.editor
-                .getSearcher()
-                .stopSearch();
-            binding.searchPanel
-                .getRoot()
-                .setVisibility(View.GONE);
+            binding.editor.getSearcher().stopSearch();
+            binding.searchPanel.getRoot().setVisibility(View.GONE);
+        }
+    }
+
+    private void commitSearch() {
+        if (isStoppingSearch) return;
+
+        var query = binding.searchPanel.searchInput.getEditableText();
+        if (!query.toString().isEmpty()) {
+            try {
+                binding.editor.getSearcher().search(query.toString(), searchOptions);
+            } catch (PatternSyntaxException e) {
+                ILog.error(TAG, "Failed to commit search " + e.getMessage(), e);
+            }
+        } else {
+            binding.editor.getSearcher().stopSearch();
         }
     }
 
@@ -174,10 +170,7 @@ public class SearchManager {
         builder.setNegativeButton(android.R.string.cancel, null);
         builder.setPositiveButton(R.string.replace, (dialog, which) -> {
             if (inflate.tilName.getEditText() != null) {
-                binding.editor.replaceSearch(inflate.tilName
-                    .getEditText()
-                    .getText()
-                    .toString());
+                binding.editor.replaceSearch(inflate.tilName.getEditText().getText().toString());
             } else {
                 ILog.error(TAG, "Text replacement failed, text to replace is empty");
             }
@@ -185,10 +178,9 @@ public class SearchManager {
 
         builder.setNeutralButton(R.string.replaceAll, (dialog, which) -> {
             if (inflate.tilName.getEditText() != null) {
-                binding.editor.replaceAllSearch(inflate.tilName
-                    .getEditText()
-                    .getText()
-                    .toString(), () -> ILog.info(TAG, "Text replacement successful"));
+                binding.editor.replaceAllSearch(inflate.tilName.getEditText().getText()
+                                                               .toString(), () -> ILog.info(TAG,
+                    "Text replacement successful"));
             } else {
                 ILog.error(TAG, "Text replacement failed, text to replace is empty");
             }
@@ -206,32 +198,8 @@ public class SearchManager {
         });
     }
 
-    private void commitSearch() {
-        if (isStoppingSearch) return;
-
-        var query = binding.searchPanel.searchInput.getEditableText();
-        if (!query
-            .toString()
-            .isEmpty()) {
-            try {
-                binding.editor
-                    .getSearcher()
-                    .search(query.toString(), searchOptions);
-            } catch (PatternSyntaxException e) {
-                ILog.error(TAG, "Failed to commit search " + e.getMessage(), e);
-            }
-        } else {
-            binding.editor
-                .getSearcher()
-                .stopSearch();
-        }
-    }
-
     public void updatePositionText() {
-        if (!binding.searchPanel.searchInput
-            .getEditableText()
-            .toString()
-            .isEmpty()) {
+        if (!binding.searchPanel.searchInput.getEditableText().toString().isEmpty()) {
             binding.searchPanel.searchResult.setText(binding.editor.getMatchingSearchResult(false));
         } else {
             binding.searchPanel.searchResult.setText(binding.editor.getSelectedText(false));

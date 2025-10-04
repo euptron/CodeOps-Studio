@@ -29,15 +29,15 @@ public interface GitTask<V> extends Callable<V> {
     @Override
     V call() throws Exception;
 
-    boolean isTaskSuccessful();
-
     void cancel();
-
-    boolean isCancelled();
 
     String getTaskName();
 
     TaskType getTaskType();
+
+    boolean isCancelled();
+
+    boolean isTaskSuccessful();
 
     enum TaskType {
         CLONE,

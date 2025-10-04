@@ -66,6 +66,21 @@ public final class TrieNode<T> {
     }
 
     /**
+     * Finds a node in the trie with the specified data.
+     *
+     * @param key The data to find.
+     * @return The node containing the specified data, or null if not found.
+     */
+    public TrieNode<T> findNode(T key) {
+        if (data != null && data.equals(key)) return this;
+        for (TrieNode<T> child : children.values()) {
+            TrieNode<T> found = child.findNode(key);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /**
      * Finds or adds a child node with the specified key.
      *
      * @param word The key of the child node to find or add.
@@ -91,33 +106,6 @@ public final class TrieNode<T> {
     }
 
     /**
-     * Returns the number of direct children of this node.
-     *
-     * @return The number of direct children.
-     */
-    public int size() {
-        return children.size();
-    }
-
-    /**
-     * Returns the parent node of this node.
-     *
-     * @return The parent node, or null if this is the root node.
-     */
-    public TrieNode<T> getParent() {
-        return parent;
-    }
-
-    /**
-     * Returns the key associated with this node.
-     *
-     * @return The key of this node.
-     */
-    public String getKey() {
-        return key;
-    }
-
-    /**
      * Returns the data associated with this node.
      *
      * @return The data of this node, or null if no data is set.
@@ -136,18 +124,12 @@ public final class TrieNode<T> {
     }
 
     /**
-     * Finds a node in the trie with the specified data.
+     * Returns the key associated with this node.
      *
-     * @param key The data to find.
-     * @return The node containing the specified data, or null if not found.
+     * @return The key of this node.
      */
-    public TrieNode<T> findNode(T key) {
-        if (data != null && data.equals(key)) return this;
-        for (TrieNode<T> child : children.values()) {
-            TrieNode<T> found = child.findNode(key);
-            if (found != null) return found;
-        }
-        return null;
+    public String getKey() {
+        return key;
     }
 
     /**
@@ -157,5 +139,23 @@ public final class TrieNode<T> {
      */
     public int getNestedChildrenCount() {
         return nestedChildrenCount;
+    }
+
+    /**
+     * Returns the parent node of this node.
+     *
+     * @return The parent node, or null if this is the root node.
+     */
+    public TrieNode<T> getParent() {
+        return parent;
+    }
+
+    /**
+     * Returns the number of direct children of this node.
+     *
+     * @return The number of direct children.
+     */
+    public int size() {
+        return children.size();
     }
 }

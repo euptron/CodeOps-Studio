@@ -15,9 +15,9 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.eup.codeopsstudio.MainActivity;
+import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
-import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.service.fcm.FCMWorker;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -63,17 +63,12 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         ILog.debug(TAG, "From: " + remoteMessage.getFrom());
 
-        if (!remoteMessage
-            .getData()
-            .isEmpty()) {
+        if (!remoteMessage.getData().isEmpty()) {
             ILog.debug(TAG, "Message data payload: " + remoteMessage.getData());
 
             // Example: Check for a specific key in the data payload
-            boolean needsLongRunningTask = remoteMessage
-                .getData()
-                .containsKey("long_task") && "true".equalsIgnoreCase(remoteMessage
-                .getData()
-                .get("long_task"));
+            boolean needsLongRunningTask = remoteMessage.getData().containsKey("long_task")
+                && "true".equalsIgnoreCase(remoteMessage.getData().get("long_task"));
             if (needsLongRunningTask) {
                 scheduleJob(remoteMessage.getData());
             } else {
@@ -83,32 +78,21 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            ILog.debug(TAG, "Message Notification Body: " + remoteMessage
-                .getNotification()
-                .getBody());
-            String notificationTitle = remoteMessage
-                .getNotification()
-                .getTitle();
-            String notificationBody = remoteMessage
-                .getNotification()
-                .getBody();
+            ILog.debug(TAG,
+                "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            String notificationTitle = remoteMessage.getNotification().getTitle();
+            String notificationBody = remoteMessage.getNotification().getBody();
 
             // If the app is in the foreground, the system won't show the notification
             // automatically.
             // You might want to display your own custom notification here.
             // This is also where you'd handle creating a notification from a data-only message.
             sendNotification(notificationTitle, notificationBody, remoteMessage.getData());
-        } else if (!remoteMessage
-            .getData()
-            .isEmpty()) {
+        } else if (!remoteMessage.getData().isEmpty()) {
             // If it's a data-only message and you want to create a notification:
             // Extract title and body from data payload if they exist
-            String title = remoteMessage
-                .getData()
-                .getOrDefault("title", "New Message");
-            String body = remoteMessage
-                .getData()
-                .getOrDefault("body", "You have a new message.");
+            String title = remoteMessage.getData().getOrDefault("title", "New Message");
+            String body = remoteMessage.getData().getOrDefault("body", "You have a new message.");
             sendNotification(title, body, remoteMessage.getData());
         }
 
@@ -182,10 +166,7 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
         OneTimeWorkRequest.Builder builder = new OneTimeWorkRequest.Builder(FCMWorker.class);
         builder.setInputData(dataBuilder.build());
         OneTimeWorkRequest request = builder.build();
-        WorkManager
-            .getInstance(this)
-            .beginWith(request)
-            .enqueue();
+        WorkManager.getInstance(this).beginWith(request).enqueue();
     }
 
     private void sendNotification(String messageTitle, String messageBody,
@@ -202,12 +183,10 @@ public class BackgroundMessagingService extends FirebaseMessagingService {
         String channelId = getString(R.string.cloud_messaging_notification_channel_id);
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,
-            channelId).setSmallIcon(com.eup.codeopsstudio.res.R.drawable.ic_stat_name)
-                      .setContentTitle(messageTitle)
-                      .setContentText(messageBody)
-                      .setAutoCancel(true)
-                      .setSound(defaultSoundUri)
-                      .setContentIntent(pendingIntent);
+            channelId)
+            .setSmallIcon(com.eup.codeopsstudio.res.R.drawable.ic_stat_name)
+            .setContentTitle(messageTitle).setContentText(messageBody).setAutoCancel(true)
+            .setSound(defaultSoundUri).setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
             (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

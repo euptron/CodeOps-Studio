@@ -77,7 +77,7 @@ public class DeviceInfo {
 
     public DeviceInfo(@NonNull Context context) {
         Objects.requireNonNull(context, "Context must not be null");
-        
+
         this.appPackageName    = definite(context.getPackageName());
         this.appVersionCode    = definite(Wizard.getAppVersionCode(context));
         this.appVersionCodeInt = Wizard.getAppVersionCodeInteger(context);
@@ -101,11 +101,6 @@ public class DeviceInfo {
     }
 
     @NonNull
-    public String getAppVersionName() {
-        return this.appVersionName;
-    }
-
-    @NonNull
     public String getAppPackageName() {
         return this.appPackageName;
     }
@@ -120,23 +115,8 @@ public class DeviceInfo {
     }
 
     @NonNull
-    public String getModel() {
-        return this.model;
-    }
-
-    @NonNull
-    public String getSdkVersion() {
-        return this.sdkVersion;
-    }
-
-    @NonNull
-    public String getBuildID() {
-        return this.buildID;
-    }
-
-    @NonNull
-    public String getRelease() {
-        return this.release;
+    public String getAppVersionName() {
+        return this.appVersionName;
     }
 
     @NonNull
@@ -150,8 +130,8 @@ public class DeviceInfo {
     }
 
     @NonNull
-    public String getCpuArchitecture() {
-        return this.cpuArchitecture;
+    public String getBuildID() {
+        return this.buildID;
     }
 
     @NonNull
@@ -160,8 +140,18 @@ public class DeviceInfo {
     }
 
     @NonNull
+    public String getCpuArchitecture() {
+        return this.cpuArchitecture;
+    }
+
+    @NonNull
     public Locale getLocale() {
         return this.locale;
+    }
+
+    @NonNull
+    public String getLocaleCountry() {
+        return this.localeCountry;
     }
 
     @NonNull
@@ -170,7 +160,17 @@ public class DeviceInfo {
     }
 
     @NonNull
-    public String getLocaleCountry() {
-        return this.localeCountry;
+    public String getModel() {
+        return this.model;
+    }
+
+    @NonNull
+    public String getRelease() {
+        return this.release;
+    }
+
+    @NonNull
+    public String getSdkVersion() {
+        return this.sdkVersion;
     }
 }

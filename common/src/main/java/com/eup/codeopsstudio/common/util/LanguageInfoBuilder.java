@@ -39,16 +39,13 @@ public class LanguageInfoBuilder {
     private String grammar, name, scopeName, languageConfiguration;
     // configuration
     private HashMap<String, Object> languages = new HashMap<>();
+
     public LanguageInfoBuilder(String grammar, String name, String scopeName,
         String languageConfiguration) {
         this.grammar               = grammar;
         this.name                  = name;
         this.scopeName             = scopeName;
         this.languageConfiguration = languageConfiguration;
-    }
-
-    public HashMap<String, Object> languages() {
-        return languages;
     }
 
     public String createConfiguration() {
@@ -109,5 +106,9 @@ public class LanguageInfoBuilder {
         innerMap.put("extension", extensionList);
         hashMap.put(languageName, innerMap);
         return new Gson().toJson(hashMap);
+    }
+
+    public HashMap<String, Object> languages() {
+        return languages;
     }
 }

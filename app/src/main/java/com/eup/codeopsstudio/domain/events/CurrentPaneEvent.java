@@ -23,6 +23,8 @@
 
 package com.eup.codeopsstudio.domain.events;
 
+import androidx.core.util.Pair;
+
 import com.eup.codeopsstudio.MainFragment;
 import com.eup.codeopsstudio.common.models.BaseEvent;
 import com.eup.codeopsstudio.pane.Pane;
@@ -35,19 +37,24 @@ import com.eup.codeopsstudio.ui.editor.BaseFragment;
  * @see MainFragment
  * @see BaseFragment
  */
-public class CurrentPaneEvent extends BaseEvent {
-
-    public final int index;
-    public final Pane pane;
+public class CurrentPaneEvent extends BaseEvent<Pair<Integer, Pane>> {
 
     /**
      * Constructs a new pane event.
      *
-     * @param index The index or current position of a pane in it's parent tab-layout
-     * @param pane  The current pane
+     * @param content The content of the event, the first is the
+     *                index or current position of a pane in it's parent
+     *                tab-layout and second is the current pane.
      */
-    public CurrentPaneEvent(int index, Pane pane) {
-        this.index = index;
-        this.pane  = pane;
+    public CurrentPaneEvent(Pair<Integer, Pane> content) {
+        super(content);
+    }
+
+    public int getIndex() {
+        return peekContent().first;
+    }
+
+    public Pane getPane() {
+        return peekContent().second;
     }
 }
