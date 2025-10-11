@@ -117,38 +117,40 @@ public final class PaneContracts {
             this.sharedPreferences = Objects.requireNonNull(sharedPreferences,
                 TAG + " SharedPreferences must not be null");
         }
-
+        
         @Override
         public void publish(@NonNull List<Pane> panes, @NonNull Consumer<Boolean> output) {
             ILog.info(TAG, "Attempting to persist panes");
-
-            AsyncTask.runNonCancelable(() -> {
-                if (panes.isEmpty()) return false;
-
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                Map<String, Object> map = new LinkedTreeMap<>();
+            
+            AsyncTask.runOnUiThread(() -> {
+                if (panes.isEmpty()) {
+                   output.accept(false);
+                   return;
+                }
+                
                 List<Map<String, Object>> listMap = new LinkedList<>();
-
+                
                 for (Pane pane : panes) {
                     if (pane != null) {
-                        // currently on background so
-                        AsyncTask.runOnUiThread(() -> pane.persist());
-                        map.putAll(pane.getArguments());
-                        listMap.add(map);
+                        pane.persist(); // persist synchronously
+                        listMap.add(pane.getArguments());
                     }
                 }
-
-                final String json = new Gson().toJson(listMap);
-                editor.putString(KEY_PERSISTED_PANES, encode(json));
-                return editor.commit();
-            }, (result, throwable) -> {
-                if (throwable != null) {
-                    output.accept(false);
-                    ILog.debug(TAG, "Failed to persist panes due to unexpected error", throwable);
-                } else {
-                    output.accept(result);
-                    ILog.debug(TAG, String.format("Panes persisted = '%s'", result));
-                }
+                
+                AsyncTask.runNonCancelable(() -> {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    final String json = new Gson().toJson(listMap);
+                    editor.putString(KEY_PERSISTED_PANES, encode(json));
+                    return editor.commit();
+                }, (result, throwable) -> {
+                    if (throwable != null) {
+                        output.accept(false);
+                        ILog.debug(TAG, "Failed to persist panes due to unexpected error", throwable);
+                    } else {
+                        output.accept(result);
+                        ILog.debug(TAG, String.format("Panes persisted = '%s'", result));
+                    }
+                });
             });
         }
     }

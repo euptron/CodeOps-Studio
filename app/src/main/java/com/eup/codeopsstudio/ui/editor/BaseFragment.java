@@ -207,7 +207,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         return view.findViewById(R.id.tab_text);
     }
     
-       @Override
+    @Override
     public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
         if (key == null) return;
 
@@ -267,7 +267,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onPause() {
         super.onPause();
-        paneWindow.persistPanes();
+        if (paneWindow != null) paneWindow.persistPanes();
         PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
@@ -291,8 +291,8 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     @Override
     public void onDestroy() {
-        if (paneWindow != null) paneWindow.destroy();
         super.onDestroy();
+        if (paneWindow != null) paneWindow.destroy();
     }
     
     
