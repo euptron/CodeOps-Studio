@@ -326,7 +326,7 @@ public abstract class Pane {
      * Invokes a call to reload an action
      * <p> Override to implement reload function
      */
-    public reload() {
+    public void reload() {
       // No-op
     }
 
