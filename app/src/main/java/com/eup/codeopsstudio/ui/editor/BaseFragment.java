@@ -545,13 +545,14 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         
         if (pane == null) {
             String title = getString(R.string.webview_pane_title) + " | " + file.getName();
-            pane = new WebViewPane(requireContext(), title);
+            final WebViewPane finalPane = new WebViewPane(requireContext(), title);
             action = new Runnable() {
                @Override
                public void run() {
-                 paneWindow.add(pane, true);
+                 paneWindow.add(finalPane, true);
                }
             };
+            pane = finalPane;
         }
 
         pane.loadFile(file);
@@ -564,7 +565,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
            action.run();
         }
     }
-
+    
     private void restoreViewState(int behaviorState) {
         boolean isExpanded = behaviorState == BottomSheetBehavior.STATE_EXPANDED;
         mainViewModel.setBottomSheetState(behaviorState);
