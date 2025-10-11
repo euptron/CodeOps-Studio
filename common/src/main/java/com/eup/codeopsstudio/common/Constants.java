@@ -138,7 +138,7 @@ public final class Constants {
     public static final String PROJECT_TEMPLATES_SUB_DIR_PATH =
         File.separator + ".cos" + File.separator + "template";
     public static final String PROJECT_TEMPLATE_MODEL_JSON_FILE_PATH =
-        PROJECT_TEMPLATES_SUB_DIR_PATH + File.separator + "info" + ".json";
+        PROJECT_TEMPLATES_SUB_DIR_PATH + File.separator + "info.json";
 
     private Constants() {
         // hide

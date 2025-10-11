@@ -308,9 +308,10 @@ public class PaneFactoryImpl implements PaneFactory {
         } else if (object instanceof Number n) {
             return n.intValue();
         } else {
-            throw new IllegalArgumentException(
-                "Expected numeric type, but got: " + (object != null ? object.getClass().getName()
-                    : null));
+           // throw new IllegalArgumentException(
+           //     "Expected numeric type, but got: " + (object != null ? object.getClass().getName()
+           //         : null));
+           return 0;
         }
     }
 }
