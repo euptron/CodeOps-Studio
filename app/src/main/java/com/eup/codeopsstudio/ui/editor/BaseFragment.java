@@ -545,8 +545,13 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         
         if (pane == null) {
             String title = getString(R.string.webview_pane_title) + " | " + file.getName();
-            pane = new WebViewPane(requireContext(), title);       
-            action = () -> paneWindow.add(pane, true);
+            pane = new WebViewPane(requireContext(), title);
+            action = new Runnable() {
+               @Override
+               public void run() {
+                 paneWindow.add(pane, true);
+               }
+            };
         }
 
         pane.loadFile(file);
