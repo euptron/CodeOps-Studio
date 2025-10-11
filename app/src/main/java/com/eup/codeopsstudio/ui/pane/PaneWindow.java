@@ -229,7 +229,7 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
      */
     boolean contains(@NonNull Pane pane);
 
-    void createEmptyPaneWindow(@NonNull View view);
+    void addEmptyPaneWindow(@NonNull View view);
 
     /**
      * Completely dismantles the PaneWindow, releasing all held resources to prevent memory leaks.

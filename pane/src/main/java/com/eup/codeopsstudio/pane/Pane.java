@@ -321,6 +321,14 @@ public abstract class Pane {
         snackbar.setTextMaxLines(3);
         snackbar.show();
     }
+    
+    /**
+     * Invokes a call to reload an action
+     * <p> Override to implement reload function
+     */
+    public reload() {
+      // No-op
+    }
 
     /**
      * Return the {@link Context} this pane is currently associated with.
@@ -494,7 +502,12 @@ public abstract class Pane {
      */
     protected void onDestroyView() {
         isViewLaidOut = false;
-        safelyRemoveLayoutListener(requireView());
+        
+        try {
+            safelyRemoveLayoutListener(requireView());
+        } catch (Exception e) {
+            ILog.error("Pane", "Failed to remove layout listener, maybe attached view is null:", e);
+        }
     }
 
     /**
@@ -682,7 +695,7 @@ public abstract class Pane {
     }
 
     /**
-     * Persists the state of the pane.
+     * Invoke on UI thread to persists the state of the pane.
      *
      * <p>Subclasses should override this method to implement custom persistence behavior.
      *

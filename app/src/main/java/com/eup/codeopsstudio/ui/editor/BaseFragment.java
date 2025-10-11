@@ -100,12 +100,73 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             mainViewModel.setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED);
         }
     };
+    private File lastOpenedProject;
     private FragmentBaseBinding binding;
     private boolean closeUnPinnedProjectPanes;
     private SharedPreferences sharedPreferences;
     private BottomSheetBehavior<View> mBehavior;
     private SavedStateViewModel stateViewModel;
+    
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        logger = new Logger(Logger.LogClass.IDE);
+    }
 
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+        @Nullable Bundle savedInstanceState) {
+        binding = FragmentBaseBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        sharedPreferences = PreferencesUtils.getGlobalPreferences();
+        mainViewModel     = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        stateViewModel    = new ViewModelProvider(requireActivity()).get(SavedStateViewModel.class);
+        logger.attach(requireActivity());
+
+        paneWindow = new PaneWindowManager(requireContext(), binding.paneWindow, this, this, this);
+        paneWindow.closeTabsRelativeToFirst(PreferencesUtils.canCloseRelativeToFirstDepth());
+        closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
+
+        mBehavior = BottomSheetBehavior.from(binding.actionsSheet);
+        mBehavior.setGestureInsetBottomIgnored(true);
+        mBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View p1, int state) {
+                mainViewModel.setBottomSheetState(state);
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                if (isAdded()) {
+                    var bundle = new Bundle();
+                    bundle.putFloat("offset", slideOffset);
+                    getChildFragmentManager().setFragmentResult(BuildActionFragment.OFFSET_KEY,
+                        bundle);
+                }
+            }
+        });
+        mBehavior.setHalfExpandedRatio(0.3f);
+        mBehavior.setFitToContents(false);
+
+        stateViewModel.getActionSheetState().observe(getViewLifecycleOwner(), state -> {
+            int sheetBehaviour =  (state != null) ? state : BottomSheetBehavior.STATE_COLLAPSED;
+            restoreViewState(sheetBehaviour);
+        });
+
+        paneWindow.addEmptyPaneWindow(createEmptyPaneView());
+        createWelcomePane(/* pinned= */ true);
+        configureObservers();
+
+        view.post(() -> paneWindow.restorePanes(this::onPanesReadyForRestoration));
+        invalidateMainMenus();
+    }
+    
     @Override
     public ImageButton getTabCloseImageButton(@NonNull View view) {
         return view.findViewById(R.id.pane_action_button);
@@ -145,101 +206,154 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     public TextView getTabTitleTextView(@NonNull View view) {
         return view.findViewById(R.id.tab_text);
     }
+    
+       @Override
+    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
+        if (key == null) return;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        logger = new Logger(Logger.LogClass.IDE);
+        switch (key) {
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_RELATIVE_CLOSE_DEPTH:
+                paneWindow.closeTabsRelativeToFirst(PreferencesUtils.canCloseRelativeToFirstDepth());
+                break;
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES:
+                closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
+                break;
+            case Constants.SharedPreferenceKeys.KEY_DISPLAY_TAB_ICONS:
+                paneWindow.showTabIcons(PreferencesUtils.canDisplayTabIcons());
+                break;
+            default:
+                break;
+        }
     }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-        @Nullable Bundle savedInstanceState) {
-        binding = FragmentBaseBinding.inflate(inflater, container, false);
-        return binding.getRoot();
+    public void onTabSelected(@NonNull TabLayout.Tab tab, @NonNull Pane pane) {
+        final int position = tab.getPosition();
+        var event = new CurrentPaneEvent(Pair.create(position, pane));
+        EventBus.getDefault().post(event);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        sharedPreferences = PreferencesUtils.getGlobalPreferences();
-        mainViewModel     = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        stateViewModel    = new ViewModelProvider(requireActivity()).get(SavedStateViewModel.class);
-        logger.attach(requireActivity());
-
-        paneWindow = new PaneWindowManager(requireContext(), binding.paneWindow, this, this, this);
-        paneWindow.closeTabsRelativeToFirst(PreferencesUtils.canCloseRelativeToFirstDepth());
-
-        closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
-
-        mBehavior = BottomSheetBehavior.from(binding.actionsSheet);
-        mBehavior.setGestureInsetBottomIgnored(true);
-        mBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View p1, int state) {
-                mainViewModel.setBottomSheetState(state);
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                if (isAdded()) {
-                    var bundle = new Bundle();
-                    bundle.putFloat("offset", slideOffset);
-                    getChildFragmentManager().setFragmentResult(BuildActionFragment.OFFSET_KEY,
-                        bundle);
-                }
-            }
-        });
-        mBehavior.setHalfExpandedRatio(0.3f);
-        mBehavior.setFitToContents(false);
-
-        stateViewModel.getActionSheetState().observe(getViewLifecycleOwner(), savedState -> {
-            int sheetBehaviour =
-                (savedState != null) ? savedState : BottomSheetBehavior.STATE_COLLAPSED;
-            restoreViewState(sheetBehaviour);
-        });
-
-        paneWindow.createEmptyPaneWindow(createEmptyPaneView());
-        createWelcomePane(/* pinned= */ true);
-        configureObservers();
-
-        view.post(() -> paneWindow.restorePanes(this::onPanesReadyForRestoration));
-        invalidateMainMenus();
+    public String requireTabTitle(@NonNull Pane pane) {
+        if (pane instanceof CodeEditorPane editor) {
+            File file = editor.getFile();
+            String name = (file != null) ? getUniqueName(file) : "INVALID-TAB";
+            return editor.isModified() ? "*" + name : name;
+        }
+        return pane.getTitle();
+    }
+    
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        stateViewModel.saveActionSheetState(mBehavior.getState());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        paneWindow.persistPanes();
+        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mainViewModel.getBottomSheetExpanded().removeObservers(getViewLifecycleOwner());
+        mainViewModel.getBottomSheetState().removeObservers(getViewLifecycleOwner());
+        mainViewModel.addSettingsPane().removeObservers(getViewLifecycleOwner());
+        this.binding = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (paneWindow != null) paneWindow.destroy();
+        super.onDestroy();
+    }
+    
+    
     private View createEmptyPaneView() {
         var windowPane = new EmptyPaneWindow(mainViewModel, this, requireContext(), "Empty Pane");
         return windowPane.createView();
     }
-
+    
     private void onPanesReadyForRestoration(List<Pane> loadedPanes) {
         if (loadedPanes == null || loadedPanes.isEmpty()) {
             return;
         }
-
+    
         Pane paneToSelect = null;
-
+    
         for (Pane pane : loadedPanes) {
-            if (pane != null) {
+            if (pane != null && !isPaneDuplicate(pane)) {
                 paneWindow.add(pane, false);
                 if (pane.isSelected()) {
                     paneToSelect = pane;
                 }
             }
         }
-
+    
         for (Pane pane : paneWindow.getPanes()) {
             restorePaneState(pane);
         }
-
+        
         if (paneToSelect != null) {
             paneWindow.selectTab(paneToSelect);
         } else if (!paneWindow.getPanes().isEmpty()) {
             paneWindow.selectTab(0); // fallback to first tab
         }
-
+    
         paneWindow.syncTabs();
+    }
+    
+    private boolean isPaneDuplicate(Pane newPane) {
+        // Check for duplicates
+        if (newPane instanceof WelcomePane) {
+            return paneWindow.findPane(WelcomePane.class) != null;
+        }
+        
+        if (newPane instanceof SettingsPane) {
+            return paneWindow.findPane(SettingsPane.class) != null;
+        }
+        
+        if (newPane instanceof WebViewPane) {
+            return paneWindow.findPane(WebViewPane.class) != null;
+        }
+        
+        if (newPane instanceof CodeEditorPane newEditorPane) {
+            String newFilePath = newEditorPane.getFilePath();
+            if (newFilePath != null) {
+                CodeEditorPane existingPane = paneWindow.findPane(CodeEditorPane.class, 
+                    pane -> newFilePath.equals(pane.getFilePath()));
+                return existingPane != null;
+            }
+        }
+        
+        return false;
     }
 
     private void restorePaneState(Pane pane) {
@@ -294,17 +408,13 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     private void restoreWebViewPane(@NonNull WebViewPane pane) {
         final Map<String, Object> arguments = pane.getArguments();
-        final boolean zoomable = PaneFactoryImpl.requireBoolean(WebViewPane.KEY_IS_ZOOMABLE,
-            arguments);
-        final boolean desktopMode = PaneFactoryImpl.requireBoolean(WebViewPane.KEY_DESKTOP_MODE,
-            arguments);
-        final String previewFilePath =
-            PaneFactoryImpl.requireString(WebViewPane.KEY_PREVIEW_FILE_PATH, arguments);
+        final boolean zoomable = PaneFactoryImpl.requireBoolean(WebViewPane.KEY_IS_ZOOMABLE, arguments);
+        final boolean desktopMode = PaneFactoryImpl.requireBoolean(WebViewPane.KEY_DESKTOP_MODE, arguments);
+        final String previewFilePath = PaneFactoryImpl.requireString(WebViewPane.KEY_PREVIEW_FILE_PATH, arguments);
 
         pane.setZoomable(zoomable);
         pane.enableDeskTopMode(desktopMode);
         pane.loadFile(new File(previewFilePath));
-        ILog.verbose(TAG, "WebView Pane" + pane.getTID() + " Arguments Restored");
     }
 
     private void restoreSettingsPane(@NonNull SettingsPane pane) {
@@ -330,71 +440,9 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
         pane.setText(content);
     }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        stateViewModel.saveActionSheetState(mBehavior.getState());
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        paneWindow.persistPanes();
-        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // release resources initialized onCreateView and onViewCreated
-        mainViewModel.getBottomSheetExpanded().removeObservers(getViewLifecycleOwner());
-        mainViewModel.getBottomSheetState().removeObservers(getViewLifecycleOwner());
-        mainViewModel.addSettingsPane().removeObservers(getViewLifecycleOwner());
-        this.binding = null;
-    }
-
-    @Override
-    public void onDestroy() {
-        paneWindow.closeAll();
-        super.onDestroy();
-    }
-
+    
     private void invalidateMainMenus() {
         mainViewModel.setShouldUpdateMenu(true);
-    }
-
-    public void createWelcomePane(boolean setPinned) {
-        WelcomePane welcomePane = paneWindow.findPane(WelcomePane.class);
-        if (welcomePane == null) {
-            welcomePane = new WelcomePane(requireContext(), getString(R.string.welcome));
-            welcomePane.setPinned(setPinned);
-            if (PreferencesUtils.canShowWelcomePanel()) paneWindow.add(welcomePane, true);
-        }
     }
 
     private void configureObservers() {
@@ -422,6 +470,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         mainViewModel.getWebViewPaneFile().observe(getViewLifecycleOwner(), file -> {
             if (file != null) addWebViewPane(file);
         });
+        
         mainViewModel.getBottomSheetExpanded().observe(getViewLifecycleOwner(), expanded -> {
             if (Boolean.TRUE.equals(expanded)) {
                 mBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
@@ -429,7 +478,23 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
                 mBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
+        
         mainViewModel.addSettingsPane().observe(getViewLifecycleOwner(), this::addSettingsPane);
+    }
+    
+    public void createWelcomePane(boolean pinned) {
+        WelcomePane welcomePane = paneWindow.findPane(WelcomePane.class);
+        
+        if (welcomePane == null) {
+            welcomePane = new WelcomePane(requireContext(), getString(R.string.welcome));
+            welcomePane.setPinned(pinned);
+            if (PreferencesUtils.canShowWelcomePanel()) {
+                paneWindow.add(welcomePane, true);
+            }
+        } else if (pinned) {
+           // welcome pane must always be pinned if it exists
+            welcomePane.setPinned(true);
+        }
     }
 
     public void addSettingsPane(boolean select) {
@@ -439,9 +504,10 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             String title = getString(R.string.settings);
             pane = new SettingsPane(getContext(), title, PreferencesFragment.newInstance());
             pane.attach(getViewLifecycleOwner());
-            paneWindow.add(pane, false);
+            paneWindow.add(pane, select);
+        } else if (select) {
+            paneWindow.selectTab(pane);
         }
-        if (select) paneWindow.selectTab(pane);
     }
 
     public void openFileInPane(@NonNull File file) {
@@ -454,7 +520,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             addCodeEditorPane(file, true);
         }
     }
-
+    
     public void addCodeEditorPane(@NonNull File file, boolean select) {
         CodeEditorPane editorPane = paneWindow.findPane(CodeEditorPane.class, pane -> {
             String path = pane.getFilePath();
@@ -472,64 +538,35 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
         paneWindow.syncTabs();
     }
-
+    
     public void addWebViewPane(@NonNull File file) {
         WebViewPane pane = paneWindow.findPane(WebViewPane.class);
-
+        Runnable action = null;
+        
         if (pane == null) {
             String title = getString(R.string.webview_pane_title) + " | " + file.getName();
-            pane = new WebViewPane(requireContext(), title);
-            paneWindow.add(pane, false);
+            pane = new WebViewPane(requireContext(), title);       
+            action = () -> paneWindow.add(pane, true);
         }
 
         pane.loadFile(file);
         pane.setZoomable(true);
         pane.enableDeskTopMode(false);
-        paneWindow.selectTab(pane);
+        
+        if (action == null) {
+           paneWindow.selectTab(pane);
+        } else {
+           action.run();
+        }
     }
 
     private void restoreViewState(int behaviorState) {
+        boolean isExpanded = behaviorState == BottomSheetBehavior.STATE_EXPANDED;
         mainViewModel.setBottomSheetState(behaviorState);
+        
         Bundle floatOffset = new Bundle();
-        floatOffset.putFloat("offset",
-            behaviorState == BottomSheetBehavior.STATE_EXPANDED ? 1 : 0f);
+        floatOffset.putFloat("offset", isExpanded ? 1f : 0f);
         getChildFragmentManager().setFragmentResult(BuildActionFragment.OFFSET_KEY, floatOffset);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
-        if (key == null) return;
-
-        switch (key) {
-            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_RELATIVE_CLOSE_DEPTH:
-                paneWindow.closeTabsRelativeToFirst(PreferencesUtils.canCloseRelativeToFirstDepth());
-                break;
-            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_CLOSE_UNPINNED_PROJECT_PANES:
-                closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
-                break;
-            case Constants.SharedPreferenceKeys.KEY_DISPLAY_TAB_ICONS:
-                paneWindow.showTabIcons(PreferencesUtils.canDisplayTabIcons());
-                break;
-            default:
-                break;
-        }
-    }
-
-    @Override
-    public void onTabSelected(@NonNull TabLayout.Tab tab, @NonNull Pane pane) {
-        final int position = tab.getPosition();
-        var event = new CurrentPaneEvent(Pair.create(position, pane));
-        EventBus.getDefault().post(event);
-    }
-
-    @Override
-    public String requireTabTitle(@NonNull Pane pane) {
-        if (pane instanceof CodeEditorPane editor) {
-            File file = editor.getFile();
-            String name = (file != null) ? getUniqueName(file) : "INVALID-TAB";
-            return editor.isModified() ? "*" + name : name;
-        }
-        return pane.getTitle();
     }
 
     public String getUniqueName(@NonNull File currentFile) {
@@ -561,11 +598,26 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     public void onEditorModificationEvent(EditorModificationEvent event) {
         paneWindow.syncTabs();
     }
-
+    
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onProjectChangeEvent(ProjectEvent event) {
-        if (event.getFile() == null && paneWindow != null) {
+        final var currentProject = event.getFile();
+        
+        if (currentProject == null) {        
+            lastOpenedProject = null;
+            return;
+        }
+        
+        if (lastOpenedProject != null && lastOpenedProject.equals(currentProject)) {
+            ILog.debug(TAG, "Project already open");
+            return;
+        }
+        
+        // Only close tabs if we're switching from one project to another
+        if (lastOpenedProject != null && paneWindow != null) {
             paneWindow.closeAll(closeUnPinnedProjectPanes);
         }
+        
+        lastOpenedProject = currentProject;
     }
 }

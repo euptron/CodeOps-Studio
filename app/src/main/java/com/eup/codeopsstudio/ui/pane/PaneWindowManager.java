@@ -300,7 +300,11 @@ public class PaneWindowManager implements PaneWindow {
                 "Invalid Add Index: " + index + ", Size: " + panes.size());
         }
 
-        if (contains(pane)) selectTab(pane);
+        if (contains(pane)) {
+           selectTab(pane);
+           ILog.debug(TAG, "Already added pane: " + pane.getTID());
+           return;
+        }
 
         panes.add(index, pane);
         if (!pane.hasPerformedCreateView()) pane.createView();
@@ -452,7 +456,7 @@ public class PaneWindowManager implements PaneWindow {
     }
 
     @Override
-    public void createEmptyPaneWindow(@NonNull View view) {
+    public void addEmptyPaneWindow(@NonNull View view) {
         emptyPaneContainer.addView(view);
     }
 

@@ -131,7 +131,8 @@ public final class PaneContracts {
 
                 for (Pane pane : panes) {
                     if (pane != null) {
-                        pane.persist();
+                        // currently on background so
+                        AsyncTask.runOnUiThread(() -> pane.persist());
                         map.putAll(pane.getArguments());
                         listMap.add(map);
                     }
