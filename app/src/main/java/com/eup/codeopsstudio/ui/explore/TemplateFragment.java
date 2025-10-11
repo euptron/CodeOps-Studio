@@ -262,7 +262,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     /**
      * @Param getTemplates The project templates gotten from a directory
      */
-    private List<ProjectTemplateModel> getTemplates() {
+    private List<ProjectTemplateModel> getTemplates() throws IOException {
         try {
             File file = requireContext().getExternalFilesDir("templates");
             extractTemplatesMaybe();
@@ -288,10 +288,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             }
             return templates;
         } catch (IOException e) {
-            logger.e(LOG_TAG,
-                getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause)
-                    + "] " + e.getMessage());
-            return Collections.emptyList();
+            throw e;
         }
     }
 
@@ -342,13 +339,14 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             new MaterialFadeThrough());
         binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
         binding.dynamicList.setVisibility(View.GONE);
-
-        AsyncTask.runOnBackgroundThread(() -> {
-            List<ProjectTemplateModel> templates = getTemplates();
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
+        
+        AsyncTask.runNonCancelable(() -> {
+            return getTemplates();
+        }, (templates, throwable) -> {
+            if (throwable != null) {
+                logger.e(TAG, getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause) + "] " + e.getMessage());
+            } else if (templates != null) {
+                TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
                         new MaterialFadeThrough());
                     binding.loadingLayout.getRoot().setVisibility(View.GONE);
                     binding.dynamicList.setVisibility(View.VISIBLE);
@@ -374,7 +372,6 @@ public class TemplateFragment extends BottomSheetDialogFragment {
                             .setPositiveButton(R.string.cancel, null).setCancelable(true).show();
                         return true;
                     });
-                });
             }
         });
     }
