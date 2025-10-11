@@ -344,7 +344,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             return getTemplates();
         }, (templates, throwable) -> {
             if (throwable != null) {
-                logger.e(TAG, getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause) + "] " + e.getMessage());
+                logger.e(TAG, getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause) + "] " + throwable.getMessage());
             } else if (templates != null) {
                 TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
                         new MaterialFadeThrough());
