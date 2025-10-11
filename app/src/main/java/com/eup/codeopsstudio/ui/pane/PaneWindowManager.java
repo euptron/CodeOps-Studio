@@ -303,7 +303,7 @@ public class PaneWindowManager implements PaneWindow {
         if (contains(pane)) {
            selectTab(pane);
            ILog.debug(TAG, "Already added pane: " + pane.getTID());
-           return;
+           return false;
         }
 
         panes.add(index, pane);
