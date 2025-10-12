@@ -745,6 +745,7 @@ public class PaneWindowManager implements PaneWindow {
 
         // Scroll to the selected tab
         tabLayout.setScrollPosition(index, 0f, true);
+        tab.select();
         validateState();
     }
 
