@@ -231,8 +231,9 @@ public class BaseUtil {
         final View decorView = window.getDecorView();
         final Rect outRect = new Rect();
         decorView.getWindowVisibleDisplayFrame(outRect);
-        ILog.debug("KeyboardUtils",
-            "getDecorViewInvisibleHeight: " + (decorView.getBottom() - outRect.bottom));
+        // TODO: Use logger or add log filter support
+        //      Log.debug("KeyboardUtils",
+        //      "getDecorViewInvisibleHeight: " + (decorView.getBottom() - outRect.bottom));
         int delta = Math.abs(decorView.getBottom() - outRect.bottom);
         if (delta <= getNavBarHeight() + getStatusBarHeight()) {
             sDecorViewDelta = delta;
