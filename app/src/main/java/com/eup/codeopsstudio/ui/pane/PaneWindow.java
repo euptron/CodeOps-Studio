@@ -26,6 +26,7 @@ package com.eup.codeopsstudio.ui.pane;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 
 import com.eup.codeopsstudio.common.models.BooleanResult;
@@ -153,24 +154,32 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
      * pinned or not found).
      */
     boolean close(@NonNull Pane pane);
-
+    
     /**
-     * Closes all panes that are not currently pinned.
+     * Closes all unpinned panes.
      *
      * @return {@code true} if any pane was closed, {@code false} otherwise.
      */
     boolean closeAll();
-
+    
     /**
-     * Closes all panes that are not currently pinned.
+     * Closes panes based on pinned status.
      *
-     * @param closeUnpinned {@code true} to close only unpinned panes when closing/opening
-     *                      otherwise {@code false} to close both pinned and unpinned
-     *                      panes with exception of the
-     *                      {@link com.eup.codeopsstudio.ui.editor.panes.WelcomePane}
+     * @param closeOnlyUnpinned {@code true} to close only unpinned panes,
+     *                          {@code false} to close all panes except WelcomePane
      * @return {@code true} if any pane was closed, {@code false} otherwise.
      */
-    boolean closeAll(boolean closeUnpinned);
+    boolean closeAll(boolean closeOnlyUnpinned);
+    
+    /**
+     * Closes panes with custom filtering condition.
+     *
+     * @param closeOnlyUnpinned {@code true} to close only unpinned panes,
+     *                          {@code false} to close both pinned and unpinned
+     * @param condition custom condition to filter panes, or {@code null} to use default
+     * @return {@code true} if any pane was closed, {@code false} otherwise.
+     */
+    boolean closeAll(boolean closeOnlyUnpinned, BooleanResult<Pane> condition);
 
     /**
      * Closes all panes except for the specified {@code paneToKeep} and any other pinned panes.
@@ -276,12 +285,19 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
     List<String> getOpenedPanesClassNames();
 
     /**
-     * Persists the current state and order of open panes (optional operation).
-     * Implementations might save pane types, state, and order to SharedPreferences, a database,
-     * or a file.
+     * Persists all currently open panes to storage.
+     * 
+     * <p>This includes pane types, their current state, and the tab order for restoration.
      */
     void persistPanes();
-
+    
+    /**
+     * Persists open panes to storage, excluding specified pane types.
+     *
+     * @param paneTypesToFilter pane types to exclude from persistence, or null to persist all
+     */
+    void persistPanes(@Nullable Class<? extends Pane>... paneTypesToFilter);
+    
     /**
      * Removes the pane at the specified index.
      *

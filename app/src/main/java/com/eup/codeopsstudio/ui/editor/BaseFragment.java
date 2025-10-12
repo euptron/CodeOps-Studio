@@ -120,7 +120,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         binding = FragmentBaseBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
-
+    
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -133,37 +133,14 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         paneWindow.closeTabsRelativeToFirst(PreferencesUtils.canCloseRelativeToFirstDepth());
         closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
 
-        mBehavior = BottomSheetBehavior.from(binding.actionsSheet);
-        mBehavior.setGestureInsetBottomIgnored(true);
-        mBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View p1, int state) {
-                mainViewModel.setBottomSheetState(state);
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                if (isAdded()) {
-                    var bundle = new Bundle();
-                    bundle.putFloat("offset", slideOffset);
-                    getChildFragmentManager().setFragmentResult(BuildActionFragment.OFFSET_KEY,
-                        bundle);
-                }
-            }
-        });
-        mBehavior.setHalfExpandedRatio(0.3f);
-        mBehavior.setFitToContents(false);
-
-        stateViewModel.getActionSheetState().observe(getViewLifecycleOwner(), state -> {
-            int sheetBehaviour =  (state != null) ? state : BottomSheetBehavior.STATE_COLLAPSED;
-            restoreViewState(sheetBehaviour);
-        });
-
         paneWindow.addEmptyPaneWindow(createEmptyPaneView());
-        createWelcomePane(/* pinned= */ true);
+        
+        setupBottomSheet();
         configureObservers();
+        createWelcomePane();
 
         view.post(() -> paneWindow.restorePanes(this::onPanesReadyForRestoration));
+        
         invalidateMainMenus();
     }
     
@@ -268,7 +245,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onPause() {
         super.onPause();
-        if (paneWindow != null) paneWindow.persistPanes();
+        if (paneWindow != null) paneWindow.persistPanes(WelcomePane.class);
         PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
@@ -296,6 +273,32 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         if (paneWindow != null) paneWindow.destroy();
     }
     
+    private void setupBottomSheet() {
+        mBehavior = BottomSheetBehavior.from(binding.actionsSheet);
+        mBehavior.setGestureInsetBottomIgnored(true);
+        mBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View p1, int state) {
+                mainViewModel.setBottomSheetState(state);
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                if (isAdded()) {
+                    var bundle = new Bundle();
+                    bundle.putFloat("offset", slideOffset);
+                    getChildFragmentManager().setFragmentResult(BuildActionFragment.OFFSET_KEY, bundle);
+                }
+            }
+        });
+        mBehavior.setHalfExpandedRatio(0.3f);
+        mBehavior.setFitToContents(false);
+
+        stateViewModel.getActionSheetState().observe(getViewLifecycleOwner(), state -> {
+            int sheetBehaviour =  (state != null) ? state : BottomSheetBehavior.STATE_COLLAPSED;
+            restoreViewState(sheetBehaviour);
+        });
+    }
     
     private View createEmptyPaneView() {
         var windowPane = new EmptyPaneWindow(mainViewModel, this, requireContext(), "Empty Pane");
@@ -366,8 +369,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             restoreTextPane(tp);
         } else if (pane instanceof EditorPane ep) {
             restoreEditorPane(ep);
-        } else if (pane instanceof WelcomePane wp) {
-            restoreWelcomePane(wp);
         } else if (pane instanceof SettingsPane sp) {
             restoreSettingsPane(sp);
         } else if (pane instanceof WebViewPane wvp) {
@@ -419,10 +420,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     private void restoreSettingsPane(@NonNull SettingsPane pane) {
-        // TODO: Implement and Handle this
-    }
-
-    private void restoreWelcomePane(@NonNull WelcomePane pane) {
         // TODO: Implement and Handle this
     }
 
@@ -480,21 +477,24 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             }
         });
         
-        mainViewModel.addSettingsPane().observe(getViewLifecycleOwner(), this::addSettingsPane);
+        mainViewModel.addSettingsPane().observe(getViewLifecycleOwner(), canAdd -> {
+            if (canAdd) {
+                addSettingsPane(true);
+            }
+        });
     }
-    
-    public void createWelcomePane(boolean pinned) {
+
+    public void createWelcomePane() {
         WelcomePane welcomePane = paneWindow.findPane(WelcomePane.class);
         
         if (welcomePane == null) {
             welcomePane = new WelcomePane(requireContext(), getString(R.string.welcome));
-            welcomePane.setPinned(pinned);
-            if (PreferencesUtils.canShowWelcomePanel()) {
-                paneWindow.add(welcomePane, true);
-            }
-        } else if (pinned) {
-           // welcome pane must always be pinned if it exists
             welcomePane.setPinned(true);
+            if (PreferencesUtils.canShowWelcomePanel()) {
+                paneWindow.add(welcomePane, 0, true);
+            }
+        } else {
+            paneWindow.selectTab(welcomePane);
         }
     }
 
@@ -506,8 +506,8 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             pane = new SettingsPane(getContext(), title, PreferencesFragment.newInstance());
             pane.attach(getViewLifecycleOwner());
             paneWindow.add(pane, select);
-        } else if (select) {
-            paneWindow.selectTab(pane);
+        } else {
+            paneWindow.selectTab(pane); // already exists
         }
     }
 
@@ -622,7 +622,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         
         // Only close tabs if we're switching from one project to another
         if (lastOpenedProject != null && paneWindow != null) {
-            paneWindow.closeAll(closeUnPinnedProjectPanes);
+            paneWindow.closeAll(closeUnPinnedProjectPanes, pane -> !(pane instanceof WelcomePane));
         }
         
         lastOpenedProject = currentProject;

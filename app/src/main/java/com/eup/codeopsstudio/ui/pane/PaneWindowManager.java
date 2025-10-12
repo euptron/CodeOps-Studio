@@ -387,6 +387,11 @@ public class PaneWindowManager implements PaneWindow {
 
     @Override
     public boolean closeAll(boolean closeOnlyUnpinned) {
+        return closeAll(closeOnlyUnpinned, null);
+    }
+    
+    @Override
+    public boolean closeAll(boolean closeOnlyUnpinned, BooleanResult<Pane> condition) {
         List<Pane> panesToRemove = new ArrayList<>();
         for (Pane pane : panes) {
             if (closeOnlyUnpinned) {
@@ -394,8 +399,8 @@ public class PaneWindowManager implements PaneWindow {
                     panesToRemove.add(pane);
                 }
             } else {
-                if (!(pane instanceof WelcomePane)) {
-                    panesToRemove.add(pane);
+                if (condition == null || condition.process(pane)) {
+                   panesToRemove.add(pane);
                 }
             }
         }
@@ -512,10 +517,24 @@ public class PaneWindowManager implements PaneWindow {
         }
         return new ArrayList<>(classNames);
     }
-
+    
     @Override
     public void persistPanes() {
-        new PaneContracts.PersistPanes(sharedPreferences).publish(getPanes(), isSaved -> {
+        persistPanes((Class<? extends Pane>[]) null);
+    }
+    
+    @Override
+    public void persistPanes(Class<? extends Pane>... paneTypesToFilter) {
+        List<Pane> filteredPanes = getPanes().stream()
+        .filter(p -> {
+            if (paneTypesToFilter == null) return true;
+            for (Class<? extends Pane> type : paneTypesToFilter) {
+                if (type.isInstance(p)) return false;
+            }
+            return true;
+        }).collect(Collectors.toList());   
+                                            
+        new PaneContracts.PersistPanes(sharedPreferences).publish(filteredPanes, isSaved -> {
             if (Boolean.TRUE.equals(isSaved)) {
                 ILog.info(TAG, " Successfully persisted panes");
             } else {
@@ -600,7 +619,7 @@ public class PaneWindowManager implements PaneWindow {
             if (newSelectionIndex != -1) {
                 final int finalSelection = newSelectionIndex;
                 tabLayout.post(() -> {
-                  selectTab(finalSelection))
+                  selectTab(finalSelection);
                   invalidateMenuIfPossible();
                 });
             } else {

@@ -30,6 +30,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
+import com.eup.codeopsstudio.common.ILog;
 
 import com.eup.codeopsstudio.pane.EditorPane;
 import com.eup.codeopsstudio.pane.Pane;
@@ -308,10 +309,8 @@ public class PaneFactoryImpl implements PaneFactory {
         } else if (object instanceof Number n) {
             return n.intValue();
         } else {
-           // throw new IllegalArgumentException(
-           //     "Expected numeric type, but got: " + (object != null ? object.getClass().getName()
-           //         : null));
-           return 0;
+           ILog.debug(TAG, "Expected numeric type, but got: " + (object != null ? object.getClass().getName() : "null"));
+           return 0; // fallback for recovery
         }
     }
 }
