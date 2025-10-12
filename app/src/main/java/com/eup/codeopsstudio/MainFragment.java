@@ -144,6 +144,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     private OnBackPressedCallback onBackPressedCallback;
     private FileViewModel fileViewModel;
     private ActionBarDrawerToggle actionBarDrawerToggle;
+    private ILog.LogListener logListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -175,6 +176,12 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         AppCompatActivity activity = (AppCompatActivity) requireActivity();
 
         logger.attach(requireActivity());
+        logListener = formattedMessage -> {
+            requireActivity().runOnUiThread(() -> {
+                logger.postLog(formattedMessage);
+            });
+        };
+        
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         ((MainActivity) requireActivity()).ensureStoragePermissionGranted();
@@ -291,6 +298,18 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             EventBus.getDefault().unregister(this);
         }
     }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        ILog.addLogListener(logListener);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ILog.removeLogListener(logListener);
+    }
 
     @Override
     public void onDestroyView() {
@@ -299,6 +318,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         // mainViewModel.getDrawerState().removeObservers(getViewLifecycleOwner());
         mainViewModel.getToolbarTitle().removeObservers(getViewLifecycleOwner());
         mainViewModel.getToolbarSubTitle().removeObservers(getViewLifecycleOwner());
+        ILog.removeLogListener(logListener);
     }
 
     @Override

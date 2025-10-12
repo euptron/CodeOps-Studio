@@ -94,6 +94,11 @@ public class Logger {
         ILog.debug(TAG, message);
         add(new Log(highlightNumbers(message)));
     }
+    
+    public void postLog(@NonNull String message) {
+        if (!isAttached) return;
+        add(new Log(highlightNumbers(message)));
+    }
 
     private void add(@NonNull Log log) {
         if (logClass == LogClass.BUILD) {
