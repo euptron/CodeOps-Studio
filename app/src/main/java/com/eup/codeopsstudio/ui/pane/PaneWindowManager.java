@@ -599,7 +599,10 @@ public class PaneWindowManager implements PaneWindow {
             // Apply the new selection AFTER re-adding the listener
             if (newSelectionIndex != -1) {
                 final int finalSelection = newSelectionIndex;
-                tabLayout.post(() -> selectTab(finalSelection));
+                tabLayout.post(() -> {
+                  selectTab(finalSelection))
+                  invalidateMenuIfPossible();
+                });
             } else {
                 // no selection, list empty ?
                 tabLayout.post(() -> {
@@ -628,6 +631,7 @@ public class PaneWindowManager implements PaneWindow {
         } finally {
             isRemovingTabs = false; // Allow subsequent remove operations
             updateUI();
+            invalidateMenuIfPossible();
         }
     }
 
@@ -1091,6 +1095,7 @@ public class PaneWindowManager implements PaneWindow {
             isRemovingTabs = false;
             updateUI();
             tabLayout.addOnTabSelectedListener(this);
+            invalidateMenuIfPossible();
             ILog.debug(TAG, "Batch remove finished. State reset.");
         }
     }

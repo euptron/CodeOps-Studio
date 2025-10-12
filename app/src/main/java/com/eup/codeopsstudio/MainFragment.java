@@ -681,6 +681,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
         currentPanePair = Pair.create(event.getIndex(), event.getPane());
+        invalidateMenu();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

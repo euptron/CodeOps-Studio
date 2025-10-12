@@ -195,23 +195,26 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
-        int position = event.getIndex();
+        ILog.debug(TAG, "CurrentPaneEvent received - Position: " + event.getIndex() + 
+              ", Pane: " + (event.getPane() != null ? event.getPane().getTitle() : "null") +
+              ", Type: " + (event.getPane() != null ? event.getPane().getClass().getSimpleName() : "null"));
+              
         Pane currentPane = event.getPane();
 
-        if (position != -1 || currentPane != null) {
-            if (currentPane instanceof CodeEditorPane editorPane) {
-                ContextualCodeEditor editor = editorPane.getEditor();
-                shortcutAdapter.bindEditor(editor);
-                if (shortcutWizard == null) {
-                    shortcutWizard = new EditorShortcutWizard(editor, shortcutsJsonString);
-                } else {
-                    shortcutWizard.setEditorContext(editor);
-                }
-                refreshShortcuts();
-                binding.rowLayout.setDisplayedChild(1);
+        if (currentPane instanceof CodeEditorPane editorPane) {
+            ILog.debug(TAG, "Setting up shortcuts for CodeEditorPane");
+            ContextualCodeEditor editor = editorPane.getEditor();
+            shortcutAdapter.bindEditor(editor);
+            if (shortcutWizard == null) {
+                shortcutWizard = new EditorShortcutWizard(editor, shortcutsJsonString);
             } else {
-                binding.rowLayout.setDisplayedChild(0);
+                shortcutWizard.setEditorContext(editor);
             }
+            refreshShortcuts();
+            binding.rowLayout.setDisplayedChild(1);
+        } else {
+            binding.rowLayout.setDisplayedChild(0);
+            ILog.debug(TAG, "Not a CodeEditorPane, hiding shortcuts");
         }
     }
 }

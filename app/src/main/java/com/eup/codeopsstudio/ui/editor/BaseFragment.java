@@ -229,6 +229,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onTabSelected(@NonNull TabLayout.Tab tab, @NonNull Pane pane) {
         final int position = tab.getPosition();
+        ILog.debug(TAG, "Sending CurrentPaneEvent - Position: " + position + ", Pane: " + pane.getTitle());
         var event = new CurrentPaneEvent(Pair.create(position, pane));
         EventBus.getDefault().post(event);
     }
