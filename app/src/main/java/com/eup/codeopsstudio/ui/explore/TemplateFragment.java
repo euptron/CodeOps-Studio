@@ -246,17 +246,25 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         String asset = "templates.zip";
 
         File destDir = new File(parentPath);
+        
+        Archive.OnArchiveListener listener = new Archive.NoOpListener() {
+            @Override
+            public void onComplete(String message) {
+                AsyncTask.runOnBackgroundThread(() -> {
+                  File hashFile = new File(templatesDir, "hash");
+                  if (!hashFile.createNewFile()) {
+                      throw new IOException("Unable to create hash file");
+                  }
+          
+                  FileUtils.writeStringToFile(hashFile,
+                      FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), requireContext()
+                      .getAssets().open("templates.zip")), Charset.defaultCharset());
+                  });
+            }
+        };
+        
         var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize);
         archive.unzip();
-
-        File hashFile = new File(templatesDir, "hash");
-        if (!hashFile.createNewFile()) {
-            throw new IOException("Unable to create hash file");
-        }
-
-        FileUtils.writeStringToFile(hashFile,
-            FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), requireContext()
-            .getAssets().open("templates.zip")), Charset.defaultCharset());
     }
 
     /**
