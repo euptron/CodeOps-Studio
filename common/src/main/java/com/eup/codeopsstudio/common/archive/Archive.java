@@ -48,7 +48,7 @@ public interface Archive {
         void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft);
     }
 
-    public static final class NoOPListener implements OnArchiveListener {
+    public static class NoOPListener implements OnArchiveListener {
 
         public NoOPListener() {
             // Default
