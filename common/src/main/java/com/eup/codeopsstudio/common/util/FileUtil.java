@@ -83,13 +83,16 @@ public class FileUtil {
             return String.format("%32s", md5).replace(' ', '0');
         } catch (IOException e) {
             ILog.error(TAG, "Unable to process file for MD5 calculation", e);
-            return null;
+            return "unknown-hash";
         } catch (NoSuchAlgorithmException e) {
             ILog.error(TAG, "Exception while getting MD5 Digest", e);
-            return null;
+            return "unknown-hash";
         } catch (NullPointerException e) {
             ILog.error(TAG, "NPE occurred while calculating MD5", e);
-            return null;
+            return "unknown-hash";
+        } catch (Exception e) {
+            ILog.error(TAG, "UNKNOWN ERROR", e);
+            return "unknown-hash";
         }
     }
 

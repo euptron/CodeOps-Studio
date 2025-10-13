@@ -216,11 +216,10 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             extractZipFiles();
         } else {
             logger.d(LOG_TAG, getString(R.string.checking_templates));
-            InputStream newIs = requireContext().getAssets().open("templates.zip");
-            String newIsMd5 = FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), newIs);
+            String newMd5 = calculateHash();
             String oldMd5 = FileUtils.readFileToString(hashFile, Charset.defaultCharset());
 
-            if (!newIsMd5.equals(oldMd5)) {
+            if (!newMd5.equals(oldMd5)) {
                 extractZipFiles();
                 logger.w(LOG_TAG, getString(R.string.msg_invalid_templates));
             } else {
@@ -246,23 +245,47 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         String asset = "templates.zip";
 
         File destDir = new File(parentPath);
+        String templateHash = calculateHash();
         
-        ZIPArchive.OnArchiveListener listener = new ZIPArchive.NoOpListener() {
+        ZIPArchive.OnArchiveListener listener = new ZIPArchive.NoOPListener() {
             @Override
             public void onComplete(String message) {
-                File hashFile = new File(templatesDir, "hash");
-                if (!hashFile.createNewFile()) {
-                    throw new IOException("Unable to create hash file");
-                }
-        
-                FileUtils.writeStringToFile(hashFile,
-                    FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), requireContext()
-                    .getAssets().open("templates.zip")), Charset.defaultCharset());
+                AsyncTask.runNonCancelable(() -> {
+                    File hashFile = new File(templatesDir, "hash");
+                    if (!hashFile.createNewFile()) {
+                       ILog.warning(TAG, "Unable to create hash file – it may already exist");
+                       return false;
+                    }
+                    
+                    FileUtils.writeStringToFile(hashFile, templateHash, Charset.defaultCharset());
+                    return true;
+                }, (templates, throwable) -> {
+                    if (throwable != null) {
+                       ILog.error(TAG, "Failed to create hash file", throwable);
+                    } else {
+                       ILog.info(TAG, "Hash file created successfully");
+                    }
+                });
+            }
+            
+            @Override
+            public void onError(Exception exception) {
+                ILog.error(TAG, "Template extraction failed", exception);
             }
         };
         
         var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize, listener);
         archive.unzip();
+    }
+    
+    private String calculateHash() {
+       try {
+         InputStream newIs = requireContext().getAssets().open("templates.zip");
+         return FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), newIs);
+       } catch (Exception e) {
+         ILog.error(TAG, "Error calculating template hash", e);
+         return "unknown-hash";
+       }
     }
 
     /**
