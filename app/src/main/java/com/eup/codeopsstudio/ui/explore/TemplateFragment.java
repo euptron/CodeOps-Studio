@@ -247,23 +247,21 @@ public class TemplateFragment extends BottomSheetDialogFragment {
 
         File destDir = new File(parentPath);
         
-        Archive.OnArchiveListener listener = new Archive.NoOpListener() {
+        ZIPArchive.OnArchiveListener listener = new ZIPArchive.NoOpListener() {
             @Override
             public void onComplete(String message) {
-                AsyncTask.runOnBackgroundThread(() -> {
-                  File hashFile = new File(templatesDir, "hash");
-                  if (!hashFile.createNewFile()) {
-                      throw new IOException("Unable to create hash file");
-                  }
-          
-                  FileUtils.writeStringToFile(hashFile,
-                      FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), requireContext()
-                      .getAssets().open("templates.zip")), Charset.defaultCharset());
-                  });
+                File hashFile = new File(templatesDir, "hash");
+                if (!hashFile.createNewFile()) {
+                    throw new IOException("Unable to create hash file");
+                }
+        
+                FileUtils.writeStringToFile(hashFile,
+                    FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), requireContext()
+                    .getAssets().open("templates.zip")), Charset.defaultCharset());
             }
         };
         
-        var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize);
+        var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize, listener);
         archive.unzip();
     }
 
