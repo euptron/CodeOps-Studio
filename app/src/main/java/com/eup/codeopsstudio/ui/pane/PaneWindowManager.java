@@ -293,7 +293,7 @@ public class PaneWindowManager implements PaneWindow {
     public boolean add(@NonNull Pane pane, boolean select) {
         return add(pane, panes.size(), select);
     }
-
+    
     @Override
     public boolean add(@NonNull Pane pane, int index, boolean select) {
         if (index < 0 || index > panes.size()) {
@@ -317,14 +317,24 @@ public class PaneWindowManager implements PaneWindow {
         if (selectedTabPosition != -1 && index <= selectedTabPosition) {
             selectedTabPosition++;
         }
-
-        if (select || panes.size() == 1) {
-            tabLayout.post(() -> selectTab(index));
+        
+        final Pane paneToSelect;
+        if (select) {
+            paneToSelect = pane;
+        } else if (panes.size() == 1) {
+            paneToSelect = pane; // Auto-select first tab
         } else {
-            tabLayout.post(this::validateState);
+            paneToSelect = null;
         }
-        // syncTabs() is implicitly called by selectTab or should be called if needed after
-        // validation
+        
+        tabLayout.post(() -> {
+            if (paneToSelect != null) {
+                selectTab(paneToSelect);
+            } else {
+                updateTabUI(pane);
+            }
+        });
+    
         updateUI();
         return true;
     }
@@ -917,6 +927,8 @@ public class PaneWindowManager implements PaneWindow {
             // Default tab view
             tab.setText(title);
         }
+        
+        tabLayout.requestLayout();
     }
 
     public void updateUI() {
@@ -1114,7 +1126,6 @@ public class PaneWindowManager implements PaneWindow {
         } finally {
             isRemovingTabs = false;
             updateUI();
-            tabLayout.addOnTabSelectedListener(this);
             invalidateMenuIfPossible();
             ILog.debug(TAG, "Batch remove finished. State reset.");
         }

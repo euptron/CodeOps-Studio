@@ -77,7 +77,7 @@ public class EmptyPaneWindow extends Pane {
                 ClickableSpan opentreeSpan = new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
-                        mViewModel.setDrawerState(true);
+                        mainViewModel.requestOpenDrawer();
                     }
                 };
                 ClickableSpan openactionSpan = new ClickableSpan() {

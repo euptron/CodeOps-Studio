@@ -348,19 +348,21 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             mainLayout = (CoordinatorLayout) binding.mainLayout;
             mainViewModel.setDrawerInstance(true);
 
-            mainViewModel.getDrawerState().observe(getViewLifecycleOwner(), isOpen -> {
-                if (isOpen) {
+            mainViewModel.getDrawerState().observe(getViewLifecycleOwner(), event -> {
+                Boolean shouldOpenDrawer = event.getContentIfNotHandled();
+                
+                if (Boolean.TRUE.equals(shouldOpenDrawer)) {
                     drawerLayout.openDrawer(binding.navView);
                 } else {
                     drawerLayout.closeDrawer(binding.navView);
                 }
             });
-
+            
             binding.toolbar.setNavigationOnClickListener(v -> {
                 if (drawerLayout.isDrawerOpen(binding.navView)) {
-                    mainViewModel.setDrawerState(false);
+                    mainViewModel.requestCloseDrawer();
                 } else if (!drawerLayout.isDrawerOpen(binding.navView)) {
-                    mainViewModel.setDrawerState(true);
+                    mainViewModel.requestOpenDrawer();
                 }
             });
 
@@ -390,8 +392,14 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     private void restoreViewState(@NonNull Bundle state) {
-        if (rootView instanceof AllowChildInterceptDrawerLayout) {
-            mainViewModel.setDrawerState(state.getBoolean("start_drawer_state", false));
+        if (rootView instanceof AllowChildInterceptDrawerLayout) {          
+            boolean shouldOpenDrawer = state.getBoolean("start_drawer_state", false);
+            
+            if (shouldOpenDrawer) {
+                mainViewModel.requestOpenDrawer();
+            } else {
+                mainViewModel.requestCloseDrawer(); 
+            }
         }
     }
 

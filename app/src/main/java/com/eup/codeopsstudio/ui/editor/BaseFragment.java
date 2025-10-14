@@ -251,14 +251,6 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
         mainViewModel.getBottomSheetExpanded().removeObservers(getViewLifecycleOwner());
@@ -270,6 +262,9 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this);
+        }
         if (paneWindow != null) paneWindow.destroy();
     }
     
@@ -362,9 +357,14 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
 
     private void restorePaneState(Pane pane) {
         if (pane == null) return;
-
-        ILog.info(TAG, "Attempting to restore Pane State for: " + pane.getTitle());
-
+        
+        if (pane.getArguments() == null) {
+            ILog.warning(TAG, "Cannot restore Pane State for: " + pane.getTitle() + "arguments are null");
+            return;
+        } else {
+            ILog.info(TAG, "Attempting to restore Pane State for: " + pane.getTitle());
+        }
+        
         if (pane instanceof TextPane tp) {
             restoreTextPane(tp);
         } else if (pane instanceof EditorPane ep) {
@@ -385,8 +385,10 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             pane.getArguments());
         final String fileExtension =
             PaneFactoryImpl.requireString(CodeEditorPane.KEY_FILE_EXTENSION, pane.getArguments());
-
+            
         AsyncTask.runNonCancelable(() -> PaneFactoryImpl.requireString(CodeEditorPane.KEY_EDITOR_CONTENT, pane.getArguments()), (result, throwable) -> {
+            if (!isAdded() || isDetached()) return;
+            
             if (throwable != null) {
                 ILog.error(TAG, "Error restoring pane arguments");
             } else {
@@ -506,6 +508,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             pane = new SettingsPane(getContext(), title, PreferencesFragment.newInstance());
             pane.attach(getViewLifecycleOwner());
             paneWindow.add(pane, select);
+            mainViewModel.requestCloseDrawer();
         } else {
             paneWindow.selectTab(pane); // already exists
         }
@@ -533,6 +536,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             editorPane = new CodeEditorPane(requireContext(), title);
             editorPane.setFile(file);
             paneWindow.add(editorPane, select);
+            mainViewModel.requestCloseDrawer();
         } else {
             paneWindow.selectTab(editorPane);
         }
@@ -551,6 +555,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
                @Override
                public void run() {
                  paneWindow.add(finalPane, true);
+                 mainViewModel.requestCloseDrawer();
                }
             };
             pane = finalPane;

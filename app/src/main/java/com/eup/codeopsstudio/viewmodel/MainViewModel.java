@@ -46,7 +46,6 @@ import java.util.ArrayList;
  */
 public class MainViewModel extends ViewModel {
 
-    private final MutableLiveData<Boolean> mDrawerState = new MutableLiveData<>(false);
     private final MutableLiveData<String> mToolbarTitle = new MutableLiveData<>();
     private final MutableLiveData<String> mToolbarSubTitle = new MutableLiveData<>();
     private final MutableLiveData<Boolean> mDrawerInstance = new MutableLiveData<>(false);
@@ -61,6 +60,7 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<File> pickZipFile = new MutableLiveData<>();
     private final MutableLiveData<Boolean> addPane = new MutableLiveData<>(false);
     private final MutableLiveData<Event<Boolean>> exitRequest = new MutableLiveData<>();
+    private final MutableLiveData<Event<Boolean>> mDrawerState = new MutableLiveData<>();
     private MutableLiveData<ArrayList<Log>> mIDELogs;
     private MutableLiveData<ArrayList<Log>> mBUILDLogs;
 
@@ -124,12 +124,21 @@ public class MainViewModel extends ViewModel {
         mDrawerInstance.setValue(isDrawerLayout);
     }
 
-    public LiveData<Boolean> getDrawerState() {
+    public LiveData<Event<Boolean>> getDrawerState() {
         return mDrawerState;
     }
-
-    public void setDrawerState(boolean isOpen) {
-        mDrawerState.postValue(isOpen);
+    
+    public boolean isDrawerOpen() {
+        Boolean state = mDrawerState.getValue().getContentIfNotHandled();
+        return state != null && state;
+    }
+    
+    public void requestOpenDrawer() {
+        mDrawerState.postValue(new Event<>(true));
+    }
+    
+    public void requestCloseDrawer() {
+        mDrawerState.postValue(new Event<>(false));
     }
 
     public LiveData<Event<Boolean>> getExitRequest() {
@@ -182,12 +191,7 @@ public class MainViewModel extends ViewModel {
     public void setZipFile(File file) {
         this.pickZipFile.setValue(file);
     }
-
-    public boolean isDrawerOpen() {
-        Boolean state = mDrawerState.getValue();
-        return state != null && state;
-    }
-
+    
     public void observeEditorFileOpening(LifecycleOwner lifecycleOwner, Observer<File> observer) {
         mOpenEditorFile.observe(lifecycleOwner, observer);
     }
