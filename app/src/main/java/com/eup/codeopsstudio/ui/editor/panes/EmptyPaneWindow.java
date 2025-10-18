@@ -43,7 +43,7 @@ import com.eup.codeopsstudio.viewmodel.MainViewModel;
 public class EmptyPaneWindow extends Pane {
 
     private final LifecycleOwner lifecycleOwner;
-    private MainViewModel mViewModel;
+    private MainViewModel mainViewModel;
     private EmptyPaneWindowBinding binding;
     private SpannableString styledString;
 
@@ -51,7 +51,7 @@ public class EmptyPaneWindow extends Pane {
         String title) {
         super(context, title);
         this.lifecycleOwner = lifecycleOwner;
-        this.mViewModel     = viewModel;
+        this.mainViewModel     = viewModel;
     }
 
     @Override
@@ -63,9 +63,9 @@ public class EmptyPaneWindow extends Pane {
     @Override
     public void onViewCreated(@NonNull View view) {
         super.onViewCreated(view);
-        mViewModel =
+        mainViewModel =
             new ViewModelProvider((ViewModelStoreOwner) requireContext()).get(MainViewModel.class);
-        mViewModel.getDrawerInstance().observe(lifecycleOwner, isDrawerLayout -> {
+        mainViewModel.getDrawerInstance().observe(lifecycleOwner, isDrawerLayout -> {
             if (isDrawerLayout) {
                 styledString = new SpannableString(
                     getString(R.string.open_file_tree, getString(R.string.explorer))
@@ -83,7 +83,7 @@ public class EmptyPaneWindow extends Pane {
                 ClickableSpan openactionSpan = new ClickableSpan() {
                     @Override
                     public void onClick(@NonNull View widget) {
-                        mViewModel.setBottomSheetExpanded(true);
+                        mainViewModel.setBottomSheetExpanded(true);
                     }
                 };
 
@@ -99,7 +99,7 @@ public class EmptyPaneWindow extends Pane {
 
                     @Override
                     public void onClick(@NonNull View widget) {
-                        mViewModel.setBottomSheetExpanded(true);
+                        mainViewModel.setBottomSheetExpanded(true);
                     }
                 };
                 // Styled open build actions

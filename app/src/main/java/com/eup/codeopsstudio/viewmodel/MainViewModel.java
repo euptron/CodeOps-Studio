@@ -86,7 +86,7 @@ public class MainViewModel extends ViewModel {
     }
 
     public void closeDrawer() {
-        mDrawerState.setValue(false);
+        mDrawerState.postValue(new Event<>(false));
     }
 
     public LiveData<Boolean> getAddPane() {

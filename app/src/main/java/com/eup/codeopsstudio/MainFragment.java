@@ -225,7 +225,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
                 }
                 if (rootView instanceof AllowChildInterceptDrawerLayout) {
                     if (mainViewModel.isDrawerOpen()) {
-                        mainViewModel.closeDrawer();
+                        mainViewModel.requestCloseDrawer();
                     } else {
                         mainViewModel.requestExit();
                     }

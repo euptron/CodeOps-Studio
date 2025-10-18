@@ -95,7 +95,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
     public static final String TAG =
         com.eup.codeopsstudio.ui.explore.TreeViewFragment.class.getSimpleName();
 
-    private boolean isFileWatcherBound = false;
+    private boolean fileWatcherBindingRequested = false;
     private FragmentTreeviewBinding binding;
     private MainViewModel mMainViewModel;
     private FileManager fileManager;
@@ -106,6 +106,10 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
     private String lastOpenedFilePath;
     private SavedStateViewModel mSavedStateViewModel;
     private FileWatcherServiceConnection fileEventRelay;
+    
+    private final Runnable debouncedUpdate = this::performDebouncedUpdate;
+    private static final long DEBOUNCE_DELAY_MS = 300; // 300ms delay
+    private boolean updatePending = false;
 
     @Override
     public void onClick(TreeNode node, Object value) {
@@ -264,7 +268,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
                             .apply();
         }
     }
-
+    
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -275,42 +279,60 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
     @Override
     public void onDestroy() {
         super.onDestroy();
+        AsyncTask.cancelRunLater(debouncedUpdate);
         unbindFileWatcherService();
     }
-
+    
     private void unbindFileWatcherService() {
-        if (isFileWatcherBound && fileEventRelay != null) {
-            requireActivity().unbindService(fileEventRelay);
-            isFileWatcherBound = false;
-            fileEventRelay     = null;
+        if (fileEventRelay != null) {
+            if (fileEventRelay.isConnected() || !fileWatcherBindingRequested) {
+                fileEventRelay.removeListenerFromService();
+                requireActivity().unbindService(fileEventRelay);
+            }
+            fileEventRelay = null;
         }
+        fileWatcherBindingRequested = false;
     }
-
+    
     @Override
     public void onFileChanged(int event, String path) {
+        if (rootNode == null || rootNode.getValue() == null) {
+            return;
+        }
+        
         switch (event) {
             case FileObserver.DELETE_SELF:
                 File deletedDir = rootNode.getValue();
-                String deletedDirName = deletedDir.getName();
-                String delete_msg = "The folder " + deletedDirName + " has been deleted";
-                showFileWatcherDialog(deletedDirName, deletedDirName, () -> doCloseFolder(true));
-                logger.i(LOG_TAG,
-                    delete_msg + ", this action was probably executed by another app");
+                
+                if (deletedDir.getAbsolutePath().equals(path)) {
+                    String deletedDirName = deletedDir.getName();
+                    String delete_msg = "The folder " + deletedDirName + " has been deleted";
+                    showFileWatcherDialog(deletedDirName, delete_msg, () -> doCloseFolder(true));
+                    logger.i(LOG_TAG, delete_msg + ", this action was probably executed by another app");
+                } else {
+                    // A subfolder was deleted - reload the tree view
+                    updateFileTree(rootNode.getValue());
+                }
                 break;
             case FileObserver.MOVE_SELF:
                 File movedDir = rootNode.getValue();
-                String movedDirName = movedDir.getName();
-                String moved_msg =
-                    "The folder " + movedDirName + " has been moved to another location";
-                showFileWatcherDialog(movedDirName, moved_msg, () -> doCloseFolder(true));
-                logger.i(LOG_TAG, moved_msg + ", this action was probably executed by another app");
+                
+                if (movedDir.getAbsolutePath().equals(path)) {
+                    String movedDirName = movedDir.getName();
+                    String moved_msg = "The folder " + movedDirName + " has been moved to another location";
+                    showFileWatcherDialog(movedDirName, moved_msg, () -> doCloseFolder(true));
+                    logger.i(LOG_TAG, moved_msg + ", this action was probably executed by another app");
+                } else {
+                    // A subfolder was moved - reload the tree view
+                    updateFileTree(rootNode.getValue());
+                }
                 break;
             case FileObserver.MOVED_FROM, FileObserver.MOVED_TO, FileObserver.CREATE,
                  FileObserver.DELETE:
-                updateFileTree(rootNode.getValue());
+                 scheduleDebouncedUpdate();
                 break;
             case FileObserver.MODIFY:
-                // Ignore
+                // Ignore -- to noisy
                 break;
         }
     }
@@ -320,7 +342,22 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
         displayBottomSheetOnLongClick(node);
         return true;
     }
+    
+    private void scheduleDebouncedUpdate() {
+        if (updatePending) {
+            AsyncTask.cancelRunLater(debouncedUpdate);
+        }
+        updatePending = true;
+        AsyncTask.runLaterOnUiThread(debouncedUpdate, DEBOUNCE_DELAY_MS);
+    }
 
+    private void performDebouncedUpdate() {
+        updatePending = false;
+        if (rootNode != null && rootNode.getValue() != null) {
+            updateFileTree(rootNode.getValue());
+        }
+    }
+    
     public void addNewChild(TreeNode parent, File file) {
         var newNode = new TreeNode(file);
         newNode.setViewHolder(new FileTreeViewHolder(requireContext()));
@@ -366,20 +403,36 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
     private ActionModel action(int iconRes, int titleRes) {
         return new ActionModel(iconRes, getString(titleRes));
     }
-
+    
     private void bindFileWatcherService(File file) {
-        unbindFileWatcherService(); // unbind previous service if any
-
+        // Don't unbind immediately - might be configuration change
+        if (fileEventRelay != null && fileEventRelay.isConnected()) {
+            // Already bound, just update the file to watch
+            fileEventRelay.setFileToWatch(file);
+            return;
+        }
+        
+        if (fileEventRelay != null) {
+           unbindFileWatcherService();
+        }
+    
         fileEventRelay = new FileWatcherServiceConnection(this);
         fileEventRelay.setFileToWatch(file);
-        Intent intent = new Intent(requireActivity(), FileWatcherService.class);
-        requireActivity().startService(intent);
-
-        if (requireActivity().bindService(intent, fileEventRelay, Context.BIND_IMPORTANT)) {
-            isFileWatcherBound = true;
-        } else {
-            logger.e(LOG_TAG, "Error: The requested service doesn't "
-                + "exist, or this client isn't allowed access to it.");
+        Intent intent = new Intent(requireContext(), FileWatcherService.class);
+        
+        try {
+          requireActivity().startService(intent);
+          fileWatcherBindingRequested = true;
+          
+          if (requireActivity().bindService(intent, fileEventRelay, Context.BIND_IMPORTANT)) {
+              ILog.debug(LOG_TAG, "Binding to FileWatcherService requested");
+          } else {
+              fileWatcherBindingRequested = false;
+              ILog.error(LOG_TAG, "Failed to bind to FileWatcherService");
+          }
+        } catch (SecurityException e) {
+          fileWatcherBindingRequested = false;
+          ILog.error(LOG_TAG, "Security exception binding to service", e);
         }
     }
 

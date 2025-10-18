@@ -108,7 +108,8 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     private File mEditorFile;
     private LayoutCodeEditorBinding binding;
     private boolean isModified = false;
-    private String extension;
+    private String fileExtension;
+    private String fileScope;
     private SearchManager searchManager;
     private FileOperationsManager fileOperationsManager;
 
@@ -156,12 +157,12 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             updateAlertVisibility(true);
             searchManager.openSearchPanel(false);
         }, result -> {
+            setLoading(false);
             binding.editor.setText(result, null);
             loadEditorLanguage(mEditorFile);
             logger.i(TAG, getString(R.string.act_code_editor_pane_open_file, getTitle(),
                 mEditorFile.getAbsolutePath()));
         });
-        setLoading(false);
     }
 
     public void showSnackBar(@NonNull String message) {
@@ -197,18 +198,18 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         addArguments(KEY_LEFT_COLUMN, cursor.getLeftColumn());
         addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
         addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
-        addArguments(KEY_FILE_EXTENSION, extension);
+        addArguments(KEY_FILE_EXTENSION, fileExtension);
         addArguments(KEY_EDITOR_CONTENT, binding.editor.getText().toString());
     }
 
     public BaseUtil.SnackBarBuilder showSnackBarInternal(@NonNull String message) {
-        if (binding == null) {
-            ILog.warning(TAG, "binding is null");
-            return null;
-        }
+        if (binding == null) return null;
 
-        return BaseUtil.newSnackBarBuilder().setMessage(message).setView(binding.editor)
-                       .setMessageMaxLines(6).setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
+        return BaseUtil.newSnackBarBuilder()
+                      .setMessage(message)
+                      .setView(binding.editor)
+                      .setMessageMaxLines(6)
+                      .setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
     }
 
     @Override
@@ -226,8 +227,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             PreferencesUtils.enableBracketAutoClosing(), true, mEditorFile);
     }
 
-    private void loadEditorLanguageInternal(boolean enableAutoComplete, boolean autoCloseBrackets,
-        boolean refreshing, @NonNull File file) {
+    private void loadEditorLanguageInternal(boolean autoComplete, boolean autoCloseBrackets, boolean refresh, @NonNull File file) {
         try {
             Pair<String, String> languageInfo = getEditorLanguageInfo(file);
 
@@ -236,18 +236,13 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                 return;
             }
 
-            String ext = languageInfo.first;
-            String scope = languageInfo.second;
-            this.extension = ext;
-            ILog.debug(TAG, "File: " + file.getName());
-            ILog.debug(TAG, String.format("Extension: '%s', Scope: '%s'", ext, scope));
-
-            binding.editor.setEditorLanguage(ext, scope, enableAutoComplete, autoCloseBrackets,
-                refreshing);
-            // sync theme with app UI and editor-language
-            applyEditorTheme();
+            fileExtension = languageInfo.first;
+            fileScope = languageInfo.second;
+            
+            binding.editor.setEditorLanguage(fileExtension, fileScope, autoComplete, autoCloseBrackets, refresh);
+            if (refresh) applyEditorTheme();
         } catch (Exception e) {
-            String clause = (refreshing ? getString(R.string.refresh).toLowerCase()
+            String clause = (refresh ? getString(R.string.refresh).toLowerCase()
                 : getString(R.string.load).toLowerCase());
             String msg = getString(R.string.msg_editor_load_configs_failed, clause);
             logger.e(TAG, msg, e);
@@ -265,7 +260,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         String scope = provider.getScope(extension);
         Set<String> extensions = provider.getLanguageExtensions(scope);
         String scopedExtensions = Arrays.toString(extensions.toArray());
-        ILog.debug(TAG, String.format("Scope: %s, Shared Extensions: %s", scope, scopedExtensions));
+        ILog.debug(TAG, String.format("File: %s, Extension: '%s', Scope: '%s', Shared Extensions: %s", file.getName(), extension, scope, scopedExtensions));
         return new Pair<>(extension, scope);
     }
 
@@ -280,9 +275,11 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
     private void applyEditorTheme() {
         try {
-            binding.editor.updateTextMateTheme(
-                binding.editor.isUIDarkMode() ? ContextualCodeEditor.THEME_DARCULA
-                    : ContextualCodeEditor.THEME_QUIET_LIGHT);
+            boolean isDarkMode = binding.editor.isUIDarkMode();
+            String lightTheme = ContextualCodeEditor.THEME_QUIET_LIGHT;
+            String darkTheme = ContextualCodeEditor.THEME_DARCULA;
+            
+            binding.editor.updateTextMateTheme(isDarkMode ? darkTheme : lightTheme);
         } catch (Exception e) {
             logger.e(TAG, e.getMessage(), e);
         }
@@ -307,12 +304,19 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
 
         int totalLineCount = binding.editor.getLineCount();
         if (totalLineCount == -1) return;
-
-        var hint = String.format("%s...%s", 1, totalLineCount);
+        
         final var inflate = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
-        inflate.tilName.setHint(hint);
-        Objects.requireNonNull(inflate.tilName.getEditText())
-               .setInputType(InputType.TYPE_CLASS_NUMBER);
+        
+        if (inflate.tilName == null || inflate.tilName.getEditText() == null) {
+           ILog.error(TAG, "Error: TIL name or its edittext = null");
+           return;
+        }
+        
+        final var tilName = inflate.tilName;
+        final var tilNameEditText = inflate.tilName.getEditText();
+        
+        tilName.setHint(String.format("1...%s", totalLineCount));
+        tilNameEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
 
         var builder = new MaterialAlertDialogBuilder(requireContext());
         builder.setView(inflate.getRoot());
@@ -321,42 +325,64 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         builder.setCancelable(false);
 
         AlertDialog dialog = builder.create();
+        
         dialog.setOnShowListener(d -> {
             Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             positiveButton.setEnabled(false);
-
-            if (inflate.tilName.getEditText() != null) {
-                inflate.tilName.getEditText().addTextChangedListener(new TextWatcherAdapter() {
-                    @Override
-                    public void afterTextChanged(@NonNull Editable editable) {
-                        if (Wizard.isEmpty(editable.toString())) return;
-
+            
+            tilNameEditText.requestFocus();
+            tilNameEditText.addTextChangedListener(new TextWatcherAdapter() {
+                @Override
+                public void afterTextChanged(@NonNull Editable editable) {
+                    if (Wizard.isEmpty(editable.toString())) return;
+                    
+                    try {
                         var lineToJump = Integer.parseInt(editable.toString());
 
-                        if (lineToJump < totalLineCount || lineToJump > totalLineCount) {
+                        if (lineToJump < 1 || lineToJump > totalLineCount) {
                             positiveButton.setEnabled(false);
-                            inflate.tilName.setError(getString(R.string.msg_invalid_jump_line));
-                            inflate.tilName.setErrorEnabled(true);
-                            inflate.tilName.getEditText().requestFocus();
+                            tilName.setError(getString(R.string.msg_invalid_jump_line));
+                            tilName.setErrorEnabled(true);
                         } else {
                             positiveButton.setEnabled(true);
-                            inflate.tilName.setErrorEnabled(false);
+                            tilName.setErrorEnabled(false);
                         }
+                    } catch (NumberFormatException e) {
+                        positiveButton.setEnabled(false);
+                        tilName.setError(getString(R.string.msg_invalid_jump_line));
+                        tilName.setErrorEnabled(true);
                     }
-                });
-            }
-
+                }
+            });
+            
             positiveButton.setOnClickListener(v -> {
-                if (inflate.tilName.getEditText() != null) {
-                    var jumpText = inflate.tilName.getEditText().getText().toString();
-                    var lineToJump = Wizard.isEmpty(jumpText) ? 0 : Integer.parseInt(jumpText);
-                    binding.editor.jumpToLine((lineToJump == 0) ? lineToJump : lineToJump - 1);
+                var jumpText = tilNameEditText.getText().toString();
+                
+                try {
+                    // reject empty or invalid input
+                    boolean condition1 = Wizard.isEmpty(jumpText);
+                    var lineToJump = Integer.parseInt(jumpText);
+                    boolean condition2 = lineToJump < 1 || lineToJump > totalLineCount;
+                    
+                    if (condition1 || condition2) {
+                        tilName.setError(getString(R.string.msg_invalid_jump_line));
+                        tilName.setErrorEnabled(true);
+                        return;
+                    }
+                    
+                    int targetLine = lineToJump - 1;
+                    binding.editor.jumpToLine(targetLine);
+                    dialog.dismiss();
+                } catch (NumberFormatException e) {
+                    tilName.setError(getString(R.string.msg_invalid_jump_line));
+                    tilName.setErrorEnabled(true);
                 }
             });
         });
+        
         dialog.show();
     }
-
+    
     public File getFile() {
         return mEditorFile;
     }
@@ -441,6 +467,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                 logger.e(TAG, msg);
             }
             setModified(false);
+            runOnUiThread(() -> getEditor().setIndexing(true));
         });
     }
 

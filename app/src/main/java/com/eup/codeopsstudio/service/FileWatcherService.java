@@ -45,6 +45,7 @@ import com.eup.codeopsstudio.observers.FileWatcher.OnFileChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.ref.WeakReference;
 
 /**
  * A foreground service that monitors file changes in a specified directory.
@@ -70,7 +71,7 @@ import java.util.List;
 public class FileWatcherService extends Service implements FileWatcher.OnFileChangeListener {
 
     public static final String TAG = "FileMonitorService";
-    private final List<OnFileChangeListener> listeners = new ArrayList<>();
+    private final List<WeakReference<OnFileChangeListener>> listeners = new ArrayList<>();
     private final IBinder binder = new LocalBinder();
     private FileWatcher fileWatcher;
     private boolean isMonitoring = false;
@@ -95,6 +96,7 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
     public void onDestroy() {
         super.onDestroy();
         stopWatching();
+        listeners.clear();
         performStopService();
     }
 
@@ -102,6 +104,18 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
+    }
+    
+    @Override
+    public void onFileChanged(int event, String path) {
+        listeners.removeIf(ref -> ref.get() == null);
+        
+        for (WeakReference<OnFileChangeListener> ref : listeners) {
+            OnFileChangeListener listener = ref.get();
+            if (listener != null) {
+               listener.onFileChanged(event, path);
+            }
+        }
     }
 
     private void stopWatching() {
@@ -173,14 +187,7 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
             .setContentText(getString(R.string.file_watcher_desc))
             .setPriority(NotificationCompat.PRIORITY_LOW).build();
     }
-
-    @Override
-    public void onFileChanged(int event, String path) {
-        for (OnFileChangeListener listener : listeners) {
-            listener.onFileChanged(event, path);
-        }
-    }
-
+    
     public LocalBinder getBinder() {
         return (LocalBinder) this.binder;
     }
@@ -194,17 +201,20 @@ public class FileWatcherService extends Service implements FileWatcher.OnFileCha
      */
     public class LocalBinder extends Binder {
         public void addListener(OnFileChangeListener listener) {
-            listeners.add(listener);
+            if (listener != null) {
+               listeners.removeIf(ref -> ref.get() == null);
+               listeners.add(new WeakReference<>(listener));
+            }
         }
-
+        
+        public void removeListener(OnFileChangeListener listener) {
+            listeners.removeIf(ref -> ref.get() == listener || ref.get() == null);
+        }
+        
         public FileWatcherService getService() {
             return FileWatcherService.this;
         }
-
-        public void removeListener(OnFileChangeListener listener) {
-            listeners.remove(listener);
-        }
-
+        
         public void startMonitoring(File file) {
             if (!isMonitoring && file != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

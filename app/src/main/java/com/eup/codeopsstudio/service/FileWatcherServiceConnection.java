@@ -100,4 +100,11 @@ public class FileWatcherServiceConnection implements ServiceConnection {
             boundService.getBinder().startMonitoring(file); // already connected (post-bound)
         }
     }
+    
+    public void removeListenerFromService() {
+        if (boundService != null && listener != null) {
+            boundService.getBinder().removeListener(listener);
+            boundService.getBinder().stopMonitoring();
+        }
+    }
 }
