@@ -288,7 +288,7 @@ public class PaneFactoryImpl implements PaneFactory {
         codeEditorPane.addArguments(CodeEditorPane.KEY_EDITOR_CONTENT, editorContent);
         return codeEditorPane;
     }
-
+    
     /**
      * Returns an {@code Integer} from the {@link Map}.
      *
@@ -298,19 +298,64 @@ public class PaneFactoryImpl implements PaneFactory {
      * @throws IllegalArgumentException if the value is not an integer
      * @see #requireString(String, Map)
      * @see #requireBoolean(String, Map)
+     * @see #requireLong(String, Map)
      */
     public static int requireInt(@NonNull String key, @NonNull Map<String, ?> map) {
         Object object = map.get(key);
-
+    
         if (object instanceof Integer o) {
             return o;
         } else if (object instanceof Double d) {
             return d.intValue();
         } else if (object instanceof Number n) {
             return n.intValue();
+        } else if (object instanceof String s) {
+            try {
+                return Integer.parseInt(s.trim());
+            } catch (NumberFormatException e) {
+                ILog.debug(TAG, "Failed to parse int from string: " + s);
+                return 0;
+            }
         } else {
-           ILog.debug(TAG, "Expected numeric type, but got: " + (object != null ? object.getClass().getName() : "null"));
-           return 0; // fallback for recovery
+            ILog.debug(TAG, "Expected numeric or string type for int, but got: " + 
+                      (object != null ? object.getClass().getName() : "null"));
+            return 0; // fallback for recovery
+        }
+    }
+
+    /**
+     * Returns a {@code Long} from the {@link Map}.
+     *
+     * @param key the key assigned to the {@link Long} value
+     * @param map the map holding the key-value pair
+     * @return the long value paired with the map key or 0L if the assigned key does not exist.
+     * @throws IllegalArgumentException if the value is not a long-compatible numeric type
+     * @see #requireInt(String, Map)
+     * @see #requireString(String, Map)
+     * @see #requireBoolean(String, Map)
+     */
+    public static long requireLong(@NonNull String key, @NonNull Map<String, ?> map) {
+        Object object = map.get(key);
+    
+        if (object instanceof Long o) {
+            return o;
+        } else if (object instanceof Integer i) {
+            return i.longValue();
+        } else if (object instanceof Double d) {
+            return d.longValue();
+        } else if (object instanceof Number n) {
+            return n.longValue();
+        } else if (object instanceof String s) {
+            try {
+                return Long.parseLong(s.trim());
+            } catch (NumberFormatException e) {
+                ILog.debug(TAG, "Failed to parse long from string: " + s);
+                return 0L;
+            }
+        } else {
+            ILog.debug(TAG, "Expected numeric or string type for long, but got: " + 
+                      (object != null ? object.getClass().getName() : "null"));
+            return 0L; // fallback for recovery
         }
     }
 }

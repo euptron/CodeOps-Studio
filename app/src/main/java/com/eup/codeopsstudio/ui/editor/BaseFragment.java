@@ -377,39 +377,16 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             restoreCodeEditorPane(cep);
         }
     }
-
+    
     private void restoreCodeEditorPane(@NonNull CodeEditorPane pane) {
-        final int leftColumn = PaneFactoryImpl.requireInt(CodeEditorPane.KEY_LEFT_COLUMN,
-            pane.getArguments());
-        final int leftLine = PaneFactoryImpl.requireInt(CodeEditorPane.KEY_LEFT_LINE,
-            pane.getArguments());
-        final String fileExtension =
-            PaneFactoryImpl.requireString(CodeEditorPane.KEY_FILE_EXTENSION, pane.getArguments());
-            
-        AsyncTask.runNonCancelable(() -> PaneFactoryImpl.requireString(CodeEditorPane.KEY_EDITOR_CONTENT, pane.getArguments()), (result, throwable) -> {
-            if (!isAdded() || isDetached()) return;
-            
-            if (throwable != null) {
-                ILog.error(TAG, "Error restoring pane arguments");
-            } else {
-                if (result != null && !result.isEmpty()) {
-                    pane.getEditor().setText(result);
-                    pane.getEditor().setLanguageExtension(fileExtension);
-                    pane.setModified(true);
-
-                    Content text = pane.getEditor().getText();
-
-                    int currLine = text.getLineCount();
-                    int currColumn = text.getColumnCount(leftLine);
-
-                    if (leftLine < currLine && leftColumn < currColumn) {
-                        pane.getEditor().getCursor().set(leftLine, leftColumn); // cursor position
-                    }
-                }
-            }
-        });
+        // CodeEditorPane handles restoration
+        if (pane.hasPersistedEditorChanges()) {
+            ILog.debug(TAG, "CodeEditorPane has persisted changes - will restoration content on selection " + pane.getTitle());
+        } else {
+            ILog.debug(TAG, "CodeEditorPane has no persisted changes - will load file on selection: " + pane.getTitle());
+        }
     }
-
+    
     private void restoreWebViewPane(@NonNull WebViewPane pane) {
         final Map<String, Object> arguments = pane.getArguments();
         final boolean zoomable = PaneFactoryImpl.requireBoolean(WebViewPane.KEY_IS_ZOOMABLE, arguments);

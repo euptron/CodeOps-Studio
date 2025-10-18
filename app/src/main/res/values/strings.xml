@@ -563,4 +563,14 @@
     <string name="previous_occurrence">Previous Occurrence</string>
     <string name="next_occurrence">Next Occurrence</string>
     <string name="close_app_confirmation">Are you sure you want to close %s</string>
+    
+    <!-- File modification dialogs -->
+    <string name="file_modified_externally">"%s" has been modified by another application. Do you want to reload it?</string>
+    <string name="reload_file">Reload File</string>
+    <string name="keep_changes">Keep My Changes</string>
+    
+    <!-- Reload confirmation -->
+    <string name="warning">Warning</string>
+    <string name="reload_will_lose_changes">Reloading the file will lose all your current changes. Do you want to continue?</string>
+    <string name="yes_reload">Yes, Reload</string>
 </resources>

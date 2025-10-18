@@ -57,6 +57,7 @@ import com.eup.codeopsstudio.ui.editor.code.manager.SearchManager;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.EncodingDetector;
 import com.eup.codeopsstudio.util.Wizard;
+import com.eup.codeopsstudio.ui.pane.factory.PaneFactoryImpl;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.apache.commons.io.FileUtils;
@@ -67,6 +68,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -102,8 +104,13 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public static final String KEY_FILE_PATH = "file_path";
     public static final String KEY_FILE_EXTENSION = "file_extension";
     public static final String KEY_EDITOR_CONTENT = "editor_content";
+    
+    private static final String KEY_FILE_MTIME = "file_mtime";
+    private static final String KEY_FILE_SIZE = "file_size";
+    private static final String KEY_WAS_DIRTY = "was_dirty";
     private static final String LANG_SCOPE_PATH = "editor/textmate/language_scopes.json";
     private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
+    
     private final Logger logger = new Logger(Logger.LogClass.IDE);
     private File mEditorFile;
     private LayoutCodeEditorBinding binding;
@@ -112,7 +119,8 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     private String fileScope;
     private SearchManager searchManager;
     private FileOperationsManager fileOperationsManager;
-
+    private boolean isContentLoaded = false;
+    
     public CodeEditorPane(Context context, String title) {
         this(context, title, true);
     }
@@ -144,27 +152,225 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             binding.breadCrumbBar.getAdapter()
                                  .setOnItemClickListener((anchorView, crumb, position) -> new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
         }
+        
+        // --- tasking stuff
+        applyEditorTheme();
 
-        setLoading(true);
+        if (mEditorFile == null) {
+            restoreFileFromArguments();
+        }
+        
+        // Setup empty editor - NO CONTENT LOADING
+        setupEmptyEditor();
+        enableEditorFeatures();
     }
 
     @Override
     protected void onViewLaidOut(@NonNull View view) {
         super.onViewLaidOut(view);
-        checkEditorConfigurations();
+        logger.i(TAG, "Editor UI ready - content will load on selection: " + getTitle());
+    }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        binding.editor.release();
+        binding = null;
+    }
+    
+    @Override
+    public void onSelected() {
+        super.onSelected();
+        if (binding != null) binding.editor.requestFocus();
+        
+        if (!isContentLoaded) {
+            ILog.debug(TAG, "Loading content on selection: " + getTitle());
+            loadEditorContentOnSelection();
+        }
+    }
+
+    @Override
+    public void persist() {
+        super.persist();
+        var cursor = binding.editor.getCursor();
+        addArguments(KEY_LEFT_COLUMN, cursor.getLeftColumn());
+        addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
+        addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
+        addArguments(KEY_FILE_EXTENSION, fileExtension);
+        
+        // Save file metadata for change detection
+        if (mEditorFile.exists()) {
+            addArguments(KEY_FILE_MTIME, mEditorFile.lastModified());
+            addArguments(KEY_FILE_SIZE, mEditorFile.length());
+        }
+        
+        if (isModified()) {
+            addArguments(KEY_EDITOR_CONTENT, binding.editor.getText().toString());
+            addArguments(KEY_WAS_DIRTY, true);
+        } else {
+            addArguments(KEY_EDITOR_CONTENT, "");
+            addArguments(KEY_WAS_DIRTY, false);
+        }
+    }
+    
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
+        if (Objects.equals(key, Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL)) {
+            updateCrumbPanelVisibility();
+        } else if (Objects.equals(key,
+            Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET)) {
+            refreshEditorLanguageSyntax();
+        }
+    }
+    
+    private void loadEditorContentOnSelection() {
+        boolean hasPersistedChanges = hasPersistedEditorChanges();
+        
+        if (hasPersistedChanges) {
+            // We have unsaved changes - check file state
+            boolean fileChangedExternally = hasFileChangedExternally();
+            
+            if (fileChangedExternally) {
+                showFileModifiedDialog();
+            } else {
+                restoreFromPersistence();
+                completeLazyLoading();
+            }
+        } else {
+            // No persisted changes - load fresh file content
+            readFileContent();
+            completeLazyLoading();
+        }
+    }
+    
+    private void setupEmptyEditor() {
+        binding.editor.setText("", null);
+        loadEditorLanguage(mEditorFile);
+        setModified(false);
+        // isContentLoaded remains false
+    }
+    
+    private void completeLazyLoading() {
+        isContentLoaded = true;
+        ILog.debug(TAG, "Completed lazy loading for: " + getTitle());
+    }
+    
+    public boolean hasPersistedEditorChanges() {
+        final Map<String, Object> args = getArguments();
+        if (args == null) return false;
+        
+        final  boolean wasDirty = PaneFactoryImpl.requireBoolean(KEY_WAS_DIRTY, args);
+        final String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
+        
+        return wasDirty && persistedContent != null && !persistedContent.isEmpty();
+    }
+    
+    private boolean hasFileChangedExternally() {
+        final Map<String, Object> args = getArguments();
+        if (args == null || mEditorFile == null || !mEditorFile.exists()) return false;
+        
+        long persistedMTime = PaneFactoryImpl.requireLong(KEY_FILE_MTIME, args);
+        long persistedSize = PaneFactoryImpl.requireLong(KEY_FILE_SIZE, args);
+        
+        long currentMTime = mEditorFile.lastModified();
+        long currentSize = mEditorFile.length();
+        
+        return persistedMTime != currentMTime || persistedSize != currentSize;
+    }
+    
+    private void showFileModifiedDialog() {
+        String fileName = mEditorFile.getName();
+        String message = getString(R.string.file_modified_externally, fileName);
+        
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(fileName)
+            .setMessage(message)
+            .setPositiveButton(R.string.reload_file, (dialog, which) -> {
+                showReloadConfirmationDialog();
+            })
+            .setNegativeButton(R.string.keep_changes, (dialog, which) -> {
+                restoreFromPersistence();
+                completeLazyLoading();
+            })
+            .setCancelable(false)
+            .show();
+    }
+    
+    private void showReloadConfirmationDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.warning)
+            .setMessage(R.string.reload_will_lose_changes)
+            .setPositiveButton(R.string.yes_reload, (dialog, which) -> {
+                readFileContent();
+                completeLazyLoading();
+            })
+            .setNegativeButton(R.string.cancel, (dialog, which) -> {
+                restoreFromPersistence();
+                completeLazyLoading();
+            })
+            .setCancelable(false)
+            .show();
+    }
+    
+    private void restoreFromPersistence() {
+        setLoading(true);
+        
+        final Map<String, Object> args = getArguments();
+        if (args == null) return;
+        
+        String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
+        if (persistedContent != null) {
+            binding.editor.setText(persistedContent);
+            binding.editor.setLanguageExtension(PaneFactoryImpl.requireString(KEY_FILE_EXTENSION, args));
+            
+            int leftLine = PaneFactoryImpl.requireInt(KEY_LEFT_LINE, args);
+            int leftColumn = PaneFactoryImpl.requireInt(KEY_LEFT_COLUMN, args);
+            
+            Content text = binding.editor.getText();
+            int totalLines = text.getLineCount();
+            
+            // Only set cursor if position is valid
+            if (leftLine >= 0 && leftLine < totalLines) {
+                int maxColumn = text.getColumnCount(leftLine);
+                if (leftColumn >= 0 && leftColumn <= maxColumn) {
+                    binding.editor.getCursor().set(leftLine, leftColumn);
+                } else {
+                    // Fallback: set to start of line
+                    binding.editor.getCursor().set(leftLine, 0);
+                }
+            } else {
+                // Fallback: set to start of document
+                binding.editor.getCursor().set(0, 0);
+            }
+        
+            setModified(true);
+            loadEditorLanguage(mEditorFile);
+            setLoading(false);
+            
+            logger.i(TAG, "Restored editor content from persistence");
+        }
+    }
+    
+    private void readFileContent() {
+        setLoading(true);
         fileOperationsManager.readFile(mEditorFile, () -> {
             updateAlertVisibility(true);
             searchManager.openSearchPanel(false);
         }, result -> {
-            setLoading(false);
             binding.editor.setText(result, null);
             loadEditorLanguage(mEditorFile);
-            logger.i(TAG, getString(R.string.act_code_editor_pane_open_file, getTitle(),
-                mEditorFile.getAbsolutePath()));
+            setModified(false);
+            
+            if (!isContentLoaded) {
+                completeLazyLoading();
+            }
+            
+            setLoading(false);
+            logger.i(TAG, "File content loaded: " + getTitle());
         });
     }
-
+    
     public void showSnackBar(@NonNull String message) {
         if (binding == null) return;
 
@@ -176,32 +382,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             ILog.debug(TAG, "BaseUtil.SnackBarBuilder is null");
         }
     }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
-        binding.editor.release();
-        binding = null;
-    }
-
-    @Override
-    public void onSelected() {
-        super.onSelected();
-        if (binding != null) binding.editor.requestFocus();
-    }
-
-    @Override
-    public void persist() {
-        super.persist();
-        var cursor = binding.editor.getCursor();
-        addArguments(KEY_LEFT_COLUMN, cursor.getLeftColumn());
-        addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
-        addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
-        addArguments(KEY_FILE_EXTENSION, fileExtension);
-        addArguments(KEY_EDITOR_CONTENT, binding.editor.getText().toString());
-    }
-
+    
     public BaseUtil.SnackBarBuilder showSnackBarInternal(@NonNull String message) {
         if (binding == null) return null;
 
@@ -210,16 +391,6 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                       .setView(binding.editor)
                       .setMessageMaxLines(6)
                       .setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
-        if (Objects.equals(key, Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL)) {
-            updateCrumbPanelVisibility();
-        } else if (Objects.equals(key,
-            Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET)) {
-            refreshEditorLanguageSyntax();
-        }
     }
 
     public void refreshEditorLanguageSyntax() {
@@ -439,7 +610,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public void saveEditor() {
         saveEditor(true);
     }
-
+    
     /**
      * Clear persisted content {@see BaseFragment} for how the editor contents are persisted
      *
@@ -460,14 +631,14 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             if (throwable == null) {
                 ILog.info(TAG, "Successfully saved editor file, any persisted data was cleared to"
                     + " save memory");
-                addArguments("editor_content", ""); // persisted editor content
+                addArguments(KEY_EDITOR_CONTENT, ""); // persisted editor content
+                setModified(false);
             } else {
                 var msg = "Error occurred while saving file: " + mEditorFile.getAbsolutePath()
                     + ", Reason: " + throwable.getMessage();
                 logger.e(TAG, msg);
             }
-            setModified(false);
-            runOnUiThread(() -> getEditor().setIndexing(true));
+            runOnUiThread(() -> getEditor().setIndexing(false));
         });
     }
 
@@ -484,54 +655,48 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         if (binding == null) return;
         binding.editor.undo();
     }
-
-    private void checkEditorConfigurations() {
+    
+    private void enableEditorFeatures() {
         try {
-            // prevent flicker and sync theme with app UI
-            applyEditorTheme();
-            enableEditorFeatures();
+            searchManager.applySearchTextChangedListener();
+
+            binding.editor.subscribeEvent(SelectionChangeEvent.class,
+                (event, data) -> searchManager.updatePositionText());
+    
+            binding.editor.subscribeEvent(ContentChangeEvent.class,
+                (event, data) -> {
+                if (mEditorFile == null) {
+                    return;
+                }
+    
+                if (!mEditorFile.exists()) {
+                    ILog.debug(TAG, String.format("File: %s does not exist", mEditorFile.getPath()));
+                    return;
+                }
+    
+                AsyncTask.runNonCancelable(() -> {
+                    String editorContent = binding.editor.getText().toString();
+                    int bufferSize = PreferencesUtils.getCurrentBufferSize();
+                    var cs = EncodingDetector.detectFileEncoding(bufferSize, mEditorFile);
+                    var originalFileContent = FileUtils.readFileToString(mEditorFile, cs);
+                    return !originalFileContent.contentEquals(editorContent);
+                }, (isEditorModified, th) -> {
+                    if (th == null) {
+                        setModified(isEditorModified);
+                    } else {
+                        logger.e(TAG, "Failed to read editor modification status: " + th.getMessage());
+                    }
+                });
+            }, CONTENT_CHANGE_CHECK_DELAY_MS);
+    
+            binding.editor.subscribeEvent(PublishSearchResultEvent.class,
+                (event, data) -> searchManager.updatePositionText());
+            binding.editor.subscribeEvent(IndexingEvent.class, indexingEventReceiver());
+            searchManager.updatePositionText();
         } catch (Exception e) {
             logger.e(TAG, getString(R.string.failed_to_init_editor), e);
             showSnackBar(getString(R.string.failed_to_init_editor) + ", Reason: " + e.getMessage());
         }
-    }
-
-    private void enableEditorFeatures() {
-        searchManager.applySearchTextChangedListener();
-
-        binding.editor.subscribeEvent(SelectionChangeEvent.class,
-            (event, data) -> searchManager.updatePositionText());
-
-        binding.editor.subscribeEvent(ContentChangeEvent.class,
-            (event, data) -> binding.editor.postDelayedInLifecycle(() -> {
-            if (mEditorFile == null) {
-                return;
-            }
-
-            if (!mEditorFile.exists()) {
-                ILog.debug(TAG, String.format("File: %s does not exist", mEditorFile.getPath()));
-                return;
-            }
-
-            AsyncTask.runNonCancelable(() -> {
-                String editorContent = binding.editor.getText().toString();
-                int bufferSize = PreferencesUtils.getCurrentBufferSize();
-                var cs = EncodingDetector.detectFileEncoding(bufferSize, mEditorFile);
-                var originalFileContent = FileUtils.readFileToString(mEditorFile, cs);
-                return !originalFileContent.contentEquals(editorContent);
-            }, (isEditorModified, th) -> {
-                if (th == null) {
-                    setModified(isEditorModified);
-                } else {
-                    logger.e(TAG, "Failed to read editor modification status: " + th.getMessage());
-                }
-            });
-        }, CONTENT_CHANGE_CHECK_DELAY_MS));
-
-        binding.editor.subscribeEvent(PublishSearchResultEvent.class,
-            (event, data) -> searchManager.updatePositionText());
-        binding.editor.subscribeEvent(IndexingEvent.class, indexingEventReceiver());
-        searchManager.updatePositionText();
     }
 
     private void loadEditorLanguage(@NonNull File file) {
@@ -557,6 +722,17 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             binding.editor.setVisibility(View.VISIBLE);
             binding.editorAlertLayout.rootContainer.setVisibility(View.GONE);
             binding.breadCrumbBar.setVisibility(View.VISIBLE);
+        }
+    }
+    
+    private void restoreFileFromArguments() {
+        final Map<String, Object> args = getArguments();
+        if (args != null) {
+            String filePath = PaneFactoryImpl.requireString(KEY_FILE_PATH, args);
+            if (filePath != null && !filePath.isEmpty()) {
+                mEditorFile = new File(filePath);
+                ILog.debug(TAG, "Restored mEditorFile from arguments: " + filePath);
+            }
         }
     }
 }
