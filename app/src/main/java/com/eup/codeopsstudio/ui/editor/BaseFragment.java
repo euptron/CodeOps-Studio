@@ -79,8 +79,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import io.github.rosemoe.sora.text.Content;
-
 /**
  * Base fragment: A class that holds a functional editor Including its action sheets TES: Tabbed
  * editor system

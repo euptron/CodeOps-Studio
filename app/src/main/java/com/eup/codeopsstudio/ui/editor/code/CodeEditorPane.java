@@ -71,7 +71,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
+import io.github.rosemoe.sora.text.Content;
 import io.github.rosemoe.sora.event.ContentChangeEvent;
 import io.github.rosemoe.sora.event.EventReceiver;
 import io.github.rosemoe.sora.event.PublishSearchResultEvent;
@@ -664,7 +664,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                 (event, data) -> searchManager.updatePositionText());
     
             binding.editor.subscribeEvent(ContentChangeEvent.class,
-                (event, data) -> {
+                (event, data) -> binding.editor.postDelayedInLifecycle(() -> {
                 if (mEditorFile == null) {
                     return;
                 }
@@ -687,7 +687,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                         logger.e(TAG, "Failed to read editor modification status: " + th.getMessage());
                     }
                 });
-            }, CONTENT_CHANGE_CHECK_DELAY_MS);
+            }, CONTENT_CHANGE_CHECK_DELAY_MS));
     
             binding.editor.subscribeEvent(PublishSearchResultEvent.class,
                 (event, data) -> searchManager.updatePositionText());
