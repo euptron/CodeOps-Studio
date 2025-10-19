@@ -159,16 +159,16 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         if (mEditorFile == null) {
             restoreFileFromArguments();
         }
-        
-        // Setup empty editor - NO CONTENT LOADING
-        setupEmptyEditor();
-        enableEditorFeatures();
     }
 
     @Override
     protected void onViewLaidOut(@NonNull View view) {
         super.onViewLaidOut(view);
         logger.i(TAG, "Editor UI ready - content will load on selection: " + getTitle());
+        
+         // Setup empty editor - NO CONTENT LOADING
+        setupEmptyEditor();
+        enableEditorFeatures();
     }
 
     @Override
@@ -246,7 +246,9 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     
     private void setupEmptyEditor() {
         binding.editor.setText("", null);
-        loadEditorLanguage(mEditorFile);
+        if (mEditorFile != null) {
+               loadEditorLanguage(mEditorFile);
+        }
         setModified(false);
         // isContentLoaded remains false
     }
@@ -345,7 +347,9 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             }
         
             setModified(true);
-            loadEditorLanguage(mEditorFile);
+            if (mEditorFile != null) {
+               loadEditorLanguage(mEditorFile);
+            }
             setLoading(false);
             
             logger.i(TAG, "Restored editor content from persistence");
@@ -359,7 +363,9 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             searchManager.openSearchPanel(false);
         }, result -> {
             binding.editor.setText(result, null);
-            loadEditorLanguage(mEditorFile);
+            if (mEditorFile != null) {
+               loadEditorLanguage(mEditorFile);
+            }
             setModified(false);
             
             if (!isContentLoaded) {
@@ -372,7 +378,11 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     }
     
     public void showSnackBar(@NonNull String message) {
-        if (binding == null) return;
+        if (binding == null || binding.editor == null) return;
+        
+        if (!binding.editor.isAttachedToWindow()) {
+           return;
+        }
 
         var snackBarBuilder = showSnackBarInternal(message);
 
@@ -384,7 +394,11 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     }
     
     public BaseUtil.SnackBarBuilder showSnackBarInternal(@NonNull String message) {
-        if (binding == null) return null;
+        if (binding == null || binding.editor == null) return null;
+        
+        if (!binding.editor.isAttachedToWindow()) {
+           return null;
+        }
 
         return BaseUtil.newSnackBarBuilder()
                       .setMessage(message)
