@@ -504,7 +504,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         }
         return false;
     }
-
+    
     private boolean handleCodeEditorActions(MenuItem item, int id, CodeEditorPane editorPane) {
         if (id == R.id.menu_run) {
             editorPane.saveEditor();
@@ -518,6 +518,18 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             return true;
         } else if (id == R.id.menu_save_file) {
             editorPane.saveEditor();
+            return true;
+        } else if (id == R.id.menu_save_as) {
+            editorPane.saveAs();
+            return true;
+        } else if (id == R.id.menu_reload_file) {
+            editorPane.reloadFile();
+            return true;
+        } else if (id == R.id.menu_reload_with_charset) {
+            editorPane.showCharsetSelectionDialog();
+            return true;
+        } else if (id == R.id.menu_file_statistics) {
+            editorPane.showStatistics();
             return true;
         } else if (id == R.id.menu_findFile) {
             editorPane.getSearchManager().openSearchPanel(true);
@@ -557,7 +569,7 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         }
         return false;
     }
-
+    
     private boolean handleWebViewActions(MenuItem item, int id, WebViewPane webViewPane) {
         final WebView webView = webViewPane.getWebView();
         final boolean newCheckedState = !item.isChecked();
@@ -599,20 +611,24 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
         }
         return false;
     }
-
+    
     private void onPrepareToolbarOptionsMenus(Menu menu) {
         CodeEditorPane editorPane = getSelectedCodeEditorPane();
         WebViewPane webViewPane = getSelectedWebViewPane();
 
         if (editorPane != null) {
+            menu.setGroupVisible(R.id.group_file_operations, true);
             menu.setGroupVisible(R.id.group_editor_actions, true);
             menu.setGroupVisible(R.id.group_unredo, true);
+            
             if (editorPane.isReadOnlyMode()) {
                 menu.setGroupEnabled(R.id.group_unredo, false);
                 menu.setGroupEnabled(R.id.group_content_edit, false);
+                menu.setGroupEnabled(R.id.group_file_operations, false);
             } else {
                 menu.setGroupEnabled(R.id.group_unredo, true);
                 menu.setGroupVisible(R.id.group_content_edit, true);
+                menu.setGroupEnabled(R.id.group_file_operations, true);
                 menu.findItem(R.id.menu_undo).setEnabled(editorPane.canUndo());
                 menu.findItem(R.id.menu_redo).setEnabled(editorPane.canRedo());
             }
@@ -621,14 +637,23 @@ public class MainFragment extends Fragment implements SharedPreferences.OnShared
             menu.findItem(R.id.menu_read_only_mode).setChecked(editorPane.isReadOnlyMode());
             // menu.findItem(R.id.?).setEnabled(!BaseUtil.isSoftInputVisible(this));
         } else if (webViewPane != null) {
+            menu.setGroupVisible(R.id.group_file_operations, false);
             menu.setGroupVisible(R.id.group_content_edit, false);
             menu.setGroupVisible(R.id.group_editor_actions, false);
             menu.setGroupVisible(R.id.group_unredo, true);
+            
             menu.findItem(R.id.menu_liveserver).setVisible(true);
             menu.findItem(R.id.menu_zoom).setChecked(webViewPane.isZoomable());
             menu.findItem(R.id.menu_desktop_mode).setChecked(webViewPane.isDeskTopMode());
             menu.findItem(R.id.menu_redo).setEnabled(webViewPane.canRedo());
             menu.findItem(R.id.menu_undo).setEnabled(webViewPane.canUndo());
+        } else {
+            // No active editor or web view - hide all editor-specific groups
+            menu.setGroupVisible(R.id.group_file_operations, false);
+            menu.setGroupVisible(R.id.group_content_edit, false);
+            menu.setGroupVisible(R.id.group_editor_actions, false);
+            menu.setGroupVisible(R.id.group_unredo, false);
+            menu.findItem(R.id.menu_liveserver).setVisible(false);
         }
     }
 

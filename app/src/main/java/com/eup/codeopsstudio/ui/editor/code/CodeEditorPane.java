@@ -67,6 +67,9 @@ import org.jetbrains.annotations.Contract;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -77,27 +80,65 @@ import io.github.rosemoe.sora.event.EventReceiver;
 import io.github.rosemoe.sora.event.PublishSearchResultEvent;
 import io.github.rosemoe.sora.event.SelectionChangeEvent;
 
-/**
- * CodeEditorPane is a pane subset to handle code editing
+import android.os.Environment;
+
+ /**
+ * A specialized pane implementation for code editing operations within CodeOps Studio.
+ * 
+ * <p>This pane serves as the primary code editing interface, providing advanced text editing
+ * capabilities with syntax highlighting, file management operations, and real-time content
+ * synchronization. It integrates with the broader pane system while maintaining independent
+ * editor state and lifecycle management.</p>
  *
- * <p>TODO
+ * <h3>Core Responsibilities</h3>
+ * <ul>
+ *   <li>File content loading, editing, and persistence with charset detection</li>
+ *   <li>Syntax highlighting and language-aware editing features</li>
+ *   <li>Real-time modification tracking and change detection</li>
+ *   <li>Search and navigation management within editor content</li>
+ *   <li>File operations (save, reload, save-as, statistics)</li>
+ *   <li>Editor state preservation and restoration</li>
+ * </ul>
  *
- * <ol>
- *   <li>Support to select custom syntax highlighting
- *   <li>Reload editor file
- *   <li>Reload editor file with charset
- *   <li>Save as
- *   <li>Statistics
- *   <li>Support 'Smooth mode' @see CodeEditor#setBasicDisplayMode
- *   <li>Use editor color scheme to paint bread-crumbs and other editor components
- * </ol>
+ * <h3>Key Features</h3>
+ * <ul>
+ *   <li><b>Lazy Loading</b>: Content loads on selection for performance optimization</li>
+ *   <li><b>Encoding Support</b>: Multiple charset detection and conversion</li>
+ *   <li><b>File Management</b>: Save, save-as, reload with external change detection</li>
+ *   <li><b>Syntax highlight</b>: TextMate-based language support with auto-completion</li>
+ *   <li><b>State Persistence</b>: Cursor position, content, and modification state restoration</li>
+ *   <li><b>Search Integration</b>: Full-featured search and replace functionality</li>
+ * </ul>
+ *
+ * <h3>Lifecycle Management</h3>
+ * <p>The pane implements sophisticated lifecycle handling:
+ * <ul>
+ *   <li><b>View Creation</b>: Basic UI setup and theme application</li>
+ *   <li><b>View Layout</b>: Editor features enablement after layout completion</li>
+ *   <b>Selection</b>: Content loading triggered by pane activation</li>
+ *   <li><b>Persistence</b>: Automatic state saving for session restoration</li>
+ * </ul>
+ * </p>
+ *
+ * <h3>Integration Points</h3>
+ * <ul>
+ *   <li>Extends {@link Pane} for window management integration</li>
+ *   <li>Uses {@link ContextualCodeEditor} for core editing capabilities</li>
+ *   <li>Collaborates with {@link FileOperationsManager} for file I/O operations</li>
+ *   <li>Integrates {@link SearchManager} for text search functionality</li>
+ *   <li>Publishes {@link EditorModificationEvent} for UI state synchronization</li>
+ * </ul>
  *
  * @author Etido Peter
- * @version 0.0.5
+ * @version 2.0.0
  * @see Pane
+ * @see ContextualCodeEditor
+ * @see FileOperationsManager
+ * @see SearchManager
+ * @since 1.0.0
  */
 public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPreferenceChangeListener {
-
+    
     public static final String TAG = "CodeEditorPane";
     public static final String KEY_LEFT_COLUMN = "left_column";
     public static final String KEY_LEFT_LINE = "left_line";
@@ -120,6 +161,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     private SearchManager searchManager;
     private FileOperationsManager fileOperationsManager;
     private boolean isContentLoaded = false;
+    private Charset currentCharset = StandardCharsets.UTF_8;
     
     public CodeEditorPane(Context context, String title) {
         this(context, title, true);
@@ -153,7 +195,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                                  .setOnItemClickListener((anchorView, crumb, position) -> new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
         }
         
-        // --- tasking stuff
+        // setup before view is laid out 
         applyEditorTheme();
 
         if (mEditorFile == null) {
@@ -166,7 +208,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         super.onViewLaidOut(view);
         logger.i(TAG, "Editor UI ready - content will load on selection: " + getTitle());
         
-         // Setup empty editor - NO CONTENT LOADING
+        // Setup empty editor - NO CONTENT LOADING
         setupEmptyEditor();
         enableEditorFeatures();
     }
@@ -224,6 +266,98 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         }
     }
     
+    public void reloadFile() {
+        if (mEditorFile == null || !mEditorFile.exists()) {
+            showSnackBar(getString(R.string.file_not_found));
+            return;
+        }
+        
+        if (isModified()) {
+            showReloadConfirmationDialog();
+        } else {
+            performReload();
+        }
+    }
+    
+    public void reloadFileWithCharset(@NonNull Charset charset) {
+        if (mEditorFile == null || !mEditorFile.exists()) {
+            showSnackBar(getString(R.string.file_not_found));
+            return;
+        }
+        
+        this.currentCharset = charset;
+        if (isModified()) {
+            showReloadWithCharsetConfirmationDialog(charset);
+        } else {
+            performReloadWithCharset(charset);
+        }
+    }
+    
+    public void showCharsetSelectionDialog() {
+        List<String> charsets = EncodingDetector.getSupportedEncodings();
+        int defaultCharsetIndex = charsets.indexOf(Constants.FALLBACK_FILE_ENCODING);
+        if (defaultCharsetIndex < 0) {
+            defaultCharsetIndex = charsets.indexOf(StandardCharsets.UTF_8.name());
+        }
+    
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.select_charset)
+            .setSingleChoiceItems(charsets.toArray(new String[0]), defaultCharsetIndex,
+                (dialog, which) -> {
+                    Charset selectedCharset = EncodingDetector.findEncoding(charsets.get(which));
+                    reloadFileWithCharset(selectedCharset);
+                    dialog.dismiss();
+                })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+    }
+    
+    public void saveAs() {
+        if (binding == null || mEditorFile == null) return;
+        
+        String currentContent = binding.editor.getText().toString();
+        if (currentContent.isEmpty()) {
+            showSnackBar(getString(R.string.no_content_to_save));
+            return;
+        }
+        
+        showSaveAsDialog();
+    }
+    
+    public void showStatistics() {
+        if (binding == null) return;
+        
+        binding.editor.setIndexing(true);
+        
+        AsyncTask.runNonCancelable(() -> {
+            return calculateFileStatistics();
+        }, (stats, throwable) -> {
+            binding.editor.setIndexing(false);
+            if (throwable == null && stats != null) {
+                var message = new StringBuilder();
+                message.append("File Name: ").append(mEditorFile != null ? mEditorFile.getName() : "Untitled").append("\n");
+                message.append("File Size: ").append(formatFileSize(stats.fileSize)).append("\n");
+                message.append("Total Lines: ").append(stats.totalLines).append("\n");
+                message.append("Total Words: ").append(stats.totalWords).append("\n");
+                message.append("Total Characters: ").append(stats.totalChars).append("\n");
+                message.append("Total Characters (no spaces): ").append(stats.totalCharsNoSpaces).append("\n");
+                message.append("Encoding: ").append(stats.encoding).append("\n");
+                message.append("Line Separator: ").append(stats.lineSeparator);
+                
+                new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.file_statistics)
+                    .setMessage(message.toString())
+                    .setPositiveButton(R.string.close, null)
+                    .show();
+            } else {
+                String errorMsg = getString(R.string.failed_to_calculate_statistics) + ": " + 
+                                    (throwable != null ? throwable.getMessage() : "Unknown error");
+                showSnackBar(errorMsg);
+                logger.e(TAG, errorMsg, throwable);
+            }
+        });
+    }
+
     private void loadEditorContentOnSelection() {
         boolean hasPersistedChanges = hasPersistedEditorChanges();
         
@@ -315,6 +449,209 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             .show();
     }
     
+    private void showReloadWithCharsetConfirmationDialog(Charset charset) {
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.warning)
+            .setMessage(getString(R.string.reload_with_charset_warning, charset.displayName()))
+            .setPositiveButton(R.string.yes_reload, (dialog, which) -> {
+                performReloadWithCharset(charset);
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .setCancelable(false)
+            .show();
+    }
+    
+    private void performReload() {
+        setLoading(true);
+        readFileContent();
+        setLoading(false);
+        showSnackBar(getString(R.string.file_reloaded));
+    }
+    
+    private void performReloadWithCharset(Charset charset) {
+        setLoading(true);
+        readFileContentWithCharset(charset);
+        setLoading(false);
+        showSnackBar(getString(R.string.file_reloaded_with_charset, charset.displayName()));
+    }
+    
+    private void showSaveAsDialog() {
+        final var inflate = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
+        
+        if (inflate.tilName == null || inflate.tilName.getEditText() == null) {
+            ILog.error(TAG, "Error: TIL name or its edittext = null");
+            return;
+        }
+        
+        final var tilName = inflate.tilName;
+        final var tilNameEditText = inflate.tilName.getEditText();
+        
+        tilName.setHint(R.string.enter_filename);
+        String defaultName = mEditorFile != null ? mEditorFile.getName() : "new_file.txt";
+        tilNameEditText.setText(defaultName);
+        tilNameEditText.setSelection(defaultName.length());
+        
+        var builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setView(inflate.getRoot());
+        builder.setTitle(R.string.save_as);
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.setCancelable(false);
+
+        AlertDialog dialog = builder.create();
+        
+        dialog.setOnShowListener(d -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            positiveButton.setEnabled(true);
+            
+            positiveButton.setOnClickListener(v -> {
+                var fileName = tilNameEditText.getText().toString();
+                
+                if (Wizard.isEmpty(fileName)) {
+                    tilName.setError(getString(R.string.filename_cannot_be_empty));
+                    return;
+                }
+                
+                performSaveAs(fileName);
+                dialog.dismiss();
+            });
+        });
+        
+        dialog.show();
+    }
+    
+    private void performSaveAs(String fileName) {
+        if (Wizard.isEmpty(fileName)) {
+            showSnackBar(getString(R.string.filename_cannot_be_empty));
+            return;
+        }
+        
+        fileName = cleanFileName(fileName);
+        
+        File parentDir = mEditorFile != null ? mEditorFile.getParentFile() : 
+                        Environment.getExternalStorageDirectory();
+        
+        if (parentDir == null || !FileUtil.createOrExistsDir(parentDir)) {
+            showSnackBar(getString(R.string.invalid_directory));
+            return;
+        }
+        
+        String finalFileName = handleFileExtension(fileName, mEditorFile);
+        
+        File targetFile = new File(parentDir, finalFileName);
+        
+        if (targetFile.equals(mEditorFile)) {
+            showSnackBar(getString(R.string.same_file_error));
+            return;
+        }
+        
+        if (targetFile.exists()) {
+            showOverwriteConfirmationDialog(targetFile, finalFileName);
+        } else {
+            saveToFile(targetFile);
+        }
+    }
+    
+    private String cleanFileName(String fileName) {
+        if (FileUtil.isSpace(fileName)) return "unnamed_file";
+        
+        String cleaned = fileName.replaceAll("[<>:\"/\\\\|?*]", "_");
+        cleaned = cleaned.trim().replaceAll("^\\.+|\\.+$", "");
+        
+        if (FileUtil.isSpace(cleaned)) {
+            cleaned = "unnamed_file";
+        }
+        
+        return cleaned;
+    }
+    
+    private String handleFileExtension(String fileName, File originalFile) {
+        // If fileName already has a valid extension, use it as is
+        if (hasValidExtension(fileName)) {
+            return fileName;
+        }
+        
+        // Only add extension if original file has a valid extension
+        String originalExt = FileUtil.getFileExtension(originalFile);
+        if (!FileUtil.isSpace(originalExt)) {
+            return fileName + "." + originalExt;
+        }
+        
+        // No valid extension in original file, return as is
+        return fileName;
+    }
+    
+    private boolean hasValidExtension(String fileName) {
+        if (FileUtil.isSpace(fileName)) return false;
+        
+        String extension = FileUtil.getFileExtension(fileName);
+        return !FileUtil.isSpace(extension);
+    }
+    
+    private void showOverwriteConfirmationDialog(File targetFile, String fileName) {
+        new MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.file_exists)
+            .setMessage(getString(R.string.overwrite_file_confirmation, fileName))
+            .setPositiveButton(R.string.overwrite, (dialog, which) -> {
+                saveToFile(targetFile);
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+    }
+    
+    private void saveToFile(File targetFile) {
+        setLoading(true);
+        
+        AsyncTask.runNonCancelable(() -> {
+            String content = binding.editor.getText().toString();
+            FileUtils.writeStringToFile(targetFile, content, currentCharset);
+            return targetFile;
+        }, (result, throwable) -> {
+            setLoading(false);
+            if (throwable == null) {
+                setFile(result);
+                setModified(false);
+                showSnackBar(getString(R.string.file_saved_as, result.getName()));
+                logger.i(TAG, "File saved as: " + result.getAbsolutePath());
+            } else {
+                String errorMsg = getString(R.string.msg_save_as_failed) + ": " + throwable.getMessage();
+                showSnackBar(errorMsg);
+                logger.e(TAG, errorMsg, throwable);
+            }
+        });
+    }
+    
+    private FileStats calculateFileStatistics() {
+        FileStats stats = new FileStats();
+        
+        if (mEditorFile != null && mEditorFile.exists()) {
+            stats.fileSize = mEditorFile.length();
+            stats.encoding = currentCharset.displayName();
+        }
+        
+        String content = binding.editor.getText().toString();
+        stats.totalLines = binding.editor.getLineCount();
+        stats.totalChars = content.length();
+        stats.totalCharsNoSpaces = content.replaceAll("\\s", "").length();
+        stats.totalWords = content.trim().isEmpty() ? 0 : content.trim().split("\\s+").length;
+        stats.lineSeparator = System.getProperty("line.separator");
+        
+        return stats;
+    }
+    
+    private String formatFileSize(long size) {
+        if (size <= 0) return "0 B";
+        
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.1f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.1f MB", size / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+    
     private void restoreFromPersistence() {
         setLoading(true);
         
@@ -374,6 +711,28 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             
             setLoading(false);
             logger.i(TAG, "File content loaded: " + getTitle());
+        });
+    }
+    
+    private void readFileContentWithCharset(Charset charset) {
+        setLoading(true);
+        fileOperationsManager.readFileWithCharset(mEditorFile, charset, () -> {
+            updateAlertVisibility(true);
+            searchManager.openSearchPanel(false);
+        }, result -> {
+            binding.editor.setText(result, null);
+            if (mEditorFile != null) {
+               loadEditorLanguage(mEditorFile);
+            }
+            setModified(false);
+            currentCharset = charset;
+            
+            if (!isContentLoaded) {
+                completeLazyLoading();
+            }
+            
+            setLoading(false);
+            logger.i(TAG, "File content loaded with charset " + charset + ": " + getTitle());
         });
     }
     
@@ -571,9 +930,12 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     public File getFile() {
         return mEditorFile;
     }
-
+    
     public void setFile(File file) {
         this.mEditorFile = file;
+        if (binding != null) {
+            binding.breadCrumbBar.setFile(file);
+        }
     }
 
     public String getFilePath() {
@@ -634,28 +996,31 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         runOnUiThread(() -> getEditor().setIndexing(true));
 
         AsyncTask.runNonCancelable(() -> {
-            if (recreateIfDeleted && !mEditorFile.exists() && mEditorFile.createNewFile()) {
-                logger.i(TAG, "File recreated for " + getTitle() + " editor");
+            if (recreateIfDeleted && !mEditorFile.exists()) {
+                if (mEditorFile.createNewFile()) {
+                    logger.i(TAG, "File recreated for " + getTitle() + " editor");
+                } else {
+                    throw new IOException("Failed to recreate file: " + mEditorFile.getAbsolutePath());
+                }
             }
 
-            fileOperationsManager.saveEditorContent(mEditorFile, binding.editor.getText()
-                                                                               .toString());
+            fileOperationsManager.saveEditorContent(mEditorFile, binding.editor.getText().toString());
             return null;
         }, (result, throwable) -> {
+            getEditor().setIndexing(false);
             if (throwable == null) {
-                ILog.info(TAG, "Successfully saved editor file, any persisted data was cleared to"
-                    + " save memory");
+                ILog.info(TAG, "Successfully saved editor file, any persisted data was cleared to save memory");
                 addArguments(KEY_EDITOR_CONTENT, ""); // persisted editor content
                 setModified(false);
             } else {
                 var msg = "Error occurred while saving file: " + mEditorFile.getAbsolutePath()
                     + ", Reason: " + throwable.getMessage();
                 logger.e(TAG, msg);
+                showSnackBar(msg);
             }
-            runOnUiThread(() -> getEditor().setIndexing(false));
         });
     }
-
+    
     public ContextualCodeEditor getEditor() {
         return binding.editor;
     }
@@ -708,8 +1073,10 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             binding.editor.subscribeEvent(IndexingEvent.class, indexingEventReceiver());
             searchManager.updatePositionText();
         } catch (Exception e) {
-            logger.e(TAG, getString(R.string.failed_to_init_editor), e);
-            showSnackBar(getString(R.string.failed_to_init_editor) + ", Reason: " + e.getMessage());
+            String reason = (e.getMessage() == null) ? "" : e.getMessage();
+            String msg = getString(R.string.failed_to_init_editor) + ", Reason: " + reason;
+            logger.e(TAG, msg, e);
+            showSnackBar(msg);
         }
     }
 
@@ -748,5 +1115,15 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
                 ILog.debug(TAG, "Restored mEditorFile from arguments: " + filePath);
             }
         }
+    }
+    
+    private static class FileStats {
+        long fileSize;
+        int totalLines;
+        int totalWords;
+        int totalChars;
+        int totalCharsNoSpaces;
+        String encoding;
+        String lineSeparator;
     }
 }

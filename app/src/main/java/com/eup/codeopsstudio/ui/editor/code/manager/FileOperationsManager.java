@@ -60,6 +60,23 @@ public class FileOperationsManager {
     public ContextualCodeEditor getEditor() {
         return editor;
     }
+    
+    public void readFileWithCharset(@NonNull File file, @NonNull Charset charset, @NonNull Runnable onError, @NonNull Consumer<String> onSuccess) {
+        AsyncTask.runNonCancelable(() -> {
+            try {
+                return FileUtils.readFileToString(file, charset);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read file: " + file.getAbsolutePath(), e);
+            }
+        }, (result, throwable) -> {
+            if (throwable != null) {
+                logger.e(TAG, "Error reading file: " + throwable.getMessage());
+                onError.run();
+            } else {
+                onSuccess.accept(result);
+            }
+        });
+    }
 
     public void readFile(@NonNull File file, @NonNull Runnable binaryRunnable,
         @NonNull Consumer<String> result) {

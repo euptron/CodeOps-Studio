@@ -39,30 +39,22 @@
             android:title="@string/redo"
             app:showAsAction="ifRoom" />
     </group>
-
+    
     <item
         android:id="@+id/menu_run"
         android:icon="@drawable/ic_play_outline"
         android:title="@string/run"
         android:visible="false"
         app:showAsAction="ifRoom" />
-
+    
     <group
         android:id="@+id/group_content_edit"
         android:visible="false">
-        <item
-            android:id="@+id/menu_save_file"
-            android:enabled="false"
-            android:icon="@drawable/ic_content_save"
-            android:title="@string/save"
-            app:showAsAction="ifRoom" />
-
         <item
             android:id="@+id/menu_edit"
             android:icon="@drawable/ic_pencil"
             android:title="@string/edit"
             app:showAsAction="always">
-            <!-- "menu_edit" sub menu -->
             <menu>
                 <item
                     android:id="@+id/menu_copy_line"
@@ -102,7 +94,46 @@
             </menu>
         </item>
     </group>
-
+    
+    <group
+        android:id="@+id/group_file_operations"
+        android:visible="false">
+        <item
+            android:id="@+id/menu_file"
+            android:icon="@drawable/ic_file"
+            android:title="@string/file"
+            app:showAsAction="always">
+            <menu>
+                <item
+                    android:id="@+id/menu_save_file"
+                    android:enabled="false"
+                    android:icon="@drawable/ic_content_save"
+                    android:title="@string/save"
+                    app:showAsAction="ifRoom" />
+                <item
+                    android:id="@+id/menu_save_as"
+                    android:icon="@drawable/ic_content_save_outline"
+                    android:title="@string/save_as"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_reload_file"
+                    android:icon="@drawable/ic_refresh"
+                    android:title="@string/reload_file"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_reload_with_charset"
+                    android:icon="@drawable/ic_file_sync_outline"
+                    android:title="@string/reload_with_charset"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/menu_file_statistics"
+                    android:icon="@drawable/ic_file_chart"
+                    android:title="@string/file_statistics"
+                    app:showAsAction="never" />
+            </menu>
+        </item>
+    </group>
+    
     <group
         android:id="@+id/group_editor_actions"
         android:visible="false">

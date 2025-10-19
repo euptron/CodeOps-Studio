@@ -564,13 +564,30 @@
     <string name="next_occurrence">Next Occurrence</string>
     <string name="close_app_confirmation">Are you sure you want to close %s</string>
     
-    <!-- File modification dialogs -->
+    <!-- File Operations -->
     <string name="file_modified_externally">"%s" has been modified by another application. Do you want to reload it?</string>
     <string name="reload_file">Reload File</string>
     <string name="keep_changes">Keep My Changes</string>
-    
-    <!-- Reload confirmation -->
     <string name="warning">Warning</string>
     <string name="reload_will_lose_changes">Reloading the file will lose all your current changes. Do you want to continue?</string>
     <string name="yes_reload">Yes, Reload</string>
+    <string name="file_reloaded">File reloaded</string>
+    <string name="file_reloaded_with_charset">File reloaded with charset: %s</string>
+    <string name="reload_with_charset_warning">Reloading with charset %s will discard any unsaved changes. Continue?</string>
+    <string name="select_charset">Select Character Encoding</string>
+    <string name="save_as">Save As</string>
+    <string name="enter_filename">Enter filename</string>
+    <string name="filename_cannot_be_empty">Filename cannot be empty</string>
+    <string name="file_exists">File Exists</string>
+    <string name="overwrite_file_confirmation">File \"%s\" already exists. Overwrite?</string>
+    <string name="overwrite">Overwrite</string>
+    <string name="file_saved_as">File saved as: %s</string>
+    <string name="file_statistics">File Statistics</string>
+    <string name="file_not_found">File not found</string>
+    <string name="no_content_to_save">No content to save</string>
+    <string name="reload_with_charset">Reload with Charset</string>
+    <string name="save_as_failed">Save as failed</string>
+    <string name="failed_to_calculate_statistics">Failed to calculate statistics</string>
+    <string name="invalid_directory">Invalid directory</string>
+    <string name="same_file_error">Cannot save to the same file</string>
 </resources>
