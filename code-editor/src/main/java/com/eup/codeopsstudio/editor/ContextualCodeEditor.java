@@ -806,6 +806,17 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
             toast(e.getLocalizedMessage());
         }
     }
+    
+    /**
+     * Applies the initial TextMateTheme (TMT) of the editor
+     * 
+     * @string themeName the name of the theme to be applied
+     * @throws Exception if an error occurs
+     */
+    public void applyTheme(String themeName) throws Exception {
+       ThemeRegistry.getInstance().setTheme(themeName); // -> presets TMT
+       ensureTextmateTheme(); // -> applies the preset TMT
+    }
 
     /**
      * Updates the previous editor theme with a new one
@@ -814,8 +825,32 @@ public class ContextualCodeEditor extends CodeEditor implements SharedPreference
      */
     public void updateTextMateTheme(String themeName) throws Exception {
         ensureTextmateTheme();
-        ThemeRegistry.getInstance().setTheme(themeName);
+        ThemeRegistry.getInstance().setTheme(themeName); // -> presets new TMT
+        resetColorScheme(); // applies new TMT
+        invalidate();
+    }
+    
+    /**
+     * Refreshes the TMT theme
+     * 
+     * @throws Exception if an error occurs
+     */
+    public void refreshTheme() throws Exception {
+        ensureTextmateTheme();
         resetColorScheme();
+    }
+    
+    /**
+     * Refreshes the syntax highlights
+     * <p> Better option is to recall setEditorLanguage as it completely calls CodeEditor#rerunAnalysis() internally
+     *
+     * @throws Exception if an error occurs
+     */
+    private void refreshSyntaxHighlighting() {
+        if (getEditorLanguage() != null) {
+            rerunAnalysis();
+            invalidate();
+        }
     }
 
     @VisibleForTesting

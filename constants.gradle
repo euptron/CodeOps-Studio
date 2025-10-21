@@ -61,6 +61,6 @@ project.ext {
     def gitHash = getGitCommitHashSafe()
     def gitCommitCount = getGitCommitCountSafe()
 
-    appVersionName = "1.0.3 beta (${gitHash})"
+    appVersionName = "1.0.4 beta (${gitHash})"
     appVersionCode = gitCommitCount
 }

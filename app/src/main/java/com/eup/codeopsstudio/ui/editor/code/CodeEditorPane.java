@@ -161,6 +161,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     private SearchManager searchManager;
     private FileOperationsManager fileOperationsManager;
     private boolean isContentLoaded = false;
+    private boolean isHardwareAccelerated = false;
     private Charset currentCharset = StandardCharsets.UTF_8;
     
     public CodeEditorPane(Context context, String title) {
@@ -182,7 +183,9 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
         super.onViewCreated(view);
         logger.attach(requireActivity());
         PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
-
+        
+        applyEditorTheme();
+        
         searchManager = new SearchManager(requireContext(), binding);
         searchManager.applyPanelClickListeners();
         fileOperationsManager = new FileOperationsManager(requireContext(), logger, binding.editor);
@@ -194,9 +197,6 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             binding.breadCrumbBar.getAdapter()
                                  .setOnItemClickListener((anchorView, crumb, position) -> new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
         }
-        
-        // setup before view is laid out 
-        applyEditorTheme();
 
         if (mEditorFile == null) {
             restoreFileFromArguments();
@@ -258,11 +258,18 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
     
     @Override
     public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
-        if (Objects.equals(key, Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL)) {
-            updateCrumbPanelVisibility();
-        } else if (Objects.equals(key,
-            Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET)) {
-            refreshEditorLanguageSyntax();
+        Objects.requireNonNull(key);
+        switch (key) {
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL:
+                updateCrumbPanelVisibility();
+                break;
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET:
+                refreshEditorLanguageSyntax();
+                break;
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_HARDWARE_ACCELERATION:
+                isHardwareAccelerated = PreferencesUtils.enableHardWareAcceleration();
+                break;
+            default: // Nothing
         }
     }
     
@@ -783,8 +790,9 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             fileExtension = languageInfo.first;
             fileScope = languageInfo.second;
             
+            if (refresh) binding.editor.refreshTheme();
+            
             binding.editor.setEditorLanguage(fileExtension, fileScope, autoComplete, autoCloseBrackets, refresh);
-            if (refresh) applyEditorTheme();
         } catch (Exception e) {
             String clause = (refresh ? getString(R.string.refresh).toLowerCase()
                 : getString(R.string.load).toLowerCase());
@@ -823,7 +831,7 @@ public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPr
             String lightTheme = ContextualCodeEditor.THEME_QUIET_LIGHT;
             String darkTheme = ContextualCodeEditor.THEME_DARCULA;
             
-            binding.editor.updateTextMateTheme(isDarkMode ? darkTheme : lightTheme);
+            binding.editor.applyTheme(isDarkMode ? darkTheme : lightTheme);
         } catch (Exception e) {
             logger.e(TAG, e.getMessage(), e);
         }
