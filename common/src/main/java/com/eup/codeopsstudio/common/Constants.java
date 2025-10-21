@@ -136,7 +136,7 @@ public final class Constants {
     public static final String KEY_PROJECT_TEMPLATE_DOC_URL = "doc_url";
     public static final String KEY_PROJECT_TEMPLATE_DESCRIPTION = "description";
     public static final String PROJECT_TEMPLATES_SUB_DIR_PATH =
-        File.separator + ".cos" + File.separator + "template";
+        /*File.separator +*/".cos" + File.separator + "template";
     public static final String PROJECT_TEMPLATE_MODEL_JSON_FILE_PATH =
         PROJECT_TEMPLATES_SUB_DIR_PATH + File.separator + "info.json";
 

@@ -205,7 +205,7 @@ public final class PaneContracts {
                             + " from persistent storage");
                     } else {
                         output.accept(
-                            "Failed to remove pane: " + pane.getTID() + " from persistent storage");
+                            "Failed to remove pane: " + pane.getTID() + " from persistent storage, persisted = " + isPersisted(pane));
                     }
                 }
             });
