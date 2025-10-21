@@ -34,10 +34,10 @@
 
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="1px"
         android:layout_marginTop="@dimen/dimen12dp"
         android:layout_marginBottom="@dimen/dimen8dp"
-        android:alpha="0.7" />
+        android:alpha="0.8" />
 
     <com.eup.libraries.sharelayout.ShareLayout
         android:id="@+id/share_layout"
@@ -59,9 +59,9 @@
 
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="1px"
         android:layout_marginTop="@dimen/dimen18dp"
         android:layout_marginBottom="@dimen/dimen1dp"
-        android:alpha="0.7" />
+        android:alpha="0.8" />
 
 </LinearLayout>

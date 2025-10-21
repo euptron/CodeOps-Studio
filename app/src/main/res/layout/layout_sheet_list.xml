@@ -59,7 +59,7 @@
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:alpha="0.7"
+        android:alpha="0.8"
         android:background="?attr/colorAccent" />
 
     <androidx.recyclerview.widget.RecyclerView

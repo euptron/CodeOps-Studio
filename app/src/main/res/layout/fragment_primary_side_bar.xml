@@ -37,7 +37,7 @@
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="1px"
         android:layout_height="match_parent"
-        android:alpha="0.7" />
+        android:alpha="0.8" />
 
     <fragment
         android:id="@+id/nav_host_primary_side_bar_fragment"
