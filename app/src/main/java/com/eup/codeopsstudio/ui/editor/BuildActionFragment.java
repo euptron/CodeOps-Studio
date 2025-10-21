@@ -60,15 +60,32 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @author Etido Peter
+ */
 public class BuildActionFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String OFFSET_KEY = "offsetKey";
-    private final String TAG = "BuildActionFragment";
-    private FragmentBuildActionBinding binding;
-    private EditorShortcutAdapter shortcutAdapter;
-    private EditorShortcutWizard shortcutWizard;
+    public static final String TAG = "BuildActionFragment";
+    
+    private int collapsedHeightPx = 0;
+    private int expandedHeightPx = 0;
     private String shortcutsJsonString;
-
+    private FragmentBuildActionBinding binding;
+    private EditorShortcutWizard shortcutWizard;
+    private EditorShortcutAdapter shortcutAdapter;
+    
+    public static BuildActionFragment newInstance() {
+        return new BuildActionFragment();
+    }
+    
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        shortcutsJsonString = loadShortcutsJson();
+        shortcutAdapter = new EditorShortcutAdapter();
+    }
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -76,21 +93,21 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
         binding = FragmentBuildActionBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
-
+    
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
-        shortcutAdapter = new EditorShortcutAdapter();
-        var adapter = new BuildActionPagerAdapter(getChildFragmentManager(), getLifecycle());
-        loadShortcutsJson();
-        adapter.addFragment(OutPutFragment.newInstance());
-        adapter.addFragment(IdeLogsFragment.newInstance());
-        // mAdapter.addFragment(DiagnosticsFragment.newInstance());
-        // TODO: Support terminal fragment
+        var llm = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        binding.recyclerviewShortcuts.setLayoutManager(llm);
+        binding.recyclerviewShortcuts.setHasFixedSize(true);
+        binding.recyclerviewShortcuts.setAdapter(shortcutAdapter);
+        
+        var actionAdapter = new BuildActionPagerAdapter(getChildFragmentManager(), getLifecycle());
+        actionAdapter.addFragment(OutPutFragment.newInstance());
+        actionAdapter.addFragment(IdeLogsFragment.newInstance());
         binding.actionPager.setOffscreenPageLimit(1);
         binding.actionPager.setUserInputEnabled(false);
-        binding.actionPager.setAdapter(adapter);
+        binding.actionPager.setAdapter(actionAdapter);
 
         new TabLayoutMediator(binding.tabLayout, binding.actionPager, (tab, position) -> {
             if (position == 0) {
@@ -98,18 +115,22 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
             } else if (position == 1) {
                 tab.setText(R.string.ide_logs);
             }
-            // else if (position == 2) {
-            // tab.setText(R.string.diagnostics);
-            // }
         }).attach();
-
+        
+        binding.rowLayout.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        binding.rowLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        measureRowHeights();
+                    }
+                });
+                
         getParentFragmentManager().setFragmentResultListener(OFFSET_KEY, getViewLifecycleOwner(),
-            ((requestKey, result) -> setOffset(result.getFloat("offset", 0f))));
-
-        binding.recyclerviewShortcuts.setLayoutManager(new LinearLayoutManager(getContext(),
-            LinearLayoutManager.HORIZONTAL, false));
-        binding.recyclerviewShortcuts.setHasFixedSize(true);
-        binding.recyclerviewShortcuts.setAdapter(shortcutAdapter);
+            ((requestKey, result) -> setHeightRatio(result.getFloat("offset", 0f))));
+        
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
+        
         refreshShortcuts();
     }
 
@@ -135,50 +156,7 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
         PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
         this.binding = null;
     }
-
-    private void setOffset(float offset) {
-        if (offset >= 0.50f) {
-            float invertedOffset = 0.5f - offset;
-            setRowOffset(((invertedOffset + 0.5f) * 2f));
-        } else {
-            if (binding.rowLayout.getHeight() != BaseUtil.dp(30)) {
-                setRowOffset(1f);
-            }
-        }
-    }
-
-    private void setRowOffset(float offset) {
-        binding.rowLayout.getLayoutParams().height = Math.round(BaseUtil.dp(38) * offset);
-        binding.rowLayout.requestLayout();
-    }
-
-    private void loadShortcutsJson() {
-        if (shortcutsJsonString == null) {
-            try {
-                InputStream is = requireContext().getAssets().open("editor/shortcuts.json");
-                shortcutsJsonString = JsonLanguageInfoProvider.readInputStream(is);
-            } catch (IOException e) {
-                ILog.error(TAG, "Failed to load shortcuts JSON file.", e);
-                shortcutsJsonString = "{}";// empty json
-            }
-        }
-    }
-
-    private void refreshShortcuts() {
-        boolean useTabs = PreferencesUtils.useTabIndentation();
-        int numberOfTabs = PreferencesUtils.getCodeEditorTabSize();
-
-        if (shortcutWizard == null) {
-            ILog.debug(TAG, "ShortcutWizard is null");
-            return;
-        }
-        shortcutWizard.invalidateCache();
-        List<EditorAction> baseActions = shortcutWizard.getActions();
-        List<EditorAction> configuredActions =
-            EditorShortcutWizard.configureTabAction(baseActions, useTabs, numberOfTabs);
-        shortcutAdapter.submitList(configuredActions);
-    }
-
+    
     @Override
     public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
         switch (Objects.requireNonNull(key)) {
@@ -188,33 +166,102 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
                 break;
         }
     }
-
-    public static BuildActionFragment newInstance() {
-        return new BuildActionFragment();
-    }
-
+    
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
-        ILog.debug(TAG, "CurrentPaneEvent received - Position: " + event.getIndex() + 
-              ", Pane: " + (event.getPane() != null ? event.getPane().getTitle() : "null") +
-              ", Type: " + (event.getPane() != null ? event.getPane().getClass().getSimpleName() : "null"));
-              
-        Pane currentPane = event.getPane();
+        ILog.debug(TAG, String.format("CurrentPaneEven received - Pos: %d, Pane: %s, Type: %s",
+            event.getIndex(),
+            event.getPane() != null ? event.getPane().getTitle() : "null",
+            event.getPane() != null ? event.getPane().getClass().getSimpleName() : "null"));
 
-        if (currentPane instanceof CodeEditorPane editorPane) {
+        if (event.getPane() instanceof CodeEditorPane editorPane) {
             ILog.debug(TAG, "Setting up shortcuts for CodeEditorPane");
-            ContextualCodeEditor editor = editorPane.getEditor();
+            
             shortcutAdapter.bindEditor(editor);
+            
             if (shortcutWizard == null) {
-                shortcutWizard = new EditorShortcutWizard(editor, shortcutsJsonString);
+                shortcutWizard = new EditorShortcutWizard(editorPane.getEditor(), shortcutsJsonString);
             } else {
-                shortcutWizard.setEditorContext(editor);
+                shortcutWizard.setEditorContext(editorPane.getEditor());
             }
+            
             refreshShortcuts();
             binding.rowLayout.setDisplayedChild(1);
+            // Expand shortcuts fully
+            setHeightRatio(1f);
         } else {
             binding.rowLayout.setDisplayedChild(0);
             ILog.debug(TAG, "Not a CodeEditorPane, hiding shortcuts");
         }
+        
+        binding.rowLayout.post(this::measureRowHeights);
+    }
+
+    private void measureRowHeights() {
+        binding.rowLayout.post(() -> {
+            View collapsedView = binding.rowLayout.getChildAt(0);
+            View expandedView = binding.rowLayout.getChildAt(1);
+            
+            collapsedView.measure(
+                View.MeasureSpec.makeMeasureSpec(binding.rowLayout.getWidth(), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.UNSPECIFIED
+            );
+            
+            // dynamic content
+            expandedView.measure(
+                View.MeasureSpec.makeMeasureSpec(binding.rowLayout.getWidth(), View.MeasureSpec.AT_MOST),
+                View.MeasureSpec.UNSPECIFIED
+            );
+    
+            collapsedHeightPx = collapsedView.getMeasuredHeight();
+            expandedHeightPx = Math.max(expandedView.getMeasuredHeight(), collapsedHeightPx);
+            
+            ILog.debug(TAG, "Measured heights -> collapsed=" + collapsedHeightPx + "px, expanded=" + expandedHeightPx + "px");
+            applyRowHeight(collapsedHeightPx);
+        });
+    }
+
+    private void setHeightRatio(float ratio) {
+        if (collapsedHeightPx == 0 || expandedHeightPx == 0) return;
+        float clamped = Math.max(0f, Math.min(1f, ratio));
+        int height = (int) (collapsedHeightPx + (expandedHeightPx - collapsedHeightPx) * clamped);
+        applyRowHeight(height);
+    }
+
+    private void applyRowHeight(int heightPx) {
+        if (binding == null || binding.rowLayout == null) return;
+        
+        binding.rowLayout.post(() -> {
+            ViewGroup.LayoutParams params = binding.rowLayout.getLayoutParams();
+            if (params != null && params.height != heightPx) {
+                params.height = heightPx;
+                binding.rowLayout.setLayoutParams(params);
+                binding.rowLayout.requestLayout();
+            }
+        });
+    }
+    
+    private String loadShortcutsJson() {
+        try {
+            InputStream is = requireContext().getAssets().open("editor/shortcuts.json");
+            String result = JsonLanguageInfoProvider.readInputStream(is);
+            return result != null ? result : "{}";
+        } catch (IOException e) {
+            ILog.error(TAG, "Failed to load shortcuts JSON file.", e);
+            return "{}";
+        }
+    }
+
+    private void refreshShortcuts() {
+        if (shortcutWizard == null) return;
+        
+        boolean useTabs = PreferencesUtils.useTabIndentation();
+        int numberOfTabs = PreferencesUtils.getCodeEditorTabSize();
+        
+        shortcutWizard.invalidateCache();
+        
+        List<EditorAction> baseActions = shortcutWizard.getActions();
+        List<EditorAction> configuredActions = EditorShortcutWizard.configureTabAction(baseActions, useTabs, numberOfTabs);
+        shortcutAdapter.submitList(configuredActions);
     }
 }
