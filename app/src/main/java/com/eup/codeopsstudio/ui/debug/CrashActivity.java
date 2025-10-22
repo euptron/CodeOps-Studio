@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor.debug.CrashActivity;
+package com.eup.codeopsstudio.ui.debug;
 
 import android.content.Intent;
 import android.os.Bundle;

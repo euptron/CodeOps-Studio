@@ -49,6 +49,7 @@ import com.eup.codeopsstudio.ui.editor.actions.adapters.EditorShortcutAdapter;
 import com.eup.codeopsstudio.ui.editor.actions.adapters.BuildActionPagerAdapter;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.util.BaseUtil;
+import android.view.ViewTreeObserver;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.greenrobot.eventbus.EventBus;
@@ -177,7 +178,7 @@ public class BuildActionFragment extends Fragment implements SharedPreferences.O
         if (event.getPane() instanceof CodeEditorPane editorPane) {
             ILog.debug(TAG, "Setting up shortcuts for CodeEditorPane");
             
-            shortcutAdapter.bindEditor(editor);
+            shortcutAdapter.bindEditor(editorPane.getEditor());
             
             if (shortcutWizard == null) {
                 shortcutWizard = new EditorShortcutWizard(editorPane.getEditor(), shortcutsJsonString);

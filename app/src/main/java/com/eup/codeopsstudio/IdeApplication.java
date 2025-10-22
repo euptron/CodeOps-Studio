@@ -41,7 +41,7 @@ import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.ThrowableUtils;
 import com.eup.codeopsstudio.util.Wizard;
-import com.eup.codeopsstudio.ui.editor.debug.CrashActivity;
+import com.eup.codeopsstudio.ui.debug.CrashActivity;
 import com.eup.codeopsstudio.util.manager.ThemeManager;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.CustomKeysAndValues;
