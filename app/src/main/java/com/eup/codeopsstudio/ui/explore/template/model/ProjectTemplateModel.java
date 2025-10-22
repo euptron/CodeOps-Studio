@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.models.template;
+package com.eup.codeopsstudio.ui.explore.template.model;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.explore;
+package com.eup.codeopsstudio.ui.explore.template;
 
 import android.os.Bundle;
 import android.text.Editable;
@@ -42,7 +42,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.transition.TransitionManager;
 
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.adapters.template.ProjectTemplateAdapter;
+import com.eup.codeopsstudio.ui.explore.template.adapter.ProjectTemplateAdapter;
+import com.eup.codeopsstudio.ui.explore.template.model.ProjectTemplateModel;
 import com.eup.codeopsstudio.aggregators.Recents;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
@@ -53,7 +54,6 @@ import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.FragmentTemplateBinding;
 import com.eup.codeopsstudio.models.logger.Logger;
-import com.eup.codeopsstudio.models.template.ProjectTemplateModel;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
@@ -78,44 +78,44 @@ public class TemplateFragment extends BottomSheetDialogFragment {
 
     public static final String LOG_TAG = "TemplateFragment";
     public static final String TAG = "TemplateFragment";
-    private boolean previous; // used for backward navigation
-    private FragmentTemplateBinding binding;
+    
     private final OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
             navigatePrevious();
         }
     };
-    private ProjectTemplateAdapter adapter;
-    private ProjectTemplateModel mCurrentTemplate;
-    private MainViewModel mainViewModel;
+    
     private Logger logger;
-    private ContextualLifecycleObserver lifecycleObserver;
-    private FileViewModel fileViewModel;
+    private boolean previous; // used for backward navigation
     private Recents recentProjects;
+    private FileViewModel fileViewModel;
     private TextInputLayout mNameLayout;
+    private ProjectTemplateAdapter adapter;
+    private MainViewModel mainViewModel;
+    private FragmentTemplateBinding binding;
     private TextInputLayout mSaveLocationLayout;
-
+    private ProjectTemplateModel mCurrentTemplate;
+    private ContextualLifecycleObserver lifecycleObserver;
+    
+    public static TemplateFragment newInstance() {
+        return new TemplateFragment();
+    }
+    
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        logger         = new Logger(Logger.LogClass.IDE);
-        mainViewModel  = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        fileViewModel  = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
+        adapter = new ProjectTemplateAdapter();
+        logger = new Logger(Logger.LogClass.IDE);
         recentProjects = Recents.initialize(requireContext());
+        fileViewModel = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
+        mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
         final ActivityResultRegistry resultRegistry = requireActivity().getActivityResultRegistry();
-        lifecycleObserver = new ContextualLifecycleObserver(requireContext(), resultRegistry,
-            requireActivity());
+        lifecycleObserver = new ContextualLifecycleObserver(requireContext(), resultRegistry, requireActivity());
         getLifecycle().addObserver(lifecycleObserver);
     }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        this.binding = null;
-    }
-
+    
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup viewgroup,
         @Nullable Bundle savedInstanceState) {
@@ -127,10 +127,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         logger.attach(this);
-        requireActivity().getOnBackPressedDispatcher()
-                         .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
-
-        adapter = new ProjectTemplateAdapter();
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), onBackPressedCallback);
 
         binding.dynamicList.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.dynamicList.setHasFixedSize(true);
@@ -145,190 +142,19 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         fileViewModel.monitorMessages(getViewLifecycleOwner(), this::logFileSelectionError);
         fileViewModel.observePickedFolders(getViewLifecycleOwner(), this::handlePickedFolder);
     }
-
+    
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        this.binding = null;
+    }
+    
     @Override
     public void onDestroy() {
         super.onDestroy();
         onBackPressedCallback.setEnabled(false);
     }
-
-    public static TemplateFragment newInstance() {
-        return new TemplateFragment();
-    }
-
-    /**
-     * Method that creates project
-     *
-     * @throws IOException Thrown when project can not be created
-     */
-    @WorkerThread
-    private void createProject() throws IOException {
-
-        File projectRoot = new File(mSaveLocationLayout.getEditText().getText().toString());
-        if (!projectRoot.exists()) {
-            if (!projectRoot.mkdirs()) {
-                throw new IOException("Unable to create directory");
-            }
-        }
-        File sourcesDir = new File(mCurrentTemplate.getPath());
-
-        FileUtils.copyDirectory(sourcesDir, projectRoot);
-    }
-
-    private void createProjectAsync() {
-        TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
-            new MaterialFadeThrough());
-        binding.dynamicList.setVisibility(View.GONE);
-        binding.projectDetails.getRoot().setVisibility(View.GONE);
-        binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
-
-        AsyncTask.runOnBackgroundThread(() -> {
-            String savePath = mSaveLocationLayout.getEditText().getText().toString();
-            try {
-                if (validateDetails()) {
-                    createProject();
-                    recentProjects.recordFolderCreation(new File(savePath));
-                } else {
-                    requireActivity().runOnUiThread(this::showTemplatesDetails);
-                    return;
-                }
-                if (getActivity() != null) {
-                    requireActivity().runOnUiThread(() -> {
-                        // Open the currently created project
-                        openProject(new File(savePath));
-                    });
-                }
-            } catch (IOException e) {
-                requireActivity().runOnUiThread(() -> {
-                    BaseUtil.toastLong(e.getMessage());
-                    logger.e(LOG_TAG,
-                        getString(R.string.project_creation_fail) + " [" + getString(R.string.cause)
-                            + "] " + e.getMessage());
-                    showTemplatesDetails();
-                });
-            }
-        });
-    }
-
-    private void extractTemplatesMaybe() throws IOException {
-        File hashFile = new File(requireContext().getExternalFilesDir("templates"), "hash");
-        if (!hashFile.exists()) {
-            extractZipFiles();
-        } else {
-            logger.d(LOG_TAG, getString(R.string.checking_templates));
-            String newMd5 = calculateHash();
-            String oldMd5 = FileUtils.readFileToString(hashFile, Charset.defaultCharset());
-
-            if (!newMd5.equals(oldMd5)) {
-                extractZipFiles();
-                logger.w(LOG_TAG, getString(R.string.msg_invalid_templates));
-            } else {
-                logger.d(LOG_TAG, getString(R.string.templates_are_valid));
-            }
-        }
-    }
-
-    private void extractZipFiles() throws IOException {
-        File templatesDir = new File(requireContext().getExternalFilesDir(null), "templates");
-
-        if (templatesDir.exists()) {
-            FileUtils.deleteDirectory(templatesDir);
-        }
-
-        String parentPath = templatesDir.getParent();
-        if (parentPath == null) {
-            ILog.warning(TAG, "Cannot extract project templates: parent folder is null");
-            return;
-        }
-
-        int bufferSize = PreferencesUtils.getCurrentBufferSize();
-        String asset = "templates.zip";
-
-        File destDir = new File(parentPath);
-        String templateHash = calculateHash();
-        
-        ZIPArchive.OnArchiveListener listener = new ZIPArchive.NoOPListener() {
-            @Override
-            public void onComplete(String message) {
-                AsyncTask.runNonCancelable(() -> {
-                    File hashFile = new File(templatesDir, "hash");
-                    if (!hashFile.createNewFile()) {
-                       ILog.warning(TAG, "Unable to create hash file – it may already exist");
-                       return false;
-                    }
-                    
-                    FileUtils.writeStringToFile(hashFile, templateHash, Charset.defaultCharset());
-                    return true;
-                }, (templates, throwable) -> {
-                    if (throwable != null) {
-                       ILog.error(TAG, "Failed to create hash file", throwable);
-                    } else {
-                       ILog.info(TAG, "Hash file created successfully");
-                    }
-                });
-            }
-            
-            @Override
-            public void onError(Exception exception) {
-                ILog.error(TAG, "Template extraction failed", exception);
-            }
-        };
-        
-        var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize, listener);
-        archive.unzip();
-    }
     
-    private String calculateHash() {
-       try {
-         InputStream newIs = requireContext().getAssets().open("templates.zip");
-         return FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), newIs);
-       } catch (Exception e) {
-         ILog.error(TAG, "Error calculating template hash", e);
-         return "unknown-hash";
-       }
-    }
-
-    /**
-     * @Param getTemplates The project templates gotten from a directory
-     */
-    private List<ProjectTemplateModel> getTemplates() throws IOException {
-        try {
-            File file = requireContext().getExternalFilesDir("templates");
-            extractTemplatesMaybe();
-
-            File[] templateFiles = file.listFiles();
-            if (templateFiles == null) {
-                return Collections.emptyList();
-            }
-            if (templateFiles.length == 0) {
-                extractTemplatesMaybe();
-            }
-            templateFiles = file.listFiles();
-            if (templateFiles == null) {
-                return Collections.emptyList();
-            }
-
-            List<ProjectTemplateModel> templates = new ArrayList<>();
-            for (File child : templateFiles) {
-                ProjectTemplateModel template = ProjectTemplateModel.fromFile(child);
-                if (template != null) {
-                    templates.add(template);
-                }
-            }
-            return templates;
-        } catch (IOException e) {
-            throw e;
-        }
-    }
-
-    private void handlePickedFolder(File file) {
-        if (file != null) {
-            String folderPath = file.getAbsolutePath();
-            mSaveLocationLayout.getEditText().setText(folderPath);
-            logger.d(LOG_TAG, getString(R.string.folder_selection_success));
-        }
-    }
-
     private void initalizeTemplateDetails() {
         mNameLayout = binding.projectDetails.tilProjectName;
         mNameLayout.getEditText().addTextChangedListener(new TextWatcherAdapter() {
@@ -340,10 +166,10 @@ public class TemplateFragment extends BottomSheetDialogFragment {
 
         mSaveLocationLayout = binding.projectDetails.tilSaveLocation;
         mSaveLocationLayout.getEditText()
-                           .setText(PreferenceManager.getDefaultSharedPreferences(requireContext())
-                                                     .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
-                                                         .getExternalFilesDir("Projects")
-                                                         .getAbsolutePath()));
+                              .setText(PreferenceManager.getDefaultSharedPreferences(requireContext())
+                              .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
+                              .getExternalFilesDir("Projects")
+                              .getAbsolutePath()));
         initializeSaveLocation();
 
         mSaveLocationLayout.getEditText().addTextChangedListener(new TextWatcherAdapter() {
@@ -359,55 +185,201 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         // ("Projects").getAbsolutePath());
         // mSaveLocationLayout.getEditText().setInputType(InputType.TYPE_NULL);
         mSaveLocationLayout.setEndIconOnClickListener(view -> {
-            openFolder();
+            lifecycleObserver.pickFolder();
         });
     }
-
+    
     private void loadTemplates() {
-        TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
-            new MaterialFadeThrough());
+        TransitionManager.beginDelayedTransition((ViewGroup) requireView(), new MaterialFadeThrough());
         binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
         binding.dynamicList.setVisibility(View.GONE);
         
-        AsyncTask.runNonCancelable(() -> {
-            return getTemplates();
-        }, (templates, throwable) -> {
-            if (throwable != null) {
-                logger.e(TAG, getString(R.string.failed_retrieving_templates) + " [" + getString(R.string.cause) + "] " + throwable.getMessage());
-            } else if (templates != null) {
-                TransitionManager.beginDelayedTransition((ViewGroup) requireView(),
-                        new MaterialFadeThrough());
-                    binding.loadingLayout.getRoot().setVisibility(View.GONE);
-                    binding.dynamicList.setVisibility(View.VISIBLE);
-
-                    adapter.submitTemplateList(templates);
-
-                    adapter.setOnTemplateClickListener((item, position) -> {
+        Runnable completionTask = new Runnable() {
+            @Override
+            public void run() {
+                AsyncTask.runNonCancelable(() -> {
+                  File file = requireContext().getExternalFilesDir("templates");
+                  File[] templateFiles = file.listFiles();
+                  if (templateFiles == null) {
+                      return Collections.emptyList();
+                  }
+                  
+                  List<ProjectTemplateModel> templates = new ArrayList<>();
+                  for (File child : templateFiles) {
+                      ProjectTemplateModel template = ProjectTemplateModel.fromFile(child);
+                      if (template != null) templates.add(template);
+                  }
+                  return templates;
+                }, (templates, throwable) -> {
+                  if (throwable != null) {
+                     logger.e(TAG, getString(R.string.failed_retrieving_templates) + ": " + throwable.getMessage());
+                  } else if (templates != null) {
+                     TransitionManager.beginDelayedTransition((ViewGroup) requireView(), new MaterialFadeThrough());
+                     binding.loadingLayout.getRoot().setVisibility(View.GONE);
+                     binding.dynamicList.setVisibility(View.VISIBLE);
+                     adapter.submitTemplateList(templates);
+                     adapter.setOnTemplateClickListener((item, position) -> {
                         mCurrentTemplate = item;
                         navigateNext(binding.footer.finish);
-                    });
-
-                    adapter.setOnTemplateLongClickListener((v, model) -> {
-                        String msg =
-                            "Name: " + model.getName() + "\n" + "Type: " + model.getProjectType()
-                                + "\n" + "Author: " + model.getAuthor() + "\n" + "Released: "
-                                + model.getCreationDate() + "\n" + "Description : "
-                                + model.getDescription() + "\n" + "Version Code: "
-                                + model.getVersion() + "\n" + "Version Name: "
-                                + model.getVersionName();
+                     });
+                     adapter.setOnTemplateLongClickListener((v, model) -> {
+                        var msg = new StringBuilder();
+                        msg.append("Name: ").append(model.getName()).append("\n");
+                        msg.append("Type: ").append(model.getProjectType()).append("\n");
+                        msg.append("Released: ").append(model.getCreationDate()).append("\n");
+                        msg.append("Description: ").append(model.getDescription()).append("\n");
+                        msg.append("Version Code: ").append(model.getVersion()).append("\n");
+                        msg.append("Version Name: ").append(model.getVersionName()).append("\n");
 
                         new MaterialAlertDialogBuilder(requireContext())
-                            .setTitle(R.string.about_template).setMessage(msg)
-                            .setPositiveButton(R.string.cancel, null).setCancelable(true).show();
+                            .setTitle(R.string.about_template).setMessage(msg.toString())
+                            .setPositiveButton(R.string.cancel, null)
+                            .setCancelable(true)
+                            .show();
                         return true;
                     });
+                  }
+                });
+            }
+        };
+        extractTemplatesIfRequired(completionTask);
+    }
+    
+    private void createProjectAsync() {
+        TransitionManager.beginDelayedTransition((ViewGroup) requireView(), new MaterialFadeThrough());
+        binding.dynamicList.setVisibility(View.GONE);
+        binding.projectDetails.getRoot().setVisibility(View.GONE);
+        binding.loadingLayout.getRoot().setVisibility(View.VISIBLE);
+        
+        String savePath = mSaveLocationLayout.getEditText().getText().toString();
+        
+        AsyncTask.runNonCancelable(() -> {
+            if (validateDetails()) {
+                createProject();
+                recentProjects.recordFolderCreation(new File(savePath));
+            } else {
+                requireActivity().runOnUiThread(this::showTemplatesDetails);
+                return;
+            }
+            
+            requireActivity().runOnUiThread(() -> openProject(new File(savePath)));
+            return null;
+        }, (result, throwable) -> {
+            if (throwable != null) {
+               logger.e(LOG_TAG, getString(R.string.project_creation_fail) + ":" + throwable.getMessage());
+               showTemplatesDetails();
             }
         });
+    }
+    
+    private void openProject(File file) {
+        if (file != null) {
+            mainViewModel.setTreeViewFragmentTreeDir(file);
+        }
+        dismiss();
+    }
+    
+    @WorkerThread
+    private void createProject() throws IOException {
+        File projectRoot = new File(mSaveLocationLayout.getEditText().getText().toString());
+        
+        if (!projectRoot.exists() && !projectRoot.mkdirs()) {
+            throw new IOException("Unable to create directory");
+        }
+        
+        File sourcesDir = new File(mCurrentTemplate.getPath());
+        FileUtils.copyDirectory(sourcesDir, projectRoot);
+    }
+    
+    private void extractTemplatesIfRequired(Runnable completionTask) throws IOException {
+        File templatesDir = requireContext().getExternalFilesDir("templates");
+        File hashFile = new File(templatesDir, "hash");
+        boolean needsExtraction = false;
+        
+        if (hashFile.exists()) {
+           logger.d(LOG_TAG, getString(R.string.checking_templates));
+           String currentAssetHash = calculateHash();
+           String savedHash = FileUtils.readFileToString(hashFile, Charset.defaultCharset());
+           
+           if (currentAssetHash.equals(savedHash)) {
+              logger.d(LOG_TAG, getString(R.string.templates_are_valid));
+           } else {
+              needsExtraction = true;
+              logger.w(LOG_TAG, getString(R.string.msg_invalid_templates));
+           }
+        } else {
+           needsExtraction = true;
+        }
+        
+        if (needsExtraction) {
+            final var asset = "templates.zip";
+            int bufferSize = PreferencesUtils.getCurrentBufferSize();
+            
+            if (templatesDir.exists()) {
+                FileUtils.deleteDirectory(templatesDir);
+            }
+            
+            String parentPath = templatesDir.getParent();
+            if (parentPath == null) {
+               return;
+            }
+            
+            File destDir = new File(parentPath);
+            String templateHash = calculateHash();
+            
+            ZIPArchive.OnArchiveListener listener = new ZIPArchive.NoOPListener() {
+                @Override
+                public void onComplete(String message) {
+                    AsyncTask.runNonCancelable(() -> {
+                        if (!hashFile.createNewFile()) {
+                           return false;
+                        }
+                        FileUtils.writeStringToFile(hashFile, templateHash, Charset.defaultCharset());
+                        return true;
+                    }, (templates, throwable) -> {
+                        if (throwable != null) {
+                           ILog.error(TAG, "Failed to create hash file", throwable);
+                        } else {
+                           if (completionTask != null) completionTask.run();
+                           ILog.info(TAG, "Hash file created successfully");
+                        }
+                    });
+                }
+                
+                @Override
+                public void onError(Exception exception) {
+                    ILog.error(TAG, "Template extraction failed", exception);
+                    if (completionTask != null) completionTask.run();
+                }
+            };
+            
+            var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize, listener);
+            archive.unzip();
+        } else {
+            if (completionTask != null) completionTask.run();
+        }
+    }
+    
+    private String calculateHash() {
+       try {
+         InputStream newIs = requireContext().getAssets().open("templates.zip");
+         return FileUtil.calculateMD5(PreferencesUtils.getCurrentBufferSize(), newIs);
+       } catch (Exception e) {
+         ILog.error(TAG, "Error calculating template hash", e);
+         return "unknown-hash";
+       }
+    }
+    
+    private void handlePickedFolder(File file) {
+        if (file != null) {
+            String folderPath = file.getAbsolutePath();
+            mSaveLocationLayout.getEditText().setText(folderPath);
+            logger.d(LOG_TAG, getString(R.string.folder_selection_success));
+        }
     }
 
     private void logFileSelectionError(Pair<Exception, String> pair) {
         String message = pair.second;
-
         if (message == null) return;
 
         logger.e(LOG_TAG,
@@ -435,18 +407,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             }
         }
     }
-
-    private void openFolder() {
-        lifecycleObserver.pickFolder();
-    }
-
-    private void openProject(File file) {
-        if (file != null) {
-            mainViewModel.setTreeViewFragmentTreeDir(file);
-        }
-        dismiss();
-    }
-
+    
     private void showTemplatesDetails() {
         binding.loadingLayout.getRoot().setVisibility(View.GONE);
         MaterialSharedAxis sharedAxis = new MaterialSharedAxis(MaterialSharedAxis.X, true);
@@ -485,14 +446,17 @@ public class TemplateFragment extends BottomSheetDialogFragment {
             && TextUtils.isEmpty(templateName))) {
             return false;
         }
+        
         if (mSaveLocationLayout.isErrorEnabled()) {
             return false;
         }
+        
         return mCurrentTemplate != null;
     }
 
     private void verifyDetails(Editable editable) {
         String name = editable.toString();
+        
         if (TextUtils.isEmpty(name)) {
             mNameLayout.setError(getString(R.string.cp_error_project_name_empty));
             return;
@@ -502,24 +466,20 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         } else {
             mNameLayout.setErrorEnabled(false);
         }
-        File file = new File(PreferenceManager.getDefaultSharedPreferences(requireContext())
-                                              .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, requireContext()
-                                                  .getExternalFilesDir("Projects")
-                                                  .getAbsolutePath()) + "/" + editable);
-
-        String path = file.getAbsolutePath();
-
+        
+        String basePath = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString(Constants.SharedPreferenceKeys.KEY_PROJECT_SAVE_PATH, 
+                        requireContext().getExternalFilesDir("Projects").getAbsolutePath());
+        File file = new File(basePath, editable.toString());
+        
         if (file.exists()) {
             mNameLayout.setError(getString(R.string.msg_folder_exists));
         } else {
             mNameLayout.setErrorEnabled(false);
-            mSaveLocationLayout.getEditText().setText(path);
+            mSaveLocationLayout.getEditText().setText(file.getAbsolutePath());
         }
     }
-
-    /**
-     * Checks if #Input in project save location is valid
-     */
+    
     private void verifySaveLocation(Editable editable) {
         if (editable.toString().length() >= 240) {
             mSaveLocationLayout.setError(getString(R.string.cp_path_exceeds));

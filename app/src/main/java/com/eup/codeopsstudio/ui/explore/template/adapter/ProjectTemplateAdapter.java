@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.adapters.template;
+package com.eup.codeopsstudio.ui.explore.template.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,8 +33,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.eup.codeopsstudio.databinding.LayoutProjectTemplateItemBinding;
-import com.eup.codeopsstudio.models.template.ProjectTemplateModel;
-
+import com.eup.codeopsstudio.ui.explore.template.model.ProjectTemplateModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

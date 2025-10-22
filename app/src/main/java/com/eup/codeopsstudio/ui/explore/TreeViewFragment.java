@@ -66,6 +66,7 @@ import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.util.manager.FileManager;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.eup.codeopsstudio.viewmodel.SavedStateViewModel;
+import com.eup.codeopsstudio.ui.explore.template.TemplateFragment;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
