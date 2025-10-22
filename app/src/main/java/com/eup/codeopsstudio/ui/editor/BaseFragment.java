@@ -482,9 +482,10 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             String title = getString(R.string.settings);
             pane = new SettingsPane(getContext(), title, PreferencesFragment.newInstance());
             pane.attach(getViewLifecycleOwner());
-            paneWindow.add(pane, select);
             mainViewModel.requestCloseDrawer();
+            paneWindow.add(pane, select);
         } else {
+            mainViewModel.requestCloseDrawer();
             paneWindow.selectTab(pane); // already exists
         }
     }
@@ -510,9 +511,10 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             String title = file.getName();
             editorPane = new CodeEditorPane(requireContext(), title);
             editorPane.setFile(file);
-            paneWindow.add(editorPane, select);
             mainViewModel.requestCloseDrawer();
+            paneWindow.add(editorPane, select);
         } else {
+            mainViewModel.requestCloseDrawer();
             paneWindow.selectTab(editorPane);
         }
 
@@ -529,8 +531,8 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
             action = new Runnable() {
                @Override
                public void run() {
-                 paneWindow.add(finalPane, true);
                  mainViewModel.requestCloseDrawer();
+                 paneWindow.add(finalPane, true);
                }
             };
             pane = finalPane;
@@ -541,6 +543,7 @@ public class BaseFragment extends Fragment implements SharedPreferences.OnShared
         pane.enableDeskTopMode(false);
         
         if (action == null) {
+           mainViewModel.requestCloseDrawer();
            paneWindow.selectTab(pane);
         } else {
            action.run();
