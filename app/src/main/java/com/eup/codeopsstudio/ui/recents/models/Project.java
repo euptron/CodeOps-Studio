@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.models.recents;
+package com.eup.codeopsstudio.ui.recents.models;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

@@ -31,7 +31,7 @@ import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.util.BinaryFileChecker;
 import com.eup.codeopsstudio.util.EncodingDetector;
 

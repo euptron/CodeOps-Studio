@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.eup.codeopsstudio.MainActivity;
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.adapters.logger.LogAdapter;
+import com.eup.codeopsstudio.logger.adapter.LogAdapter;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
@@ -28,7 +28,7 @@ import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.databinding.LayoutLoggingSheetBinding;
 import com.eup.codeopsstudio.git.listeners.CloneListener;
 import com.eup.codeopsstudio.git.task.CloneTask;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;

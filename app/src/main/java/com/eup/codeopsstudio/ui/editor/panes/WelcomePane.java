@@ -37,7 +37,7 @@ import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.LayoutPaneWelcomeBinding;
 import com.eup.codeopsstudio.git.GitUI;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.ui.archive.ZIPFilePickerDialogFragment;
 import com.eup.codeopsstudio.ui.recents.RecentProjectsBottomSheetDialogFragment;

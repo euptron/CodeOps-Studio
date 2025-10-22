@@ -49,7 +49,7 @@ import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.editor.event.IndexingEvent;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.ui.editor.code.breadcrumb.pane.CrumbTreePane;
 import com.eup.codeopsstudio.ui.editor.code.manager.FileOperationsManager;

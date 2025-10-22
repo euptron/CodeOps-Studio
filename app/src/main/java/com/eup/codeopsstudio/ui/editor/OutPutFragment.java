@@ -35,11 +35,11 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.eup.codeopsstudio.adapters.logger.LogAdapter;
+import com.eup.codeopsstudio.logger.adapter.LogAdapter;
 import com.eup.codeopsstudio.common.util.RecyclerViewOnScrollListener;
 import com.eup.codeopsstudio.databinding.FragmentBuildOutputBinding;
-import com.eup.codeopsstudio.models.logger.Log;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.model.Log;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 import java.util.ArrayList;

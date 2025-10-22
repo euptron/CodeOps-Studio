@@ -38,6 +38,8 @@ import androidx.core.splashscreen.SplashScreen;
 public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        // TODO: Remove splash screen or find way to defer splashscreen internally to allow poper theme application, because
+        //      dynamic colours cannot be applied fully with splashscreen theme applied generally 
         final var splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         splashScreen.setKeepOnScreenCondition(() -> true);

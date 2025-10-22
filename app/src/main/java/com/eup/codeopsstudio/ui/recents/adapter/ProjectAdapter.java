@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.adapters;
+package com.eup.codeopsstudio.ui.recents.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,7 +39,7 @@ import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.LayoutEmptyProjectsBinding;
 import com.eup.codeopsstudio.databinding.RecentProjectItemBinding;
 import com.eup.codeopsstudio.models.ExtensionTable;
-import com.eup.codeopsstudio.models.recents.Project;
+import com.eup.codeopsstudio.ui.recents.models.Project;
 
 import java.util.List;
 

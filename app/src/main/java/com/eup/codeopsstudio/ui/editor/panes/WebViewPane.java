@@ -40,7 +40,7 @@ import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.LayoutPaneWebviewBinding;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.server.LiveServer;
 import com.eup.codeopsstudio.util.BaseUtil;

@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.models.logger;
+package com.eup.codeopsstudio.logger.model;
 
 import java.util.ArrayList;
 import java.util.List;

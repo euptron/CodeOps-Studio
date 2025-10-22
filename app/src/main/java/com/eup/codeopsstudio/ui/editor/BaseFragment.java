@@ -50,7 +50,7 @@ import com.eup.codeopsstudio.databinding.FragmentBaseBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
 import com.eup.codeopsstudio.models.ExtensionTable;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.pane.EditorPane;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.pane.TextPane;

@@ -42,7 +42,7 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.aggregators.Recents;
+import com.eup.codeopsstudio.ui.recents.domain.Recents;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.models.MetaDocument;

@@ -55,7 +55,7 @@ import com.eup.codeopsstudio.databinding.FragmentTreeviewBinding;
 import com.eup.codeopsstudio.databinding.LayoutSheetListBinding;
 import com.eup.codeopsstudio.domain.FileAction;
 import com.eup.codeopsstudio.models.ActionModel;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.observers.FileWatcher;
 import com.eup.codeopsstudio.service.FileWatcherService;
 import com.eup.codeopsstudio.service.FileWatcherServiceConnection;

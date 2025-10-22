@@ -61,7 +61,7 @@ import com.eup.codeopsstudio.databinding.FragmentMainBinding;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
 import com.eup.codeopsstudio.pane.Pane;

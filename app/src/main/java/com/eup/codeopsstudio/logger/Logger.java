@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.models.logger;
+package com.eup.codeopsstudio.logger;
 
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import com.eup.codeopsstudio.logger.model.Log;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.domain.FormatDateUseCase;

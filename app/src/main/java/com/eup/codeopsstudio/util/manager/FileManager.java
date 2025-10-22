@@ -38,7 +38,7 @@ import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.databinding.LayoutDialogProgressBinding;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.domain.FileAction;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.util.BinaryFileChecker;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 

@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.adapters.logger;
+package com.eup.codeopsstudio.logger.adapter;
 
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -34,8 +34,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.eup.codeopsstudio.models.logger.Log;
+import com.eup.codeopsstudio.logger.model.Log;
 
 import java.util.List;
 import java.util.Objects;

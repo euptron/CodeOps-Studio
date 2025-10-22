@@ -42,7 +42,7 @@ import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;

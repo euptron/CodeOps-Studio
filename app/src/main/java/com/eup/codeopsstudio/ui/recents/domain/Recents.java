@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.aggregators;
+package com.eup.codeopsstudio.ui.recents.domain;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -31,8 +31,8 @@ import androidx.annotation.NonNull;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.domain.FileAction;
-import com.eup.codeopsstudio.models.recents.Project;
-import com.eup.codeopsstudio.models.recents.ProjectHistory;
+import com.eup.codeopsstudio.ui.recents.models.Project;
+import com.eup.codeopsstudio.ui.recents.models.ProjectHistory;
 import com.eup.codeopsstudio.util.FileTypeAdapter;
 import com.eup.codeopsstudio.util.Wizard;
 import com.google.gson.Gson;

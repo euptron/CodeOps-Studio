@@ -36,7 +36,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.models.logger.Logger;
+import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.pane.FragmentPane;
 import com.eup.codeopsstudio.util.BaseUtil;
 

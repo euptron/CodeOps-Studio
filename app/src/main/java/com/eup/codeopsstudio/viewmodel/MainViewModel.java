@@ -33,7 +33,7 @@ import androidx.lifecycle.ViewModel;
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.models.Event;
-import com.eup.codeopsstudio.models.logger.Log;
+import com.eup.codeopsstudio.logger.model.Log;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;

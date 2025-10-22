@@ -36,13 +36,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.adapters.ProjectAdapter;
-import com.eup.codeopsstudio.aggregators.Recents;
+import com.eup.codeopsstudio.ui.recents.adapter.ProjectAdapter;
+import com.eup.codeopsstudio.ui.recents.domain.Recents;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.FragmentRecentProjectsBottomSheetDialogBinding;
 import com.eup.codeopsstudio.domain.FormatDateUseCase;
-import com.eup.codeopsstudio.models.logger.Logger;
-import com.eup.codeopsstudio.models.recents.Project;
+import com.eup.codeopsstudio.logger.Logger;
+import com.eup.codeopsstudio.ui.recents.models.Project;
 import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
