@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor;
+package com.eup.codeopsstudio.ui.editor.actions;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

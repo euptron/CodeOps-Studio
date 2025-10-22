@@ -1050,7 +1050,8 @@ public class PaneWindowManager implements PaneWindow {
             }
             
             if (newSelectionIndex != -1) {
-                tabLayout.post(() -> selectTab(newSelectionIndex));
+                final int finalSelectionIndex = newSelectionIndex;
+                tabLayout.post(() -> selectTab(finalSelectionIndex));
             } else {
                 tabLayout.post(() -> syncTabs());
             }

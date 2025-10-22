@@ -197,8 +197,13 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         Runnable completionTask = new Runnable() {
             @Override
             public void run() {
+                final File file = requireContext().getExternalFilesDir("templates");
+                
                 AsyncTask.runNonCancelable(() -> {
-                  File file = requireContext().getExternalFilesDir("templates");
+                  if (file == null || !file.exists()) {
+                     return Collections.emptyList();
+                  }
+                  
                   File[] templateFiles = file.listFiles();
                   if (templateFiles == null) {
                       return Collections.emptyList();
@@ -210,18 +215,22 @@ public class TemplateFragment extends BottomSheetDialogFragment {
                       if (template != null) templates.add(template);
                   }
                   return templates;
-                }, (templates, throwable) -> {
+                }, (List<ProjectTemplateModel> templates, Throwable throwable) -> {
                   if (throwable != null) {
                      logger.e(TAG, getString(R.string.failed_retrieving_templates) + ": " + throwable.getMessage());
-                  } else if (templates != null) {
+                  } else {
+                     if (templates == null || isDetached() || getContext() == null) return;
+                     
                      TransitionManager.beginDelayedTransition((ViewGroup) requireView(), new MaterialFadeThrough());
                      binding.loadingLayout.getRoot().setVisibility(View.GONE);
                      binding.dynamicList.setVisibility(View.VISIBLE);
                      adapter.submitTemplateList(templates);
+                     
                      adapter.setOnTemplateClickListener((item, position) -> {
                         mCurrentTemplate = item;
                         navigateNext(binding.footer.finish);
                      });
+                     
                      adapter.setOnTemplateLongClickListener((v, model) -> {
                         var msg = new StringBuilder();
                         msg.append("Name: ").append(model.getName()).append("\n");
@@ -259,7 +268,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
                 recentProjects.recordFolderCreation(new File(savePath));
             } else {
                 requireActivity().runOnUiThread(this::showTemplatesDetails);
-                return;
+                return null;
             }
             
             requireActivity().runOnUiThread(() -> openProject(new File(savePath)));
@@ -336,7 +345,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
                         }
                         FileUtils.writeStringToFile(hashFile, templateHash, Charset.defaultCharset());
                         return true;
-                    }, (templates, throwable) -> {
+                    }, (result, throwable) -> {
                         if (throwable != null) {
                            ILog.error(TAG, "Failed to create hash file", throwable);
                         } else {

@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor;
+package com.eup.codeopsstudio.ui.editor.actions;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -37,19 +37,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.eup.codeopsstudio.logger.adapter.LogAdapter;
 import com.eup.codeopsstudio.common.util.RecyclerViewOnScrollListener;
-import com.eup.codeopsstudio.databinding.FragmentBuildOutputBinding;
+import com.eup.codeopsstudio.databinding.FragmentIdeLogsBinding;
 import com.eup.codeopsstudio.logger.model.Log;
 import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 import java.util.ArrayList;
 
-public class OutPutFragment extends Fragment {
+public class IdeLogsFragment extends Fragment {
 
-    public static final String TAG = OutPutFragment.class.getSimpleName();
+    public static final String TAG = IdeLogsFragment.class.getSimpleName();
     public static final String LOG_TAG = "IDE Logs Fragment";
-    private FragmentBuildOutputBinding binding;
-
+    private FragmentIdeLogsBinding binding;
     private Logger logger;
     private LogAdapter logAdapter;
     private MainViewModel model;
@@ -58,44 +57,42 @@ public class OutPutFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        logger     = new Logger(Logger.LogClass.BUILD);
         logAdapter = new LogAdapter();
+        logger     = new Logger(Logger.LogClass.IDE);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
         Bundle savedInstanceState) {
-        binding = FragmentBuildOutputBinding.inflate(inflater, viewgroup, false);
-        binding.outViewFlipper.setDisplayedChild(1);
-        binding.clearBuildLogsFab.setVisibility(View.GONE);
+        binding = FragmentIdeLogsBinding.inflate(inflater, viewgroup, false);
+        binding.ideLogsViewFlipper.setDisplayedChild(1);
+        binding.clearIdeLogsFab.setVisibility(View.GONE);
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        model = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        logger.attach(getActivity());
-
-        binding.buildOutputRecyclerview.setLayoutManager(new LinearLayoutManager(requireContext()));
-        binding.buildOutputRecyclerview.setHasFixedSize(true);
-        binding.buildOutputRecyclerview.setAdapter(logAdapter);
-
+        model =
+            new ViewModelProvider(requireActivity() /*shared activity scope*/).get(MainViewModel.class);
+        logger.attach(requireActivity() /*shared activity scope*/);
+        binding.ideLogRecyclerview.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.ideLogRecyclerview.setAdapter(logAdapter);
+        binding.ideLogRecyclerview.setHasFixedSize(true);
         listener = new RecyclerViewOnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy < 0) {
-                    binding.clearBuildLogsFab.extend();
+                    binding.clearIdeLogsFab.extend();
                 } else if (dy > 0) {
-                    binding.clearBuildLogsFab.shrink();
+                    binding.clearIdeLogsFab.shrink();
                 }
             }
         };
+        binding.ideLogRecyclerview.addOnScrollListener(listener);
 
-        binding.buildOutputRecyclerview.addOnScrollListener(listener);
-
-        model.getBUILDLogs().observe(getViewLifecycleOwner(), this::updateLayout);
-        binding.clearBuildLogsFab.setOnClickListener(v -> clearLogs());
+        model.getIDELogs().observe(getViewLifecycleOwner(), this::updateLayout);
+        binding.clearIdeLogsFab.setOnClickListener(v -> clearLogs());
     }
 
     @Override
@@ -104,20 +101,15 @@ public class OutPutFragment extends Fragment {
         this.binding = null;
     }
 
-    private void clearLogs() {
-        logger.clear();
-        logAdapter.notifyDataSetChanged();
-    }
-
     private void updateLayout(ArrayList<Log> logs) {
         if (logs == null) return;
 
         if (logs.isEmpty()) {
-            binding.outViewFlipper.setDisplayedChild(1);
-            binding.clearBuildLogsFab.setVisibility(View.GONE);
+            binding.ideLogsViewFlipper.setDisplayedChild(1);
+            binding.clearIdeLogsFab.setVisibility(View.GONE);
         } else {
-            binding.outViewFlipper.setDisplayedChild(0);
-            binding.clearBuildLogsFab.setVisibility(View.VISIBLE);
+            binding.ideLogsViewFlipper.setDisplayedChild(0);
+            binding.clearIdeLogsFab.setVisibility(View.VISIBLE);
             logAdapter.submitList(logs);
             scrollToLastItem();
         }
@@ -126,11 +118,16 @@ public class OutPutFragment extends Fragment {
     private void scrollToLastItem() {
         int position = logAdapter.getItemCount();
         if (position > 0) {
-            binding.buildOutputRecyclerview.scrollToPosition(position - 1);
+            binding.ideLogRecyclerview.scrollToPosition(position - 1);
         }
     }
 
-    public static OutPutFragment newInstance() {
-        return new OutPutFragment();
+    private void clearLogs() {
+        logger.clear();
+        logAdapter.notifyDataSetChanged();
+    }
+
+    public static IdeLogsFragment newInstance() {
+        return new IdeLogsFragment();
     }
 }
