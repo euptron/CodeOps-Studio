@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor;
+package com.eup.codeopsstudio.ui.editor.actions;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -35,7 +35,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.adapters.BuildActionPagerAdapter;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
@@ -44,9 +43,10 @@ import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.ui.editor.actions.EditorAction;
-import com.eup.codeopsstudio.ui.editor.actions.EditorShortcutAdapter;
-import com.eup.codeopsstudio.ui.editor.actions.EditorShortcutWizard;
+import com.eup.codeopsstudio.ui.editor.actions.models.EditorAction;
+import com.eup.codeopsstudio.ui.editor.actions.models.EditorShortcutWizard;
+import com.eup.codeopsstudio.ui.editor.actions.adapters.EditorShortcutAdapter;
+import com.eup.codeopsstudio.ui.editor.actions.adapters.BuildActionPagerAdapter;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.material.tabs.TabLayoutMediator;

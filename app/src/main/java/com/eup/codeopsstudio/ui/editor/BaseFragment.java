@@ -54,6 +54,7 @@ import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.pane.EditorPane;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.pane.TextPane;
+import com.eup.codeopsstudio.ui.editor.actions.BuildActionFragment;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.ui.editor.panes.EmptyPaneWindow;
 import com.eup.codeopsstudio.ui.editor.panes.WebViewPane;

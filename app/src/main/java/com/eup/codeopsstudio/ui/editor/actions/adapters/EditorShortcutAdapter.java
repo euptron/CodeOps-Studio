@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor.actions;
+package com.eup.codeopsstudio.ui.editor.actions.adapters;
 
 import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
@@ -37,6 +37,7 @@ import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.LayoutEditorShortcutItemBinding;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.util.BaseUtil;
+import com.eup.codeopsstudio.ui.editor.actions.models.EditorAction;
 
 import java.util.ArrayList;
 import java.util.List;

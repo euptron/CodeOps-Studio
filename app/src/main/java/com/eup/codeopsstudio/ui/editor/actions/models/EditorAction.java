@@ -21,7 +21,7 @@
  * questions or need additional information. Email: euptron@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor.actions;
+package com.eup.codeopsstudio.ui.editor.actions.models;
 
 /**
  * A simple model for editor actions or shortcuts. Represents actions or shortcuts that users can

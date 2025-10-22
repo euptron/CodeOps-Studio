@@ -34,7 +34,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/actions_sheet"
-        android:name="com.eup.codeopsstudio.ui.editor.BuildActionFragment"
+        android:name="com.eup.codeopsstudio.ui.editor.actions.BuildActionFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/colorSurface"

@@ -21,7 +21,7 @@
  * questions or need additional information. Email: etido.up@gmail.com
  */
 
-package com.eup.codeopsstudio.ui.editor.actions;
+package com.eup.codeopsstudio.ui.editor.actions.models;
 
 import androidx.annotation.NonNull;
 
