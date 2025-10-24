@@ -251,7 +251,14 @@ public class TemplateFragment extends BottomSheetDialogFragment {
                 });
             }
         };
-        extractTemplatesIfRequired(completionTask);
+        
+        try {
+           extractTemplatesIfRequired(completionTask);
+        } catch (IOException e) {
+            logger.e(TAG, "Template extraction failed: " + e.getMessage());
+            // Still run completion task to show available templates
+            completionTask.run();
+        }
     }
     
     private void createProjectAsync() {
