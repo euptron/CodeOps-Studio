@@ -26,6 +26,7 @@ package com.eup.codeopsstudio.common;
 import android.annotation.SuppressLint;
 import android.content.Context;
 
+import androidx.annotation.DimenRes;
 import androidx.annotation.NonNull;
 
 /**
@@ -35,25 +36,35 @@ import androidx.annotation.NonNull;
  */
 public class ContextManager {
 
-    @SuppressLint("StaticFieldLeak")
-    private static Context mContext;
+  @SuppressLint("StaticFieldLeak")
+  private static Context mContext;
 
-    private ContextManager() {
-        // Hide
-    }
+  private ContextManager() {
+    // Hide
+  }
 
-    public static Context getApplicationContext() {
-        if (mContext == null) {
-            throw new IllegalStateException("initialize() hasn't been called.");
-        }
-        return mContext;
+  public static Context getApplicationContext() {
+    if (mContext == null) {
+      throw new IllegalStateException("initialize() hasn't been called.");
     }
+    return mContext;
+  }
 
-    public static String getPackageName() {
-        return mContext.getPackageName();
-    }
+  public static String getPackageName() {
+    return mContext.getPackageName();
+  }
 
-    public static void initialize(@NonNull Context context) {
-        mContext = context.getApplicationContext();
-    }
+  public static void initialize(@NonNull Context context) {
+    mContext = context.getApplicationContext();
+  }
+
+  public int getOriginalDimensionPixelSize(@DimenRes int resId) {
+    return getOriginalDimensionPixelSize(mContext, resId);
+  }
+
+  public static int getOriginalDimensionPixelSize(@NonNull Context context, @DimenRes int resId) {
+    return (int)
+        (context.getResources().getDimension(resId)
+            / context.getResources().getDisplayMetrics().density);
+  }
 }

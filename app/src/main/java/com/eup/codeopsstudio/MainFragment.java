@@ -25,7 +25,6 @@ package com.eup.codeopsstudio;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
-import android.graphics.drawable.InsetDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,10 +41,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.util.Pair;
 import androidx.core.view.GravityCompat;
-import androidx.core.view.MenuHost;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
@@ -63,7 +60,7 @@ import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
 import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.models.user.User;
-import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
+import com.eup.codeopsstudio.observers.ContextualObserver;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.ui.AllowChildInterceptDrawerLayout;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
@@ -119,7 +116,7 @@ import java.io.IOException;
  *
  * <ul>
  *   <li>Registers with {@link EventBus} for editor events during onStart()
- *   <li>Manages {@link ContextualLifecycleObserver} for activity result handling
+ *   <li>Manages {@link ContextualObserver} for activity result handling
  *   <li>Maintains proper {@link Lifecycle} state awareness for UI components
  * </ul>
  *
@@ -129,616 +126,726 @@ import java.io.IOException;
  * @see CodeEditorPane
  * @see WebViewPane
  */
-public class MainFragment extends Fragment implements SharedPreferences.OnSharedPreferenceChangeListener, MenuProvider {
+public class MainFragment extends Fragment
+    implements SharedPreferences.OnSharedPreferenceChangeListener, MenuProvider {
 
-    public static final String TAG = MainFragment.class.getSimpleName();
-    private static final String LOG_TAG = "CoreUI";
-    private static final int MENU_ICON_MARGIN = 8;
-    private FragmentMainBinding binding;
-    private CoordinatorLayout mainLayout;
-    private View rootView;
-    private Logger logger;
-    private MainViewModel mainViewModel;
-    private ContextualLifecycleObserver lifeCycleObserver;
-    private Pair<Integer, Pane> currentPanePair = Pair.create(-1, null);
-    private OnBackPressedCallback onBackPressedCallback;
-    private FileViewModel fileViewModel;
-    private ActionBarDrawerToggle actionBarDrawerToggle;
-    private ILog.LogListener logListener;
+  public static final String TAG = MainFragment.class.getSimpleName();
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        logger = new Logger(Logger.LogClass.IDE);
+  private Logger logger;
+  private View rootView;
+  private FragmentMainBinding binding;
+  private FileViewModel fileViewModel;
+  private MainViewModel mainViewModel;
+  private ILog.LogListener logListener;
+  private ActionBarDrawerToggle actionBarDrawerToggle;
+  private OnBackPressedCallback onBackPressedCallback;
+  private ContextualObserver lifeCycleObserver;
+  private Pair<Integer, Pane> currentPanePair = Pair.create(-1, null);
 
-        mainViewModel     = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        fileViewModel     = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
-        lifeCycleObserver = new ContextualLifecycleObserver(requireContext(),
-            requireActivity().getActivityResultRegistry(), requireActivity());
-        getLifecycle().addObserver(lifeCycleObserver);
-    }
+  public static MainFragment newInstance() {
+    return new MainFragment();
+  }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-        @Nullable Bundle savedInstanceState) {
-        binding  = FragmentMainBinding.inflate(inflater, container, false);
-        rootView = binding.getRoot();
-        ((AppCompatActivity) requireActivity()).setSupportActionBar(binding.toolbar);
-        binding.toolbar.setNavigationIcon(R.drawable.ic_menu);
-        return rootView;
-    }
+  public static MainFragment newInstance(@NonNull Bundle arg) {
+    final var fragment = new MainFragment();
+    fragment.setArguments(arg);
+    return fragment;
+  }
 
-    @Override
-    @MainThread
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        AppCompatActivity activity = (AppCompatActivity) requireActivity();
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    logger = new Logger(Logger.LogClass.IDE);
+    final var resultRegistry = requireActivity().getActivityResultRegistry();
+    mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+    fileViewModel = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
+    lifeCycleObserver = new ContextualObserver(requireContext(), resultRegistry, requireActivity());
+    getLifecycle().addObserver(lifeCycleObserver);
+  }
 
-        logger.attach(requireActivity());
-        logListener = formattedMessage -> {
-            requireActivity().runOnUiThread(() -> {
-                logger.postLog(formattedMessage);
-            });
+  @Nullable
+  @Override
+  public View onCreateView(
+      @NonNull LayoutInflater inflater,
+      @Nullable ViewGroup container,
+      @Nullable Bundle savedInstanceState) {
+    binding = FragmentMainBinding.inflate(inflater, container, false);
+    rootView = binding.getRoot();
+    ((AppCompatActivity) requireActivity())
+        .setSupportActionBar(binding.fragmentMainContent.toolbar);
+    binding.fragmentMainContent.toolbar.setNavigationIcon(R.drawable.ic_menu);
+    return rootView;
+  }
+
+  @Override
+  @MainThread
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    AppCompatActivity activity = (AppCompatActivity) requireActivity();
+    logger.attach(requireActivity());
+    
+    logListener =
+        formattedMessage -> {
+          requireActivity()
+              .runOnUiThread(
+                  () -> {
+                    logger.postLog(formattedMessage);
+                  });
         };
-        
-        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        ((MainActivity) requireActivity()).ensureStoragePermissionGranted();
-        if (((MainActivity) requireActivity()).isStoragePermissionGranted()) checkPlugins();
-        ((MainActivity) requireActivity()).ensureNotificationPermissionGranted();
+    requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        mainViewModel.getToolbarTitle().observe(getViewLifecycleOwner(), binding.toolbar::setTitle);
-        mainViewModel.getToolbarSubTitle()
-                     .observe(getViewLifecycleOwner(), binding.toolbar::setSubtitle);
-        mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(),
-            file -> invalidateMenu());
-        mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
+    ((MainActivity) requireActivity()).ensureStoragePermissionGranted();
+    if (((MainActivity) requireActivity()).isStoragePermissionGranted()) checkPlugins();
+    ((MainActivity) requireActivity()).ensureNotificationPermissionGranted();
 
-        FirebaseApp.initializeApp(requireContext());
+    mainViewModel
+        .getToolbarTitle()
+        .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setTitle);
+    mainViewModel
+        .getToolbarSubTitle()
+        .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setSubtitle);
+    mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(), file -> invalidateMenu());
+    mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
 
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
+    FirebaseApp.initializeApp(requireContext());
+
+    FirebaseMessaging.getInstance()
+        .getToken()
+        .addOnCompleteListener(
+            task -> {
+              if (!task.isSuccessful()) {
                 ILog.warning(TAG, "Fetching FCM registration token failed", task.getException());
                 return;
+              }
+
+              // Get new FCM registration token
+              String token = task.getResult();
+
+              // Log and toast
+              String msg = "Instance ID: " + token;
+              ILog.debug(TAG, msg);
+              logger.i(TAG, msg);
+              BaseUtil.toastShort(msg);
+            });
+
+    setUpDrawer();
+
+    onBackPressedCallback =
+        new OnBackPressedCallback(/* enabled= */ false) {
+          @Override
+          public void handleOnBackPressed() {
+            var webViewPane = getSelectedWebViewPane();
+            if (webViewPane != null && webViewPane.getWebView().canGoBack()) {
+              webViewPane.getWebView().goBack();
+              return;
             }
-
-            // Get new FCM registration token
-            String token = task.getResult();
-
-            // Log and toast
-            String msg = "Instance ID: " + token;
-            ILog.debug(TAG, msg);
-            logger.i(TAG, msg);
-            BaseUtil.toastShort(msg);
-        });
-
-        setUpDrawer();
-
-        onBackPressedCallback = new OnBackPressedCallback(/* enabled= */ false) {
-            @Override
-            public void handleOnBackPressed() {
-                var webViewPane = getSelectedWebViewPane();
-                if (webViewPane != null && webViewPane.getWebView().canGoBack()) {
-                    webViewPane.getWebView().goBack();
-                    return;
-                }
-                if (rootView instanceof AllowChildInterceptDrawerLayout) {
-                    if (mainViewModel.isDrawerOpen()) {
-                        mainViewModel.requestCloseDrawer();
-                    } else {
-                        mainViewModel.requestExit();
-                    }
-                }
+            if (rootView instanceof AllowChildInterceptDrawerLayout) {
+              if (mainViewModel.isDrawerOpen()) {
+                mainViewModel.requestCloseDrawer();
+              } else {
+                mainViewModel.requestExit();
+              }
             }
+          }
         };
-        requireActivity().getOnBackPressedDispatcher()
-                         .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
+    requireActivity()
+        .getOnBackPressedDispatcher()
+        .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
 
-        BaseUtil.registerSoftInputChangedListener(getActivity(), __ -> invalidateMenu());
+    BaseUtil.registerSoftInputChangedListener(getActivity(), __ -> invalidateMenu());
 
-        if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
+    if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
 
-        if (savedInstanceState != null) restoreViewState(savedInstanceState);
-        restoreLastProject();
+    restoreLastProject();
 
-        mainViewModel.getShouldUpdateMenu().observe(getViewLifecycleOwner(), shouldUpdate -> {
-            if (shouldUpdate != null && shouldUpdate) {
+    mainViewModel
+        .getShouldUpdateMenu()
+        .observe(
+            getViewLifecycleOwner(),
+            shouldUpdate -> {
+              if (shouldUpdate != null && shouldUpdate) {
                 invalidateMenu();
                 mainViewModel.setShouldUpdateMenu(false); // reset
-            }
+              }
+            });
+
+    fileViewModel.monitorMessages(
+        getViewLifecycleOwner(),
+        observer -> {
+          if (observer != null) {
+            logger.e(TAG, observer.second);
+          }
         });
 
-        fileViewModel.monitorMessages(getViewLifecycleOwner(), observer -> {
-            if (observer != null) {
-                logger.e(LOG_TAG, observer.second);
+    fileViewModel.observePickedFiles(
+        getViewLifecycleOwner(),
+        file -> {
+          if (file != null) {
+            if (Wizard.getMimeType(requireContext(), file)
+                    .equals(MetaDocument.MimeType.ZIP.toString())
+                || file.getName().endsWith(".zip")) {
+              mainViewModel.setZipFile(file);
+            } else {
+              openFileInPane(file);
             }
+          }
         });
 
-        fileViewModel.observePickedFiles(getViewLifecycleOwner(), file -> {
-            if (file != null) {
-                if (Wizard.getMimeType(requireContext(), file)
-                          .equals(MetaDocument.MimeType.ZIP.toString()) || file.getName()
-                                                                               .endsWith(".zip")) {
-                    mainViewModel.setZipFile(file);
-                } else {
-                    openFileInPane(file);
-                }
-            }
+    fileViewModel.observePickedFolders(
+        getViewLifecycleOwner(),
+        file -> {
+          if (file != null) {
+            mainViewModel.setTreeViewFragmentTreeDir(file);
+          }
         });
+  }
 
-        fileViewModel.observePickedFolders(getViewLifecycleOwner(), file -> {
-            if (file != null) {
-                mainViewModel.setTreeViewFragmentTreeDir(file);
-            }
-        });
+  @Override
+  public void onStart() {
+    super.onStart();
+    if (!EventBus.getDefault().isRegistered(this)) {
+      EventBus.getDefault().register(this);
     }
+  }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
+  @Override
+  public void onSaveInstanceState(@NonNull Bundle outState) {
+    if (rootView instanceof AllowChildInterceptDrawerLayout) {
+      outState.putBoolean(
+          "start_drawer_state",
+          ((AllowChildInterceptDrawerLayout) rootView).isDrawerOpen(GravityCompat.START));
     }
+    super.onSaveInstanceState(outState);
+  }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        if (rootView instanceof AllowChildInterceptDrawerLayout) {
-            outState.putBoolean("start_drawer_state",
-                ((AllowChildInterceptDrawerLayout) rootView).isDrawerOpen(GravityCompat.START));
-        }
-        super.onSaveInstanceState(outState);
+  @Override
+  public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+    super.onViewStateRestored(savedInstanceState);
+
+    if (savedInstanceState != null) {
+      restoreViewState(savedInstanceState);
     }
+  }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
+  @Override
+  public void onStop() {
+    super.onStop();
+    if (EventBus.getDefault().isRegistered(this)) {
+      EventBus.getDefault().unregister(this);
     }
-    
-    @Override
-    public void onResume() {
-        super.onResume();
-        ILog.addLogListener(logListener);
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    ILog.addLogListener(logListener);
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    ILog.removeLogListener(logListener);
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    // mainViewModel.getDrawerState().removeObservers(getViewLifecycleOwner());
+    mainViewModel.getToolbarTitle().removeObservers(getViewLifecycleOwner());
+    mainViewModel.getToolbarSubTitle().removeObservers(getViewLifecycleOwner());
+    ILog.removeLogListener(logListener);
+    binding = null;
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    onBackPressedCallback.setEnabled(false);
+  }
+
+  @Override
+  public void onPrepareMenu(@NonNull Menu menu) {
+    onPrepareToolbarOptionsMenus(menu);
+  }
+
+  @SuppressLint("RestrictedApi")
+  @Override
+  public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+    menuInflater.inflate(R.menu.main_menu, menu);
+    if (menu instanceof MenuBuilder menuBuilder) {
+      menuBuilder.setOptionalIconsVisible(true);
     }
+  }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        ILog.removeLogListener(logListener);
+  @Override
+  public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+    final boolean handled = onToolbarOptionsMenuItemSelected(menuItem);
+    if (handled) invalidateMenu();
+    return handled;
+  }
+
+  @Override
+  public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
+    if (key != null) {
+      if (key.equals(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS)) {
+        if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
+      }
     }
+  }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-        // mainViewModel.getDrawerState().removeObservers(getViewLifecycleOwner());
-        mainViewModel.getToolbarTitle().removeObservers(getViewLifecycleOwner());
-        mainViewModel.getToolbarSubTitle().removeObservers(getViewLifecycleOwner());
-        ILog.removeLogListener(logListener);
-    }
+  /**
+   * Invalidates the {@link android.view.Menu} to ensure that what is displayed matches the current
+   * internal state of the menu.
+   *
+   * <p>This should be called whenever the state of the menu is changed, such as items being removed
+   * or disabled based on some user event.
+   *
+   * @see {@link MenuHost}
+   */
+  public void invalidateMenu() {
+    requireActivity().invalidateMenu();
+  }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        onBackPressedCallback.setEnabled(false);
-    }
+  private void setUpDrawer() {
+    if (rootView instanceof AllowChildInterceptDrawerLayout drawerLayout) {
+      BaseUtil.applySystemWindowInsetToPadding(rootView, false, true);  
+      mainViewModel.setDrawerInstance(true);
 
-    /**
-     * Invalidates the {@link android.view.Menu} to ensure that what is displayed matches the
-     * current
-     * internal state of the menu.
-     *
-     * <p>This should be called whenever the state of the menu is changed, such as items being
-     * removed
-     * or disabled based on some user event.
-     *
-     * @see {@link MenuHost}
-     */
-    public void invalidateMenu() {
-        requireActivity().invalidateMenu();
-    }
-
-    private void setUpDrawer() {
-        if (rootView instanceof AllowChildInterceptDrawerLayout drawerLayout) {
-
-            mainLayout = (CoordinatorLayout) binding.mainLayout;
-            mainViewModel.setDrawerInstance(true);
-
-            mainViewModel.getDrawerState().observe(getViewLifecycleOwner(), event -> {
+      mainViewModel
+          .getDrawerState()
+          .observe(
+              getViewLifecycleOwner(),
+              event -> {
                 Boolean shouldOpenDrawer = event.getContentIfNotHandled();
-                
+
                 if (Boolean.TRUE.equals(shouldOpenDrawer)) {
-                    drawerLayout.openDrawer(binding.navView);
+                  drawerLayout.openDrawer(binding.navView);
                 } else {
-                    drawerLayout.closeDrawer(binding.navView);
+                  drawerLayout.closeDrawer(binding.navView);
                 }
-            });
-            
-            binding.toolbar.setNavigationOnClickListener(v -> {
-                if (drawerLayout.isDrawerOpen(binding.navView)) {
-                    mainViewModel.requestCloseDrawer();
-                } else if (!drawerLayout.isDrawerOpen(binding.navView)) {
-                    mainViewModel.requestOpenDrawer();
-                }
-            });
+              });
 
-            drawerLayout.addDrawerListener(new AllowChildInterceptDrawerLayout.SimpleDrawerListener() {
-                @Override
-                public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-                    // float translationX = drawerView.getWidth() * slideOffset * 0.3f;
-                    float translation = drawerView.getWidth() * slideOffset;
-                    mainLayout.setTranslationX(translation);
-                }
-
-                @Override
-                public void onDrawerOpened(@NonNull View drawerView) {
-                    onBackPressedCallback.setEnabled(true);
-                }
-
-                @Override
-                public void onDrawerClosed(@NonNull View drawerView) {
-                    onBackPressedCallback.setEnabled(false);
-                }
-            });
-        } else {
-            // Device with large screens do not use the AllowChildInterceptDrawerLayout
-            mainViewModel.setDrawerInstance(false);
-            binding.toolbar.setNavigationIcon(null);
-        }
-    }
-
-    private void restoreViewState(@NonNull Bundle state) {
-        if (rootView instanceof AllowChildInterceptDrawerLayout) {          
-            boolean shouldOpenDrawer = state.getBoolean("start_drawer_state", false);
-            
-            if (shouldOpenDrawer) {
-                mainViewModel.requestOpenDrawer();
-            } else {
-                mainViewModel.requestCloseDrawer(); 
+      binding.fragmentMainContent.toolbar.setNavigationOnClickListener(
+          v -> {
+            if (drawerLayout.isDrawerOpen(binding.navView)) {
+              mainViewModel.requestCloseDrawer();
+            } else if (!drawerLayout.isDrawerOpen(binding.navView)) {
+              mainViewModel.requestOpenDrawer();
             }
-        }
-    }
+          });
 
-    private WebViewPane getSelectedWebViewPane() {
-        if (currentPanePair == null) return null;
-        Pane current = currentPanePair.second;
-        return (current instanceof WebViewPane) ? (WebViewPane) current : null;
-    }
-
-    /**
-     * Open a file in base fragment which is added to the pane system
-     *
-     * @param file the file to be opened
-     */
-    public void openFileInPane(File file) {
-        // BaseFragment performs sanity check for invalid files
-        mainViewModel.openEditorFile(file);
-        invalidateMenu();
-    }
-
-    private void checkPlugins() {
-        logger.d(LOG_TAG, getString(R.string.msg_checking_plugins));
-        if (FileUtil.Path.ERUDA_CONSOLE.exists()) return;
-
-        logger.w(LOG_TAG, getString(R.string.msg_js_plugin_absent));
-        logger.i(LOG_TAG, getString(R.string.msg_installing_js_console_plugins));
-        installErudaConsole();
-    }
-
-    private void installErudaConsole() {
-        try {
-            logger.i(LOG_TAG, getString(R.string.msg_installing_js_console_plugins));
-            int bufferSize = PreferencesUtils.getCurrentBufferSize();
-            String asset = "plugins/eruda.min.zip";
-
-            File destDir = FileUtil.Path.PLUGINS_FOLDER;
-            var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize);
-            archive.unzip();
-        } catch (IOException e) {
-            logger.e(LOG_TAG, "Plugin installation failed: " + e.getMessage());
-        }
-    }
-
-    private void restoreLastProject() {
-        if (!PreferencesUtils.openLastOpenedProject()) return;
-
-        try {
-            String lastProjectPath = PreferencesUtils.getLastOpenedProjectPreferences()
-                                                     .getString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
-            if (!Wizard.isEmpty(lastProjectPath)) {
-                var projectFile = new File(lastProjectPath);
-                if (projectFile.exists() && projectFile.isDirectory()) {
-                    mainViewModel.setTreeViewFragmentTreeDir(projectFile);
-                }
+      drawerLayout.addDrawerListener(
+          new AllowChildInterceptDrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+              // float translationX = drawerView.getWidth() * slideOffset * 0.3f;
+              float translation = drawerView.getWidth() * slideOffset;
+              binding.fragmentMainContent.mainContentLayout.setTranslationX(translation);
             }
-        } catch (Throwable e) {
-            // corrupted thus clear
-            PreferencesUtils.clearPreference(PreferencesUtils.getLastOpenedProjectPreferences(),
-                Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
-            logger.e(LOG_TAG, "Failed to reopen last opened project: " + e);
+
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+              onBackPressedCallback.setEnabled(true);
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+              onBackPressedCallback.setEnabled(false);
+            }
+          });
+    } else {
+      // Device with large screens do not use the AllowChildInterceptDrawerLayout
+      mainViewModel.setDrawerInstance(false);
+      binding.fragmentMainContent.toolbar.setNavigationIcon(null);
+    }
+  }
+
+  private void restoreViewState(@NonNull Bundle state) {
+    if (rootView instanceof AllowChildInterceptDrawerLayout) {
+      boolean shouldOpenDrawer = state.getBoolean("start_drawer_state", false);
+
+      if (shouldOpenDrawer) {
+        mainViewModel.requestOpenDrawer();
+      } else {
+        mainViewModel.requestCloseDrawer();
+      }
+    }
+  }
+
+  private boolean onToolbarOptionsMenuItemSelected(MenuItem item) {
+    final int id = item.getItemId();
+    final CodeEditorPane editorPane = getSelectedCodeEditorPane();
+    final WebViewPane webViewPane = getSelectedWebViewPane();
+
+    if (editorPane != null && editorPane.getEditor() != null) {
+      return handleCodeEditorActions(item, id, editorPane);
+    } else if (webViewPane != null) {
+      return handleWebViewActions(item, id, webViewPane);
+    }
+    return false;
+  }
+
+  private boolean handleCodeEditorActions(MenuItem item, int id, CodeEditorPane editorPane) {
+    if (id == R.id.menu_run) {
+      editorPane.saveEditor();
+      mainViewModel.setWebViewPaneFile(editorPane.getFile());
+      return true;
+    } else if (id == R.id.menu_undo) {
+      editorPane.undo();
+      return true;
+    } else if (id == R.id.menu_redo) {
+      editorPane.redo();
+      return true;
+    } else if (id == R.id.menu_save_file) {
+      editorPane.saveEditor();
+      return true;
+    } else if (id == R.id.menu_save_as) {
+      editorPane.saveAs();
+      return true;
+    } else if (id == R.id.menu_reload_file) {
+      editorPane.reloadFile();
+      return true;
+    } else if (id == R.id.menu_reload_with_charset) {
+      editorPane.showCharsetSelectionDialog();
+      return true;
+    } else if (id == R.id.menu_file_statistics) {
+      editorPane.showStatistics();
+      return true;
+    } else if (id == R.id.menu_findFile) {
+      editorPane.getSearchManager().openSearchPanel(true);
+      return true;
+    } else if (id == R.id.menu_jump_to_line) {
+      editorPane.doJumpToLine();
+      return true;
+    } else if (id == R.id.menu_read_only_mode) {
+      final var newState = !item.isChecked();
+      editorPane.makeReadOnly(newState);
+      item.setChecked(newState);
+      return true;
+    } else if (id == R.id.menu_copy_line) {
+      editorPane.getEditor().copyText();
+      return true;
+    } else if (id == R.id.menu_delete_line) {
+      editorPane.getEditor().deleteLine();
+      return true;
+    } else if (id == R.id.menu_replace_line) {
+      editorPane.getEditor().replaceCurrLine();
+      return true;
+    } else if (id == R.id.menu_duplicate_line) {
+      editorPane.getEditor().duplicateLine();
+      return true;
+    } else if (id == R.id.menu_convert_to_lowercase) {
+      editorPane.getEditor().convertSelectionToLowerCase();
+      return true;
+    } else if (id == R.id.menu_convert_to_uppercase) {
+      editorPane.getEditor().convertSelectionToUpperCase();
+      return true;
+    } else if (id == R.id.menu_reset_color_schemes) {
+      editorPane.refreshEditorLanguageSyntax();
+      return true;
+    } else if (id == R.id.menu_cut_line) {
+      editorPane.getEditor().cutLine();
+      return true;
+    } else if (id == R.id.menu_previous_cursor_position) {
+      editorPane.navigateToPreviousCursorPosition();
+      return true;
+    } else if (id == R.id.menu_next_cursor_position) {
+      editorPane.navigateToNextCursorPosition();
+      return true;
+    } else if (id == R.id.menu_increase_indent) {
+      editorPane.increaseIndent();
+      return true;
+    } else if (id == R.id.menu_decrease_indent) {
+      editorPane.decreaseIndent();
+      return true;
+    } else if (id == R.id.menu_soft_wrap) {
+      final boolean newState = !item.isChecked();
+      editorPane.setSoftWrapEnabled(newState);
+      item.setChecked(newState);
+      return true;
+    } else if (id == R.id.menu_lite_mode) {
+      final boolean newState = !item.isChecked();
+      editorPane.setSmoothModeEnabled(newState);
+      item.setChecked(newState);
+      return true;
+    } else if (id == R.id.menu_syntax_highlight) {
+      final boolean newState = !item.isChecked();
+      editorPane.setSyntaxHighlightEnabled(newState);
+      item.setChecked(newState);
+      return true;
+    }
+    return false;
+  }
+
+  private boolean handleWebViewActions(MenuItem item, int id, WebViewPane webViewPane) {
+    final WebView webView = webViewPane.getWebView();
+    final boolean newCheckedState = !item.isChecked();
+
+    if (id == R.id.menu_undo) {
+      if (webView.canGoBack()) {
+        webView.goBack();
+      } else {
+        BaseUtil.toastShort(R.string.alrt_cannot_go_back);
+      }
+      return true;
+    } else if (id == R.id.menu_redo) {
+      if (webView.canGoForward()) {
+        webView.goForward();
+      } else {
+        BaseUtil.toastShort(R.string.alrt_cannot_go_forward);
+      }
+      return true;
+    } else if (id == R.id.menu_zoom) {
+      webViewPane.setZoomable(newCheckedState);
+      item.setChecked(newCheckedState);
+      return true;
+    } else if (id == R.id.menu_desktop_mode) {
+      webViewPane.enableDeskTopMode(newCheckedState);
+      item.setChecked(newCheckedState);
+      return true;
+    } else if (id == R.id.menu_refresh) {
+      webViewPane.refresh();
+      return true;
+    } else if (id == R.id.menu_open_in_browser) {
+      webViewPane.openInDeviceBrowser();
+      return true;
+    } else if (id == R.id.menu_copy_url) {
+      final String url = webView.getOriginalUrl();
+      if (!Wizard.isEmpty(url)) {
+        BaseUtil.copyToClipBoard(url, true);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private void onPrepareToolbarOptionsMenus(Menu menu) {
+    CodeEditorPane editorPane = getSelectedCodeEditorPane();
+    WebViewPane webViewPane = getSelectedWebViewPane();
+
+    if (editorPane != null) {
+      configureEditorMenu(menu, editorPane);
+    } else if (webViewPane != null) {
+      configureWebViewMenu(menu, webViewPane);
+    } else {
+      hideAllMenuGroups(menu);
+    }
+  }
+
+  private void configureEditorMenu(Menu menu, CodeEditorPane editorPane) {
+    menu.setGroupVisible(R.id.group_file_operations, true);
+    menu.setGroupVisible(R.id.group_editor_actions, true);
+    menu.setGroupVisible(R.id.group_unredo, true);
+
+    menu.findItem(R.id.menu_previous_cursor_position)
+        .setEnabled(editorPane.canNavigateToPrevious());
+    menu.findItem(R.id.menu_next_cursor_position).setEnabled(editorPane.canNavigateToNext());
+    menu.findItem(R.id.menu_soft_wrap).setChecked(editorPane.isSoftWrapEnabled());
+    menu.findItem(R.id.menu_lite_mode).setChecked(editorPane.isSmoothModeEnabled());
+    menu.findItem(R.id.menu_syntax_highlight).setChecked(editorPane.isSyntaxHighlightEnabled());
+
+    if (editorPane.isReadOnlyMode()) {
+      disableEditorMenuItems(menu);
+    } else {
+      enableEditorMenuItems(menu, editorPane);
+    }
+
+    menu.findItem(R.id.menu_run).setVisible(Constants.isMarkUp(editorPane.getFile()));
+    menu.findItem(R.id.menu_save_file).setEnabled(editorPane.isModified());
+    menu.findItem(R.id.menu_read_only_mode).setChecked(editorPane.isReadOnlyMode());
+  }
+
+  private void enableEditorMenuItems(Menu menu, CodeEditorPane editorPane) {
+    MenuItem undoItem = menu.findItem(R.id.menu_undo);
+    MenuItem redoItem = menu.findItem(R.id.menu_redo);
+
+    if (undoItem != null && redoItem != null) {
+      if (undoItem.getActionView() != null && redoItem.getActionView() != null) {
+        undoItem.setEnabled(editorPane.canUndo());
+        redoItem.setEnabled(editorPane.canRedo());
+      } else {
+        menu.setGroupEnabled(R.id.group_unredo, true);
+        undoItem.setEnabled(editorPane.canUndo());
+        redoItem.setEnabled(editorPane.canRedo());
+      }
+    }
+
+    menu.setGroupVisible(R.id.group_content_edit, true);
+    menu.setGroupEnabled(R.id.group_file_operations, true);
+    menu.findItem(R.id.menu_increase_indent).setEnabled(true);
+    menu.findItem(R.id.menu_decrease_indent).setEnabled(true);
+  }
+
+  private void disableEditorMenuItems(Menu menu) {
+    MenuItem undoItem = menu.findItem(R.id.menu_undo);
+    MenuItem redoItem = menu.findItem(R.id.menu_redo);
+
+    if (undoItem != null && redoItem != null) {
+      if (undoItem.getActionView() != null && redoItem.getActionView() != null) {
+        undoItem.setEnabled(false);
+        redoItem.setEnabled(false);
+      } else {
+        menu.setGroupEnabled(R.id.group_unredo, false);
+      }
+    }
+
+    menu.setGroupEnabled(R.id.group_content_edit, false);
+    menu.setGroupEnabled(R.id.group_file_operations, false);
+    menu.findItem(R.id.menu_increase_indent).setEnabled(false);
+    menu.findItem(R.id.menu_decrease_indent).setEnabled(false);
+  }
+
+  private void configureWebViewMenu(Menu menu, WebViewPane webViewPane) {
+    hideEditorMenuGroups(menu);
+    menu.setGroupVisible(R.id.group_unredo, true);
+    menu.findItem(R.id.menu_liveserver).setVisible(true);
+    menu.findItem(R.id.menu_zoom).setChecked(webViewPane.isZoomable());
+    menu.findItem(R.id.menu_desktop_mode).setChecked(webViewPane.isDeskTopMode());
+    menu.findItem(R.id.menu_redo).setEnabled(webViewPane.canRedo());
+    menu.findItem(R.id.menu_undo).setEnabled(webViewPane.canUndo());
+  }
+
+  private void hideAllMenuGroups(Menu menu) {
+    menu.setGroupVisible(R.id.group_file_operations, false);
+    menu.setGroupVisible(R.id.group_content_edit, false);
+    menu.setGroupVisible(R.id.group_editor_actions, false);
+    menu.setGroupVisible(R.id.group_unredo, false);
+    menu.findItem(R.id.menu_liveserver).setVisible(false);
+  }
+
+  private void hideEditorMenuGroups(Menu menu) {
+    menu.setGroupVisible(R.id.group_file_operations, false);
+    menu.setGroupVisible(R.id.group_content_edit, false);
+    menu.setGroupVisible(R.id.group_editor_actions, false);
+  }
+
+  /**
+   * Open a file in base fragment which is added to the pane system
+   *
+   * @param file the file to be opened
+   */
+  public void openFileInPane(File file) {
+    // BaseFragment performs sanity check for invalid files
+    mainViewModel.openEditorFile(file);
+    invalidateMenu();
+  }
+
+  private void checkPlugins() {
+    logger.d(TAG, getString(R.string.msg_checking_plugins));
+    if (FileUtil.Path.ERUDA_CONSOLE.exists()) return;
+
+    logger.w(TAG, getString(R.string.msg_js_plugin_absent));
+    logger.i(TAG, getString(R.string.msg_installing_js_console_plugins));
+    installErudaConsole();
+  }
+
+  private void installErudaConsole() {
+    try {
+      logger.i(TAG, getString(R.string.msg_installing_js_console_plugins));
+      int bufferSize = PreferencesUtils.getCurrentBufferSize();
+      String asset = "plugins/eruda.min.zip";
+
+      File destDir = FileUtil.Path.PLUGINS_FOLDER;
+      var archive = ZIPArchive.fromAssets(requireContext(), asset, destDir, bufferSize);
+      archive.unzip();
+    } catch (IOException e) {
+      logger.e(TAG, "Plugin installation failed: " + e.getMessage());
+    }
+  }
+
+  private void restoreLastProject() {
+    if (!PreferencesUtils.openLastOpenedProject()) return;
+
+    try {
+      String lastProjectPath =
+          PreferencesUtils.getLastOpenedProjectPreferences()
+              .getString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, "");
+      if (!Wizard.isEmpty(lastProjectPath)) {
+        var projectFile = new File(lastProjectPath);
+        if (projectFile.exists() && projectFile.isDirectory()) {
+          mainViewModel.setTreeViewFragmentTreeDir(projectFile);
         }
+      }
+    } catch (Throwable e) {
+      // corrupted thus clear
+      PreferencesUtils.clearPreference(
+          PreferencesUtils.getLastOpenedProjectPreferences(),
+          Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT);
+      logger.e(TAG, "Failed to reopen last opened project: " + e);
     }
+  }
 
-    @Override
-    public void onPrepareMenu(@NonNull Menu menu) {
-        onPrepareToolbarOptionsMenus(menu);
-    }
+  private WebViewPane getSelectedWebViewPane() {
+    if (currentPanePair == null) return null;
+    Pane current = currentPanePair.second;
+    return (current instanceof WebViewPane) ? (WebViewPane) current : null;
+  }
 
-    @SuppressLint("RestrictedApi")
-    @Override
-    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.main_menu, menu);
-        if (menu instanceof MenuBuilder menuBuilder) {
-            menuBuilder.setOptionalIconsVisible(true);
+  private CodeEditorPane getSelectedCodeEditorPane() {
+    if (currentPanePair == null) return null;
+    Pane current = currentPanePair.second;
+    return (current instanceof CodeEditorPane) ? (CodeEditorPane) current : null;
+  }
 
-            for (MenuItem item : menuBuilder.getVisibleItems()) {
-                int iconMarginPx = BaseUtil.dp(MENU_ICON_MARGIN);
-                if (item.getIcon() != null) {
-                    item.setIcon(new InsetDrawable(item.getIcon(), iconMarginPx, 0, iconMarginPx,
-                        0));
-                }
+  public void closeApp() {
+    onBackPressedCallback.setEnabled(true);
+  }
+
+  public void createFileFromManager() {
+    var dialogBinding = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(requireContext()));
+    var builder = new MaterialAlertDialogBuilder(requireContext());
+
+    builder.setTitle(R.string.new_file);
+    builder.setView(dialogBinding.getRoot());
+    dialogBinding.tilName.setHint(getString(R.string.prompt_file_name));
+
+    builder.setPositiveButton(
+        getString(R.string.next),
+        (dialog, which) -> {
+          String prepName = null;
+          if (dialogBinding.tilName.getEditText() != null) {
+            prepName = dialogBinding.tilName.getEditText().getText().toString();
+          }
+          if (prepName != null && prepName.isEmpty()) {
+            if (lifeCycleObserver != null) {
+              lifeCycleObserver.createFile(getString(R.string.untitled));
             }
-        }
-    }
-
-    @Override
-    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-        final boolean handled = onToolbarOptionsMenuItemSelected(menuItem);
-        if (handled) invalidateMenu();
-        return handled;
-    }
-
-    private boolean onToolbarOptionsMenuItemSelected(MenuItem item) {
-        final int id = item.getItemId();
-        final CodeEditorPane editorPane = getSelectedCodeEditorPane();
-        final WebViewPane webViewPane = getSelectedWebViewPane();
-
-        if (editorPane != null && editorPane.getEditor() != null) {
-            return handleCodeEditorActions(item, id, editorPane);
-        } else if (webViewPane != null) {
-            return handleWebViewActions(item, id, webViewPane);
-        }
-        return false;
-    }
-    
-    private boolean handleCodeEditorActions(MenuItem item, int id, CodeEditorPane editorPane) {
-        if (id == R.id.menu_run) {
-            editorPane.saveEditor();
-            mainViewModel.setWebViewPaneFile(editorPane.getFile());
-            return true;
-        } else if (id == R.id.menu_undo) {
-            editorPane.undo();
-            return true;
-        } else if (id == R.id.menu_redo) {
-            editorPane.redo();
-            return true;
-        } else if (id == R.id.menu_save_file) {
-            editorPane.saveEditor();
-            return true;
-        } else if (id == R.id.menu_save_as) {
-            editorPane.saveAs();
-            return true;
-        } else if (id == R.id.menu_reload_file) {
-            editorPane.reloadFile();
-            return true;
-        } else if (id == R.id.menu_reload_with_charset) {
-            editorPane.showCharsetSelectionDialog();
-            return true;
-        } else if (id == R.id.menu_file_statistics) {
-            editorPane.showStatistics();
-            return true;
-        } else if (id == R.id.menu_findFile) {
-            editorPane.getSearchManager().openSearchPanel(true);
-            return true;
-        } else if (id == R.id.menu_jump_to_line) {
-            editorPane.doJumpToLine();
-            return true;
-        } else if (id == R.id.menu_read_only_mode) {
-            final var newState = !item.isChecked();
-            editorPane.makeReadOnly(newState);
-            item.setChecked(newState);
-            return true;
-        } else if (id == R.id.menu_copy_line) {
-            editorPane.getEditor().copyText();
-            return true;
-        } else if (id == R.id.menu_delete_line) {
-            editorPane.getEditor().deleteLine();
-            return true;
-        } else if (id == R.id.menu_replace_line) {
-            editorPane.getEditor().replaceCurrLine();
-            return true;
-        } else if (id == R.id.menu_duplicate_line) {
-            editorPane.getEditor().duplicateLine();
-            return true;
-        } else if (id == R.id.menu_convert_to_lowercase) {
-            editorPane.getEditor().convertSelectionToLowerCase();
-            return true;
-        } else if (id == R.id.menu_convert_to_uppercase) {
-            editorPane.getEditor().convertSelectionToUpperCase();
-            return true;
-        } else if (id == R.id.menu_reset_color_schemes) {
-            editorPane.refreshEditorLanguageSyntax();
-            return true;
-        } else if (id == R.id.menu_cut_line) {
-            editorPane.getEditor().cutLine();
-            return true;
-        }
-        return false;
-    }
-    
-    private boolean handleWebViewActions(MenuItem item, int id, WebViewPane webViewPane) {
-        final WebView webView = webViewPane.getWebView();
-        final boolean newCheckedState = !item.isChecked();
-
-        if (id == R.id.menu_undo) {
-            if (webView.canGoBack()) {
-                webView.goBack();
-            } else {
-                BaseUtil.toastShort(R.string.alrt_cannot_go_back);
-            }
-            return true;
-        } else if (id == R.id.menu_redo) {
-            if (webView.canGoForward()) {
-                webView.goForward();
-            } else {
-                BaseUtil.toastShort(R.string.alrt_cannot_go_forward);
-            }
-            return true;
-        } else if (id == R.id.menu_zoom) {
-            webViewPane.setZoomable(newCheckedState);
-            item.setChecked(newCheckedState);
-            return true;
-        } else if (id == R.id.menu_desktop_mode) {
-            webViewPane.enableDeskTopMode(newCheckedState);
-            item.setChecked(newCheckedState);
-            return true;
-        } else if (id == R.id.menu_refresh) {
-            webViewPane.refresh();
-            return true;
-        } else if (id == R.id.menu_open_in_browser) {
-            webViewPane.openInDeviceBrowser();
-            return true;
-        } else if (id == R.id.menu_copy_url) {
-            final String url = webView.getOriginalUrl();
-            if (!Wizard.isEmpty(url)) {
-                BaseUtil.copyToClipBoard(url, true);
-            }
-            return true;
-        }
-        return false;
-    }
-    
-    private void onPrepareToolbarOptionsMenus(Menu menu) {
-        CodeEditorPane editorPane = getSelectedCodeEditorPane();
-        WebViewPane webViewPane = getSelectedWebViewPane();
-
-        if (editorPane != null) {
-            menu.setGroupVisible(R.id.group_file_operations, true);
-            menu.setGroupVisible(R.id.group_editor_actions, true);
-            menu.setGroupVisible(R.id.group_unredo, true);
-            
-            if (editorPane.isReadOnlyMode()) {
-                menu.setGroupEnabled(R.id.group_unredo, false);
-                menu.setGroupEnabled(R.id.group_content_edit, false);
-                menu.setGroupEnabled(R.id.group_file_operations, false);
-            } else {
-                menu.setGroupEnabled(R.id.group_unredo, true);
-                menu.setGroupVisible(R.id.group_content_edit, true);
-                menu.setGroupEnabled(R.id.group_file_operations, true);
-                menu.findItem(R.id.menu_undo).setEnabled(editorPane.canUndo());
-                menu.findItem(R.id.menu_redo).setEnabled(editorPane.canRedo());
-            }
-            menu.findItem(R.id.menu_run).setVisible(Constants.isMarkUp(editorPane.getFile()));
-            menu.findItem(R.id.menu_save_file).setEnabled(editorPane.isModified());
-            menu.findItem(R.id.menu_read_only_mode).setChecked(editorPane.isReadOnlyMode());
-            // menu.findItem(R.id.?).setEnabled(!BaseUtil.isSoftInputVisible(this));
-        } else if (webViewPane != null) {
-            menu.setGroupVisible(R.id.group_file_operations, false);
-            menu.setGroupVisible(R.id.group_content_edit, false);
-            menu.setGroupVisible(R.id.group_editor_actions, false);
-            menu.setGroupVisible(R.id.group_unredo, true);
-            
-            menu.findItem(R.id.menu_liveserver).setVisible(true);
-            menu.findItem(R.id.menu_zoom).setChecked(webViewPane.isZoomable());
-            menu.findItem(R.id.menu_desktop_mode).setChecked(webViewPane.isDeskTopMode());
-            menu.findItem(R.id.menu_redo).setEnabled(webViewPane.canRedo());
-            menu.findItem(R.id.menu_undo).setEnabled(webViewPane.canUndo());
-        } else {
-            // No active editor or web view - hide all editor-specific groups
-            menu.setGroupVisible(R.id.group_file_operations, false);
-            menu.setGroupVisible(R.id.group_content_edit, false);
-            menu.setGroupVisible(R.id.group_editor_actions, false);
-            menu.setGroupVisible(R.id.group_unredo, false);
-            menu.findItem(R.id.menu_liveserver).setVisible(false);
-        }
-    }
-
-    private CodeEditorPane getSelectedCodeEditorPane() {
-        if (currentPanePair == null) return null;
-        Pane current = currentPanePair.second;
-        return (current instanceof CodeEditorPane) ? (CodeEditorPane) current : null;
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences pref, @Nullable String key) {
-        if (key != null) {
-            if (key.equals(Constants.SharedPreferenceKeys.KEY_SHARE_STATISTICS)) {
-                if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
-            }
-        }
-    }
-
-    public void closeApp() {
-        onBackPressedCallback.setEnabled(true);
-    }
-
-    public void createFileFromManager() {
-        var dialogBinding =
-            LayoutDialogTextInputBinding.inflate(LayoutInflater.from(requireContext()));
-        var builder = new MaterialAlertDialogBuilder(requireContext());
-
-        builder.setTitle(R.string.new_file);
-        builder.setView(dialogBinding.getRoot());
-        dialogBinding.tilName.setHint(getString(R.string.prompt_file_name));
-
-        builder.setPositiveButton(getString(R.string.next), (dialog, which) -> {
-            String prepName = null;
-            if (dialogBinding.tilName.getEditText() != null) {
-                prepName = dialogBinding.tilName.getEditText().getText().toString();
-            }
-            if (prepName != null && prepName.isEmpty()) {
-                if (lifeCycleObserver != null) {
-                    lifeCycleObserver.createFile(getString(R.string.untitled));
-                }
-            }
+          }
         });
 
-        builder.setNegativeButton(getString(R.string.cancel), null);
-        builder.show();
-    }
+    builder.setNegativeButton(getString(R.string.cancel), null);
+    builder.show();
+  }
 
-    public static MainFragment newInstance() {
-        return new MainFragment();
-    }
+  @Subscribe(threadMode = ThreadMode.MAIN)
+  public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
+    currentPanePair = Pair.create(event.getIndex(), event.getPane());
+    invalidateMenu();
+  }
 
-    public static MainFragment newInstance(@NonNull Bundle arg) {
-        final var fragment = new MainFragment();
-        fragment.setArguments(arg);
-        return fragment;
-    }
+  @Subscribe(threadMode = ThreadMode.MAIN)
+  public void onEditorModificationEvent(EditorModificationEvent event) {
+    invalidateMenu();
+  }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
-        currentPanePair = Pair.create(event.getIndex(), event.getPane());
-        invalidateMenu();
-    }
+  public void openFileFromManager() {
+    if (lifeCycleObserver != null) lifeCycleObserver.pickFile();
+  }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEditorModificationEvent(EditorModificationEvent event) {
-        invalidateMenu();
-    }
+  public void openFolderFromManager() {
+    if (lifeCycleObserver != null) lifeCycleObserver.pickFolder();
+  }
 
-    public void openFileFromManager() {
-        if (lifeCycleObserver != null) lifeCycleObserver.pickFile();
-    }
+  @UsedByReflection
+  public void openFolderInTreeViewFragment(File dir) {
+    // BaseFragment performs sanity check for invalid files
+    mainViewModel.setTreeViewFragmentTreeDir(dir);
+    invalidateMenu();
+  }
 
-    public void openFolderFromManager() {
-        if (lifeCycleObserver != null) lifeCycleObserver.pickFolder();
-    }
-
-    @UsedByReflection
-    public void openFolderInTreeViewFragment(File dir) {
-        // BaseFragment performs sanity check for invalid files
-        mainViewModel.setTreeViewFragmentTreeDir(dir);
-        invalidateMenu();
-    }
-
-    @UsedByReflection
-    public void openZipFileFromManager() {
-        if (lifeCycleObserver != null) lifeCycleObserver.pickZipFile();
-    }
+  @UsedByReflection
+  public void openZipFileFromManager() {
+    if (lifeCycleObserver != null) lifeCycleObserver.pickZipFile();
+  }
 }

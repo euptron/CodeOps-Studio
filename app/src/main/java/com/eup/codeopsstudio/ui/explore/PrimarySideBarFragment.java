@@ -23,13 +23,18 @@
 
 package com.eup.codeopsstudio.ui.explore;
 
+import android.graphics.Insets;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.view.Window;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -37,6 +42,7 @@ import androidx.navigation.Navigation;
 
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.databinding.FragmentPrimarySideBarBinding;
+import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.google.android.material.navigationrail.NavigationRailView;
 
@@ -49,76 +55,94 @@ import com.google.android.material.navigationrail.NavigationRailView;
  */
 public class PrimarySideBarFragment extends Fragment {
 
-    private FragmentPrimarySideBarBinding binding;
-    private MainViewModel mMainViewModel;
-    private NavController navController;
+  private FragmentPrimarySideBarBinding binding;
+  private MainViewModel mMainViewModel;
+  private NavController navController;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mMainViewModel =
-            new ViewModelProvider(requireActivity() /*shared activity scope*/).get(MainViewModel.class);
-    }
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    mMainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+  }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-        Bundle savedInstanceState) {
-        binding = FragmentPrimarySideBarBinding.inflate(inflater, container, false);
-        return binding.getRoot();
-    }
+  @Nullable
+  @Override
+  public View onCreateView(
+      @NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    binding = FragmentPrimarySideBarBinding.inflate(inflater, container, false);
+    return binding.getRoot();
+  }
 
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+  @Override
+  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    applySystemInsets(requireActivity().getWindow(), binding.getRoot());
 
-        NavigationRailView navigationRail = binding.navigationRail;
-        int host = com.eup.codeopsstudio.R.id.nav_host_primary_side_bar_fragment;
-        navController = Navigation.findNavController(requireActivity(), host);
+    int host = com.eup.codeopsstudio.R.id.nav_host_primary_side_bar_fragment;
+    navController = Navigation.findNavController(requireActivity(), host);
+    binding.navigationRail.setOnItemSelectedListener(this::onNavDestinationSelected);
+  }
 
-        navigationRail.setOnItemSelectedListener(item -> {
-            if (navController != null) {
-                return onNavDestinationSelected(item.getItemId());
-            }
-            return false;
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    this.binding = null;
+  }
+
+  public static void applySystemInsets(@NonNull Window w, @NonNull View v) {
+    if (android.os.Build.VERSION.SDK_INT < 35) return;
+
+    int systemInsets =
+        WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
+
+    View decorView = w.getDecorView();
+    decorView.post(
+        () -> {
+          WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decorView);
+          if (insets != null) {
+            ViewGroup.MarginLayoutParams params =
+                (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            params.topMargin = insets.getInsets(systemInsets).top;
+            params.bottomMargin = insets.getInsets(systemInsets).bottom;
+            params.leftMargin = insets.getInsets(systemInsets).left;
+            params.rightMargin = insets.getInsets(systemInsets).right;
+            v.setLayoutParams(params);
+          }
         });
-    }
+  }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        this.binding = null;
-    }
+  /**
+   * Handles the selection of navigation items in the navigation rail aka Primary side bar.
+   *
+   * @param itemId The ID of the selected navigation item
+   * @return true if the item should be selectable, false otherwise
+   */
+  private boolean onNavDestinationSelected(MenuItem item) {
+    if (navController == null || item == null) return false;
+    final int itemId = item.getItemId();
 
-    /**
-     * Handles the selection of navigation items in the navigation rail aka Primary side bar.
-     *
-     * @param itemId The ID of the selected navigation item
-     * @return true if the item should be selectable, false otherwise
-     */
-    private boolean onNavDestinationSelected(final int itemId) {
-        if (itemId == R.id.action_file_explorer) {
-            return navigateToFragment(com.eup.codeopsstudio.R.id.nav_treeviewFragment);
-        } else if (itemId == R.id.action_settings) {
-            mMainViewModel.addSettingsPane(true);
-            return false;
-        } else if (itemId == R.id.action_close_app) {
-            requireActivity().finishAffinity();
-            return false;
-        }
-        return false;
+    if (itemId == R.id.action_file_explorer) {
+      return navigateToFragment(com.eup.codeopsstudio.R.id.nav_treeviewFragment);
+    } else if (itemId == R.id.action_settings) {
+      mMainViewModel.addSettingsPane(true);
+      return false;
+    } else if (itemId == R.id.action_close_app) {
+      requireActivity().finishAffinity();
+      return false;
     }
+    return false;
+  }
 
-    /**
-     * Navigates to menu associated with a fragment
-     *
-     * @return true Since fragments must be made selectable
-     */
-    private boolean navigateToFragment(int fragmentId) {
-        if (navController.getCurrentDestination() != null
-            && navController.getCurrentDestination().getId() != fragmentId) {
-            navController.navigate(fragmentId); // Assuming the fragment is not displayed we add it
-        }
-        return true;
+  /**
+   * Navigates to menu associated with a fragment
+   *
+   * @return true Since fragments must be made selectable
+   */
+  private boolean navigateToFragment(int fragmentId) {
+    if (navController.getCurrentDestination() != null
+        && navController.getCurrentDestination().getId() != fragmentId) {
+      navController.navigate(fragmentId); // Assuming the fragment is not displayed we add it
     }
+    return true;
+  }
 }

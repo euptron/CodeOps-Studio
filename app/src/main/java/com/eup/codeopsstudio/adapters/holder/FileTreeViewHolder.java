@@ -49,7 +49,7 @@ public class FileTreeViewHolder extends TreeNode.BaseNodeViewHolder<File> {
     @Override
     public View createNodeView(@NonNull TreeNode node, @NonNull File file) {
         binding = LayoutFileTreeItemBinding.inflate(LayoutInflater.from(context));
-        View root = applyPadding(node, binding, BaseUtil.dp(8));
+        View root = applyPadding(node, binding, BaseUtil.dpToPx(8));
         binding.title.setText(file.getName());
 
         if (file.isFile()) {

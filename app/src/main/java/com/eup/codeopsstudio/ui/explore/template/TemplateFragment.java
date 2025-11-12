@@ -54,7 +54,7 @@ import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.FragmentTemplateBinding;
 import com.eup.codeopsstudio.logger.Logger;
-import com.eup.codeopsstudio.observers.ContextualLifecycleObserver;
+import com.eup.codeopsstudio.observers.ContextualObserver;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
@@ -96,7 +96,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
     private FragmentTemplateBinding binding;
     private TextInputLayout mSaveLocationLayout;
     private ProjectTemplateModel mCurrentTemplate;
-    private ContextualLifecycleObserver lifecycleObserver;
+    private ContextualObserver lifecycleObserver;
     
     public static TemplateFragment newInstance() {
         return new TemplateFragment();
@@ -112,7 +112,7 @@ public class TemplateFragment extends BottomSheetDialogFragment {
         mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
         final ActivityResultRegistry resultRegistry = requireActivity().getActivityResultRegistry();
-        lifecycleObserver = new ContextualLifecycleObserver(requireContext(), resultRegistry, requireActivity());
+        lifecycleObserver = new ContextualObserver(requireContext(), resultRegistry, requireActivity());
         getLifecycle().addObserver(lifecycleObserver);
     }
     

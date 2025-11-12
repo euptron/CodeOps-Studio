@@ -30,37 +30,36 @@ import androidx.annotation.NonNull;
 
 public class UiBuilder {
 
-    private final Context context;
+  private final Context context;
 
-    public UiBuilder(@NonNull Context context) {
-        this.context = context;
-    }
+  public UiBuilder(@NonNull Context context) {
+    this.context = context;
+  }
 
-    public LinearLayout.LayoutParams createLinear(int width, int height, float weight,
-        int gravity) {
-        var layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height), weight);
-        layoutParams.gravity = gravity;
-        return layoutParams;
-    }
+  public LinearLayout.LayoutParams createLinear(int width, int height, float weight, int gravity) {
+    var layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height), weight);
+    layoutParams.gravity = gravity;
+    return layoutParams;
+  }
 
-    public int getSize(float size) {
-        return (int) (size < 0 ? size : dp(size));
-    }
+  public int getSize(float size) {
+    return (int) (size < 0 ? size : dpToPx(size));
+  }
 
-    public int dp(float px) {
-        if (px == 0) {
-            return 0;
-        }
-        return Math.round(context.getResources().getDisplayMetrics().density * px);
+  public int dpToPx(float dp) {
+    if (dp == 0) {
+      return 0;
     }
+    return Math.round(context.getResources().getDisplayMetrics().density * dp);
+  }
 
-    public LinearLayout.LayoutParams createLinear(int width, int height, int gravity) {
-        var layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height));
-        layoutParams.gravity = gravity;
-        return layoutParams;
-    }
+  public LinearLayout.LayoutParams createLinear(int width, int height, int gravity) {
+    var layoutParams = new LinearLayout.LayoutParams(getSize(width), getSize(height));
+    layoutParams.gravity = gravity;
+    return layoutParams;
+  }
 
-    public LinearLayout.LayoutParams createLinear(int width, int height) {
-        return new LinearLayout.LayoutParams(getSize(width), getSize(height));
-    }
+  public LinearLayout.LayoutParams createLinear(int width, int height) {
+    return new LinearLayout.LayoutParams(getSize(width), getSize(height));
+  }
 }

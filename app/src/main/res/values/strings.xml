@@ -24,6 +24,7 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name" translatable="false">CodeOps Studio</string>
+    <string name="app_name_short" translatable="false">CodeOps</string>
     <string name="app_slogan">Code anywhere anytime</string>
     <!-- Theme -->
     <string name="theme_auto">Auto</string>
@@ -182,6 +183,13 @@
     <string name="menu_desktop_mode">Desktop mode</string>
     <string name="menu_preferences">@string/settings</string>
     <string name="menu_reset_color_schemes">Reset color schemes</string>
+    <string name="menu_next_cursor_position">Next position</string>
+    <string name="menu_previous_cursor_position">Previous position</string>
+    <string name="menu_increase_indent">Increase indent</string>
+    <string name="menu_decrease_indent">Decrease indent</string>
+    <string name="menu_soft_wrap">Soft wrap</string>
+    <string name="menu_lite_mode">Lite mode</string>
+    <string name="menu_syntax_highlight">Syntax</string>
     <!-- Storage Permission -->
     <string name="storage_permission_continue">Continue</string>
     <string name="storage_permission_cancel">@string/cancel</string>
@@ -363,6 +371,7 @@
     <string name="msg_grant_notification_permission">Grant Notification permission</string>
     <string name="msg_request_notification_rationale">CodeOps Studio requires notification permission to keep you updated</string>
     <string name="msg_notification_permission_granted">Notification permission granted</string>
+    <string name="msg_lite_mode_description">Enabling Lite Mode improves performance when editing large texts, but may affect features like ligatures, text direction, and emoji rendering. This mode is recommended for large texts with long lines.</string>
     <!-- @Tabs -->
     <string name="pref_editor_tab_category_title">Tabs</string>
     <string name="pref_editor_code_editor_title_auto_save">Auto save</string>
@@ -527,7 +536,7 @@
     <string name="text_input_other_desc">Text input for other information</string>
     <string name="act_sheet_extended_fab_content_desc" translatable="false">Extended FAB</string>
     <!-- Debugging -->
-    <string name="app_memory_usage" translatable="false">used: <xliff:g example="1MB" id="numerator">%1$s</xliff:g> / <xliff:g example="10MB" id="denominator">%2$s</xliff:g> (<xliff:g example="10" id="percentage">%3$d</xliff:g>%%)</string>
+    <string name="app_memory_usage" translatable="false">Memory: <xliff:g example="1MB" id="numerator">%1$s</xliff:g> / <xliff:g example="10MB" id="denominator">%2$s</xliff:g> (<xliff:g example="10" id="percentage">%3$d</xliff:g>%%)</string>
     <!-- Ad -->
     <string name="ad_privacy_settings">Ad privacy settings</string>
     <string name="ad_attribution" translatable="false">Ad</string>

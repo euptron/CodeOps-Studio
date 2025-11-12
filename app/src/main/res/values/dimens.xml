@@ -24,6 +24,7 @@
 
 <resources>
     <dimen name="dialog_fragment_unzip_padding">16dp</dimen>
+    <dimen name="build_action_header_height">@dimen/dimen48dp</dimen>
     <!-- Change Log -->
     <dimen name="alert_log_label_height">@dimen/dimen56dp</dimen>
     <dimen name="alert_log_label_padding">@dimen/dimen8dp</dimen>

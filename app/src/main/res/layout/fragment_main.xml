@@ -27,49 +27,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="false"
     tools:openDrawer="start">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/main_Layout"
+    <include
+        android:id="@+id/fragment_main_content"
+        layout="@layout/fragment_main_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar"
-            android:layout_width="match_parent"
-            style="?attr/toolbarSurfaceStyle"
-            android:layout_height="wrap_content">
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                style="?toolbarSurfaceStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:subtitleTextAppearance="@style/AppTheme.MainToolBar.SubTitleAppearance"
-                app:titleTextAppearance="@style/AppTheme.MainToolBar.TitleAppearance"
-                tools:navigationIcon="@drawable/ic_menu"
-                tools:subtitle="Indexing..."
-                tools:title="CodeOps Studio" />
-
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/progress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:indeterminate="true"
-                android:visibility="gone"
-                app:indicatorDirectionLinear="startToEnd"
-                app:trackCornerRadius="0dp" />
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/editor_base"
-            android:name="com.eup.codeopsstudio.ui.editor.BaseFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
-            tools:layout="@layout/fragment_base" />
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        android:layout_height="match_parent" />
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"

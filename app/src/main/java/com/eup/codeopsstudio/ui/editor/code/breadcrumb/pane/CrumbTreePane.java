@@ -161,7 +161,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
         super.onViewCreated(view);
         window = new PopupWindow(getContext());
 
-        window.setWidth(BaseUtil.dp(190));
+        window.setWidth(BaseUtil.dpToPx(190));
         window.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
 
         window.setFocusable(true);
@@ -185,7 +185,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
     private void applyBackground() {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setShape(GradientDrawable.RECTANGLE);
-        drawable.setCornerRadius(BaseUtil.dp(4));
+        drawable.setCornerRadius(BaseUtil.dpToPx(4));
         drawable.setColor(SurfaceColors.SURFACE_1.getColor(requireContext()));
         drawable.setStroke(1, MaterialColors.getColor(requireContext(),
             com.google.android.material.R.attr.colorOutline, 0));

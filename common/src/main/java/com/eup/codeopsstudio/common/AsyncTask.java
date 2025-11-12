@@ -69,6 +69,7 @@ public class AsyncTask {
      * @param action The runnable to cancel.
      */
     public static void cancelRunLater(Runnable action) {
+        if (action == null) return;
         MainThreadExecutor.getInstance().cancelExecute(action);
     }
 

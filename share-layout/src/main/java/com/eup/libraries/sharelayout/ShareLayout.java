@@ -265,8 +265,8 @@ public class ShareLayout extends LinearLayout {
      *
      * @see {@link UiBuilder#dp(float)}
      */
-    private int dp(float value) {
-        return uiBuilder.dp(value);
+    private int dp(float dpValue) {
+        return uiBuilder.dpToPx(dpValue);
     }
 
     @Nullable

@@ -47,9 +47,9 @@ static def getGitCommitCountSafe() {
 
 project.ext {
     // Versions
-    compileSdkVersion = 34
+    compileSdkVersion = 35
     buildToolsVersion = '34.0.0'
-    targetSdkVersion = 34
+    targetSdkVersion = 35
     minSdkVersion = 26
     javaSourceVersion = JavaVersion.VERSION_17
     javaTargetVersion = JavaVersion.VERSION_17

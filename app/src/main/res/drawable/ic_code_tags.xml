@@ -22,26 +22,16 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<vector
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="24dp"
+	android:height="24dp"
+	android:viewportHeight="24"
+	android:viewportWidth="24"
+	android:tint="?android:colorControlNormal">
 
-    <include
-        android:id="@+id/pane_window"
-        layout="@layout/pane_window" />
+		<path
+			android:fillColor="#ff000000"
+			android:pathData="M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z"/>
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/actions_sheet"
-        android:name="com.eup.codeopsstudio.ui.editor.actions.BuildActionFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="?attr/colorSurface"
-        android:elevation="4dp"
-        app:behavior_hideable="false"
-        app:behavior_peekHeight="@dimen/dimen48dp"
-        app:layout_behavior="@string/bottom_sheet_behavior"
-        tools:layout="@layout/fragment_build_action" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</vector>

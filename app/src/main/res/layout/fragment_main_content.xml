@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_content_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+         android:layout_height="wrap_content"
+         android:layout_width="match_parent"
+         app:elevation="0dp"
+         android:id="@+id/app_bar">
+
+        <com.google.android.material.appbar.MaterialToolbar
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             tools:subtitle="Indexing..."
+             app:titleTextAppearance="@style/AppTheme.MainToolBar.TitleAppearance"
+             app:subtitleTextAppearance="@style/AppTheme.MainToolBar.SubTitleAppearance"
+             tools:navigationIcon="@drawable/ic_menu"
+             android:title="@string/app_name"
+             android:id="@+id/toolbar" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+             android:layout_height="wrap_content"
+             android:layout_width="match_parent"
+             android:visibility="gone"
+             app:indicatorDirectionLinear="startToEnd"
+             android:indeterminate="true"
+             app:trackCornerRadius="0dp"
+             android:id="@+id/progress" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+    <!-- Extra parent to consume insets to resize for keyboard -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.fragment.app.FragmentContainerView
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"
+            tools:layout="@layout/fragment_base"
+            android:name="com.eup.codeopsstudio.ui.editor.BaseFragment"
+            android:id="@+id/editor_base" />
+    </FrameLayout>
+</LinearLayout>

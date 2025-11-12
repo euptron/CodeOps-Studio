@@ -8,7 +8,7 @@ androidxNavigationUi = "2.9.4"
 androidxPreference = "1.2.1"
 androidxSwipeReFreshLayout = "1.2.0-beta01"
 androidxSplashScreen = "1.0.1"
-androidxWorkRuntime = "2.9.0"
+androidxWorkRuntime = "2.10.4"
 androidxDataStore = "1.1.7"
 documentfile = "1.1.0"
 # Google

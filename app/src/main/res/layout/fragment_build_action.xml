@@ -22,61 +22,52 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
     
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/top_divider"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="1px"
-        android:alpha="0.8"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-        
+        android:alpha="0.8" />
+    
     <ViewFlipper
-        android:id="@+id/row_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_divider">
+        android:id="@+id/actions_header"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/build_action_header_height">
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:padding="@dimen/dimen2dp"
+            android:layout_height="@dimen/build_action_header_height"
+            android:gravity="center"
             android:text="@string/drag_up_for_logs"
             android:textSize="11sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerview_shortcuts"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/build_action_header_height"
             android:nestedScrollingEnabled="false" />
+            
+        <com.eup.codeopsstudio.util.MemoryOverlayView
+                android:id="@+id/memory_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/build_action_header_height" />    
     </ViewFlipper>
     
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         style="@style/AppTheme.TabLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:contentDescription="@string/log_tab_desc"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/row_layout" />
+        android:contentDescription="@string/log_tab_desc" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/action_pager"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
