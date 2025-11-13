@@ -205,13 +205,16 @@ public class PaneWindowManager implements PaneWindow {
       eventWatcher.onTabSelected(tab, selectedPane);
     }
 
-    tabLayout.post(this::invalidateMenuIfPossible);
+    invalidateMenuIfPossible();
   }
 
   private void invalidateMenuIfPossible() {
-    if (context instanceof FragmentActivity activity) {
-      activity.invalidateMenu();
-    }
+    tabLayout.post(
+        () -> {
+          if (context instanceof FragmentActivity activity) {
+            activity.invalidateMenu();
+          }
+        });
   }
 
   @Override
@@ -285,7 +288,7 @@ public class PaneWindowManager implements PaneWindow {
               tabLayout.post(() -> syncTabs());
             }
             validateState();
-            tabLayout.post(this::invalidateMenuIfPossible);
+            invalidateMenuIfPossible();
             return handled;
           });
     }
@@ -664,7 +667,7 @@ public class PaneWindowManager implements PaneWindow {
       isRemovingTabs = false;
       validateState();
       displayEmptyPaneIfRequired();
-      tabLayout.post(this::invalidateMenuIfPossible);
+      invalidateMenuIfPossible();
     }
   }
 
@@ -893,7 +896,7 @@ public class PaneWindowManager implements PaneWindow {
     if (contains(pane)) {
       pane.setPinned(pinned);
       syncTab(pane);
-      tabLayout.post(this::invalidateMenuIfPossible);
+      invalidateMenuIfPossible();
     }
   }
 
@@ -1148,7 +1151,7 @@ public class PaneWindowManager implements PaneWindow {
     } finally {
       isRemovingTabs = false;
       displayEmptyPaneIfRequired();
-      tabLayout.post(this::invalidateMenuIfPossible);
+      invalidateMenuIfPossible();
       validateState();
       ILog.debug(TAG, "Batch remove finished. State reset.");
     }
