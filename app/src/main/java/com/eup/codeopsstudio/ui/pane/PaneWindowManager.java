@@ -34,7 +34,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
@@ -42,30 +41,28 @@ import androidx.appcompat.widget.PopupMenu.OnMenuItemClickListener;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
+import com.eup.codeopsstudio.common.models.BooleanResult;
 import com.eup.codeopsstudio.common.util.EncodeUtils;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.PaneWindowBinding;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.common.models.BooleanResult;
 import com.eup.codeopsstudio.pane.PaneFactory;
 import com.eup.codeopsstudio.ui.pane.contract.PaneContracts;
 import com.eup.codeopsstudio.ui.pane.factory.PaneFactoryImpl;
 import com.google.android.material.tabs.TabLayout;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * A concrete implementation of the {@link PaneWindow} interface that manages the lifecycle,
@@ -89,39 +86,22 @@ import java.util.function.Consumer;
 public class PaneWindowManager implements PaneWindow {
 
   public static final String TAG = "PaneWindowManager";
-  private final EventWatcher eventWatcher;
-  private final List<Pane> panes = new ArrayList<>();
-  private final SharedPreferences sharedPreferences;
-  private final PaneFactory paneFactory;
+
   private Context context;
+  private Pane selectedPane;
   private TabLayout tabLayout;
-  private FrameLayout emptyPaneContainer;
+  private PopupMenu mPopupMenu;
+  private int selectedTabPosition;
   private ViewFlipper viewFlipper;
   private ViewFlipper paneContainer;
-
-  /**
-   * Whether to show tab icons.
-   *
-   * <p>Only used when {@code UIState.CustomTab} is available. If {@code true} tab icons would be
-   * made visible otherwise gone
-   */
   private boolean showTabIcons = true;
-
-  private Pane selectedPane;
-  private int selectedTabPosition;
-  private PopupMenu mPopupMenu;
+  private final PaneFactory paneFactory;
+  private FrameLayout emptyPaneContainer;
+  private final EventWatcher eventWatcher;
   private CustomTabUIState customTabUIState;
-
-  /**
-   * {@code true} To close tabs to leftOf or rightOf the selected tab
-   *
-   * @see #closeTabsRelativeToFirst(boolean)
-   * @see #canCloseTabsRelativeToFirst()
-   */
   private boolean closeTabsRelativeToFirst = true;
-
-  private boolean isRemovingTabs = false; // Flag to prevent re-entrance issues
-  private boolean attemptAutoCorrection = false;
+  private final SharedPreferences sharedPreferences;
+  private final List<Pane> panes = new ArrayList<>();
 
   public PaneWindowManager(
       @NonNull Context context,
@@ -143,11 +123,8 @@ public class PaneWindowManager implements PaneWindow {
     this.selectedPane = null;
     this.selectedTabPosition = -1;
     this.customTabUIState = tabUIState;
-
-    // Initially set listener
     this.sharedPreferences = PreferencesUtils.getGlobalPreferences();
     this.tabLayout.addOnTabSelectedListener(this);
-
     this.paneFactory = new PaneFactoryImpl(fragment, this);
   }
 
@@ -171,73 +148,39 @@ public class PaneWindowManager implements PaneWindow {
     this.selectedPane = null;
     this.selectedTabPosition = -1;
     this.customTabUIState = tabUIState;
-
-    // Initially set listener
     this.sharedPreferences = PreferencesUtils.getGlobalPreferences();
     this.tabLayout.addOnTabSelectedListener(this);
-
     this.paneFactory = new PaneFactoryImpl(activity, this);
   }
 
   @Override
   public void onTabSelected(@NonNull TabLayout.Tab tab) {
-    // If a remove operation is happening, the listener might fire before state is consistent.
-    // The remove operation itself will handle selection logic.
-    if (isRemovingTabs) {
-      ILog.debug(TAG, "Removing Tabs= " + isRemovingTabs);
-      return;
-    }
-
-    Pane pane = handleTabSelection(tab);
-    if (pane == null) {
-      ILog.warning(
-          TAG, "Could not perform onTabSelected: associated pane is null or " + "invalid tab");
-    } else {
-      // Only change displayed child if it's not already the correct one
-      if (paneContainer.getDisplayedChild() != tab.getPosition()) {
-        paneContainer.setDisplayedChild(tab.getPosition());
-      }
-      pane.onSelected(); // mark also for persistency
+    final int position = tab.getPosition();
+    Pane pane = panes.get(position);
+    if (pane != null) {
+      paneContainer.setDisplayedChild(position);
+      pane.onSelected();
       selectedPane = pane;
-      selectedTabPosition = tab.getPosition();
-      ILog.debug(
-          TAG,
-          "Internal onTabSelected called for: "
-              + selectedPane.getTitle()
-              + ", pos: "
-              + selectedTabPosition);
+      selectedTabPosition = position;
       syncTabs();
-      eventWatcher.onTabSelected(tab, selectedPane);
+
+      // Critical: Event notification must be deferred until TabLayout completes its
+      // selection lifecycle. Without this synchronization, UI state becomes inconsistent
+      // leading to unpredictable behavior in dependent components.
+      //
+      // Resolves: https://github.com/euptron/CodeOps-Studio/issues/12
+      tabLayout.post(
+          () -> {
+            eventWatcher.onTabSelected(tab, selectedPane);
+          });
     }
-
     invalidateMenuIfPossible();
-  }
-
-  private void invalidateMenuIfPossible() {
-    tabLayout.post(
-        () -> {
-          if (context instanceof FragmentActivity activity) {
-            activity.invalidateMenu();
-          }
-        });
   }
 
   @Override
   public void onTabUnselected(TabLayout.Tab tab) {
-    if (isRemovingTabs) {
-      ILog.debug(TAG, "Removing Tabs= " + isRemovingTabs);
-      return;
-    }
-
-    Pane pane = handleTabSelection(tab);
-
-    if (pane == null) {
-      ILog.warning(
-          TAG,
-          "Could not perform onTabUnselected: associated pane is null or "
-              + "invalid tab. This can happen normally during tab switching, might not be an "
-              + "error");
-    } else {
+    Pane pane = panes.get(tab.getPosition());
+    if (pane != null) {
       pane.onUnselected();
       syncTabs();
     }
@@ -245,17 +188,9 @@ public class PaneWindowManager implements PaneWindow {
 
   @Override
   public void onTabReselected(@NonNull TabLayout.Tab tab) {
-    if (isRemovingTabs) {
-      ILog.debug(TAG, "Removing Tabs...");
-      return; // Ignore during removal
-    }
-
-    Pane pane = handleTabSelection(tab);
-    if (pane == null) {
-      ILog.warning(
-          TAG, "Could not perform onTabReselected: associated pane is null or " + "invalid tab");
-    } else {
-      pane.onReselected(); // mark for persistency
+    Pane pane = panes.get(tab.getPosition());
+    if (pane != null) {
+      pane.onReselected();
 
       View anchor =
           (customTabUIState != null && tab.getCustomView() != null)
@@ -340,19 +275,16 @@ public class PaneWindowManager implements PaneWindow {
     if (select) {
       paneToSelect = pane;
     } else if (panes.size() == 1) {
-      paneToSelect = pane; // Auto-select first tab
+      paneToSelect = pane;
     } else {
       paneToSelect = null;
     }
 
-    tabLayout.post(
-        () -> {
-          if (paneToSelect != null) {
-            selectTab(paneToSelect);
-          } else {
-            updateTabUI(pane);
-          }
-        });
+    if (paneToSelect != null) {
+      selectTab(paneToSelect);
+    } else {
+      updateTabUI(pane);
+    }
 
     displayEmptyPaneIfRequired();
     return true;
@@ -479,7 +411,7 @@ public class PaneWindowManager implements PaneWindow {
     int rangeEnd = firstOnly ? Math.min(rangeStart + 1, panes.size()) : panes.size();
 
     removeRange(rangeStart, rangeEnd);
-    return true; // removeRange handles actual success/failure logging
+    return true;
   }
 
   @Override
@@ -595,13 +527,6 @@ public class PaneWindowManager implements PaneWindow {
 
   @Override
   public boolean remove(@NonNull Pane paneToRemove, int index) {
-    if (isRemovingTabs) {
-      ILog.debug(TAG, "Skipping remove call during another remove operation.");
-      return false;
-    }
-
-    isRemovingTabs = true;
-
     try {
       if (index < 0 || index >= panes.size()) {
         ILog.warning(
@@ -612,58 +537,27 @@ public class PaneWindowManager implements PaneWindow {
       if (!Objects.equals(paneToRemove, panes.get(index))) return false;
       if (paneToRemove.isPinned()) return false;
 
-      // Perform removals
-      ILog.debug("WindowManager", "Attempting to remove pane: " + paneToRemove.getTitle());
       panes.remove(index);
       paneContainer.removeViewAt(index);
       tabLayout.removeTabAt(index);
 
       paneToRemove.destroy();
-      ILog.debug("WindowManager", "destroy() called for pane: " + paneToRemove.getTitle());
       removePersistedPane(paneToRemove);
 
-      int newSize = panes.size();
-      int newSelectionIndex = -1;
-
-      // Determine the new selection index
-      if (newSize > 0) {
-        if (selectedTabPosition == index) {
-          // If the selected tab was removed, select the previous one, or the new first
-          newSelectionIndex = Math.max(0, index - 1);
-        } else if (selectedTabPosition > index) {
-          // If a tab *before* the selected one was removed, decrement selection index
-          newSelectionIndex = selectedTabPosition - 1;
-        } else {
-          // If a tab after the selected one was removed, selection index is still valid
-          newSelectionIndex = selectedTabPosition;
-        }
-      } else {
+      if (panes.size() <= 0) {
         // No tabs left
         selectedPane = null;
         selectedTabPosition = -1;
-
-        // Explicitly send a "null pane" event
         tabLayout.post(
             () -> {
-              // We pass null for the tab and pane
               eventWatcher.onTabSelected(null, null);
             });
-        // --- END FIX ---
-      }
-
-      if (newSelectionIndex != -1) {
-        final int finalSelection = newSelectionIndex;
-        selectTab(finalSelection);
-      } else {
-        // no selection, list empty ?
-        syncTabs();
       }
       return true;
     } catch (Exception e) {
       ILog.error(TAG, "Failed to remove tab at index " + index + ": " + e.getMessage(), e);
       return false;
     } finally {
-      isRemovingTabs = false;
       validateState();
       displayEmptyPaneIfRequired();
       invalidateMenuIfPossible();
@@ -749,12 +643,12 @@ public class PaneWindowManager implements PaneWindow {
       // Try selecting the last valid tab if index is out of bounds?
       if (tabLayout.getTabCount() > 0) {
         index = tabLayout.getTabCount() - 1;
-        ILog.info(TAG, "Attempting to select last valid tab index: " + index);
       } else {
         ILog.info(TAG, "No tabs left to select");
         selectedPane = null;
         selectedTabPosition = -1;
-        syncTabs(); // Update UI for empty state
+        syncTabs();
+        displayEmptyPaneIfRequired()
         validateState();
         return;
       }
@@ -768,23 +662,7 @@ public class PaneWindowManager implements PaneWindow {
 
     if (!tab.isSelected()) {
       tabLayout.selectTab(tab);
-    } else {
-      Pane targetPane = panes.get(index);
-
-      if (selectedPane != targetPane || selectedTabPosition != index) {
-        selectedPane = targetPane;
-        selectedTabPosition = index;
-      }
-
-      if (paneContainer.getDisplayedChild() != index) {
-        paneContainer.setDisplayedChild(index);
-      }
-
-      targetPane.onSelected();
-      eventWatcher.onTabSelected(tab, targetPane); // <-- THIS IS THE MISSING LINE
-
-      // Ensure this specific tab UI is up-to-date even if it was already selected
-      updateSpecificTabUI(tab, selectedPane);
+      ILog.warning(TAG, "attempting to select tab at : " + index);
     }
 
     // Scroll to the selected tab
@@ -879,16 +757,10 @@ public class PaneWindowManager implements PaneWindow {
       }
     }
 
-    // Ensure the ViewFlipper is showing the correct child view based on internal state
-    if (selectedTabPosition >= 0
-        && selectedTabPosition < paneContainer.getChildCount()
-        && selectedTabPosition < panes.size()) {
-      if (paneContainer.getDisplayedChild() != selectedTabPosition) {
-        paneContainer.setDisplayedChild(selectedTabPosition);
-      }
-    } else if (panes.isEmpty()) {
+    if (panes.isEmpty()) {
       displayEmptyPaneIfRequired();
     }
+
     invalidateMenuIfPossible();
   }
 
@@ -900,7 +772,13 @@ public class PaneWindowManager implements PaneWindow {
       invalidateMenuIfPossible();
     }
   }
-
+  
+  @Nullable
+  @Override
+  public Pane getSelectedPane() {
+    return selectedPane;
+  }
+  
   private void updateSpecificTabUI(@NonNull TabLayout.Tab tab, @NonNull Pane pane) {
     String title = eventWatcher.requireTabTitle(pane);
 
@@ -944,13 +822,7 @@ public class PaneWindowManager implements PaneWindow {
 
     tabLayout.requestLayout();
   }
-
-  @Nullable
-  @Override
-  public Pane getSelectedPane() {
-    return selectedPane;
-  }
-
+  
   public void displayEmptyPaneIfRequired() {
     final boolean isEmpty = getPanes().isEmpty();
     tabLayout.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
@@ -964,46 +836,13 @@ public class PaneWindowManager implements PaneWindow {
     return new String(bytes);
   }
 
-  @Nullable
-  private Pane handleTabSelection(TabLayout.Tab tab) {
-    if (tab == null) {
-      ILog.warning(TAG, "handleTabSelection: Tab is null");
-      return null;
-    }
-
-    int position = tab.getPosition();
-    if (position < 0 || position >= panes.size()) {
-      ILog.warning(
-          TAG,
-          "handleTabSelection: Invalid tab position: "
-              + position
-              + ", Panes size: "
-              + panes.size());
-
-      return null;
-    }
-
-    Pane paneFromPosition = panes.get(position);
-
-    Object tag = tab.getTag();
-    if (!(tag instanceof Pane) || tag != paneFromPosition) {
-      ILog.error(
-          TAG,
-          "State Mismatch! Pane at position "
-              + position
-              + " does not match the pane stored in the tab's tag. This indicates a bug in "
-              + "add/remove logic.");
-    }
-
-    return paneFromPosition;
-  }
-
-  public boolean isAttemptAutoCorrection() {
-    return attemptAutoCorrection;
-  }
-
-  public void setAttemptAutoCorrection(boolean attemptAutoCorrection) {
-    this.attemptAutoCorrection = attemptAutoCorrection;
+  private void invalidateMenuIfPossible() {
+    tabLayout.post(
+        () -> {
+          if (context instanceof FragmentActivity activity) {
+            activity.invalidateMenu();
+          }
+        });
   }
 
   /**
@@ -1018,11 +857,6 @@ public class PaneWindowManager implements PaneWindow {
    */
   private boolean batchRemove(
       List<Pane> panesToModify, boolean retain, int fromIndex, int toIndex) {
-    if (isRemovingTabs) {
-      ILog.debug(TAG, "Skipping batch remove call during another remove operation.");
-      return false;
-    }
-
     if (fromIndex < 0 || toIndex > panes.size() || fromIndex > toIndex) {
       ILog.error(
           TAG,
@@ -1035,7 +869,6 @@ public class PaneWindowManager implements PaneWindow {
       return false;
     }
 
-    isRemovingTabs = true;
     boolean modified = false;
 
     try {
@@ -1063,7 +896,6 @@ public class PaneWindowManager implements PaneWindow {
       }
 
       if (!modified) {
-        isRemovingTabs = false;
         return false;
       }
 
@@ -1126,14 +958,10 @@ public class PaneWindowManager implements PaneWindow {
       } else {
         selectedPane = null;
         selectedTabPosition = -1;
-
-        // Explicitly send a "null pane" event
         tabLayout.post(
             () -> {
-              // We pass null for the tab and pane
               eventWatcher.onTabSelected(null, null);
             });
-        // --- END FIX ---
       }
 
       if (newSelectionIndex != -1) {
@@ -1149,11 +977,9 @@ public class PaneWindowManager implements PaneWindow {
       ILog.error(TAG, msg + e.getMessage(), e);
       return modified;
     } finally {
-      isRemovingTabs = false;
       displayEmptyPaneIfRequired();
       invalidateMenuIfPossible();
       validateState();
-      ILog.debug(TAG, "Batch remove finished. State reset.");
     }
   }
 
@@ -1241,11 +1067,6 @@ public class PaneWindowManager implements PaneWindow {
       if (mismatch) errorMsg.append(" | ");
       errorMsg.append("Selected Index: ").append(selectedTabPosition).append(" is out of bounds.");
       mismatch = true;
-
-      if (attemptAutoCorrection) {
-        selectedTabPosition = -1;
-        selectedPane = null; // Risky
-      }
     }
 
     // Check selected pane consistency
@@ -1256,10 +1077,6 @@ public class PaneWindowManager implements PaneWindow {
           .append("Selected Pane instance does not match selected index ")
           .append(selectedTabPosition);
       mismatch = true;
-
-      if (attemptAutoCorrection) {
-        selectedPane = panes.get(selectedTabPosition);
-      }
     }
 
     if (mismatch) {

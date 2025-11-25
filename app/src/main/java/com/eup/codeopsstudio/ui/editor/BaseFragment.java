@@ -313,7 +313,8 @@ public class BaseFragment extends Fragment
   }
 
   private View createEmptyPaneView() {
-    var windowPane = new EmptyPaneWindow(mainViewModel, getViewLifecycleOwner(), requireContext(), "Empty Pane");
+    var windowPane =
+        new EmptyPaneWindow(mainViewModel, getViewLifecycleOwner(), requireContext(), "Empty Pane");
     return windowPane.createView();
   }
 
@@ -344,8 +345,10 @@ public class BaseFragment extends Fragment
     }
 
     if (paneToSelect != null) {
+      ILog.info(TAG, "Selecting: " + paneToSelect.getTitle());
       paneWindow.selectTab(paneToSelect);
     } else if (!paneWindow.getPanes().isEmpty()) {
+      ILog.info(TAG, "Falling back to first tab");
       paneWindow.selectTab(0); // fallback to first tab
     }
 
@@ -516,7 +519,7 @@ public class BaseFragment extends Fragment
       welcomePane = new WelcomePane(requireContext(), getString(R.string.welcome));
       welcomePane.setPinned(true);
       if (PreferencesUtils.canShowWelcomePanel()) {
-        paneWindow.add(welcomePane, 0, true);
+        paneWindow.add(welcomePane, 0, false);
       }
     } else {
       paneWindow.selectTab(welcomePane);

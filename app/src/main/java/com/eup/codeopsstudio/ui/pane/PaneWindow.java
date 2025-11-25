@@ -135,8 +135,8 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
   /**
    * Checks the configured default behavior for relative close operations.
    *
-   * @return {@code true} if the default is configured to close only the first adjacent tab, {@code
-   *     false} otherwise.
+   * @return {@code true} if the default is configured to close only the first adjacent tab (L or
+   *     R), {@code false} otherwise.
    * @see #closeTabsRelativeToFirst(boolean)
    */
   boolean canCloseTabsRelativeToFirst();
@@ -383,6 +383,9 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
 
   /**
    * Sets whether icons should be shown in custom tab layouts (if applicable).
+   *
+   * <p>Only used when a custom ui is available. If {@code true} tab icons would be made visible
+   * otherwise gone
    *
    * @param show {@code true} to show icons, {@code false} to hide them.
    */

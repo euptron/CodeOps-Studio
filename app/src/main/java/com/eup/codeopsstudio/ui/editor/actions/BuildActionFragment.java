@@ -29,12 +29,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
@@ -43,25 +41,22 @@ import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentBuildActionBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
-import com.eup.codeopsstudio.domain.events.EditorReadyEvent;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
+import com.eup.codeopsstudio.ui.editor.actions.adapters.BuildActionPagerAdapter;
+import com.eup.codeopsstudio.ui.editor.actions.adapters.EditorShortcutAdapter;
 import com.eup.codeopsstudio.ui.editor.actions.models.EditorAction;
 import com.eup.codeopsstudio.ui.editor.actions.models.EditorShortcutWizard;
-import com.eup.codeopsstudio.ui.editor.actions.adapters.EditorShortcutAdapter;
-import com.eup.codeopsstudio.ui.editor.actions.adapters.BuildActionPagerAdapter;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 /**
  * @author Etido Peter
@@ -119,7 +114,7 @@ public class BuildActionFragment extends Fragment
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     BaseUtil.applyImeInsets(binding.getRoot(), true);
-    
+
     var llm = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
     binding.recyclerviewShortcuts.setLayoutManager(llm);
     binding.recyclerviewShortcuts.setHasFixedSize(true);
@@ -184,6 +179,9 @@ public class BuildActionFragment extends Fragment
       if (event.getPane() instanceof CodeEditorPane editorPane) {
         if (editorPane.getEditor() != null) {
           setupEditorShortcuts(editorPane);
+          if (editorPane.isSelected()) {
+            setupEditorShortcuts(editorPane);
+          }
         }
       } else {
         binding.actionsHeader.setDisplayedChild(0);
@@ -191,14 +189,6 @@ public class BuildActionFragment extends Fragment
     } catch (Throwable e) {
       ILog.error(TAG, "Error handling current pane event " + e.getMessage(), e);
       binding.actionsHeader.setDisplayedChild(0); // Fail-safe
-    }
-  }
-
-  @Subscribe(threadMode = ThreadMode.MAIN)
-  public void onEditorReadyEvent(@NonNull EditorReadyEvent event) {
-    CodeEditorPane editorPane = event.getEditorPane();
-    if (editorPane.isSelected()) {
-      setupEditorShortcuts(editorPane);
     }
   }
 

@@ -63,8 +63,7 @@ import io.github.rosemoe.sora.event.ContentChangeEvent;
 import io.github.rosemoe.sora.event.EventReceiver;
 import io.github.rosemoe.sora.event.PublishSearchResultEvent;
 import io.github.rosemoe.sora.event.SelectionChangeEvent;
-import io.github.rosemoe.sora.lang.EmptyLanguage; // Added import
-import io.github.rosemoe.sora.text.CharPosition; // Added import
+import io.github.rosemoe.sora.text.CharPosition; 
 import io.github.rosemoe.sora.text.Content;
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +71,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.LinkedList; // Added import
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -221,15 +220,6 @@ public class CodeEditorPane extends Pane
     logger.i(TAG, "Editor UI ready - content will load on selection: " + getTitle());
     setupEmptyEditor();
     enableEditorFeatures();
-
-    // Notify listeners that the editor is fully initialized and ready.
-    // We check isSelected() so we only notify for the pane that is
-    // currently active and waiting for this signal.
-    if (isSelected() && getEditor() != null) {
-      ILog.debug(
-          TAG, "Editor is fully laid out and ready, posting EditorReadyEvent for: " + getTitle());
-      EventBus.getDefault().post(new com.eup.codeopsstudio.domain.events.EditorReadyEvent(this));
-    }
   }
 
   @Override

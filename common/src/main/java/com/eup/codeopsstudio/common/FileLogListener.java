@@ -1,6 +1,7 @@
 package com.eup.codeopsstudio.common;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.BufferedWriter;
@@ -15,6 +16,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * An ILog.LogListener that writes all received log messages to a file on a background thread. This
  * is designed to be fast and non-blocking, making it safe to use for debugging freezes.
+ *
+ * @author Etido Peter
  */
 public class FileLogListener implements ILog.LogListener {
 
@@ -30,24 +33,16 @@ public class FileLogListener implements ILog.LogListener {
    * @param fileName The name of the log file to create (e.g., "debug_log.txt").
    */
   public FileLogListener(Context context, String fileName) {
-    // This path is easily accessible via a device file manager:
-    // Android/data/your.package.name/files/
-    File storageDir = context.getExternalFilesDir(null);
+    File storageDir = /* context.getExternalFilesDir(null)*/ new File("/storage/emulated/0/Documents");
     if (storageDir != null && !storageDir.exists()) {
       storageDir.mkdirs();
     }
+
     this.logFile = new File(storageDir, fileName);
-
-    // Start the background thread that will process the log queue.
     executor.submit(this::processLogQueue);
-
     Log.d("FileLogListener", "Log file initialized at: " + logFile.getAbsolutePath());
   }
 
-  /**
-   * This method is called by the ILog system. It's very fast because it only adds the message to a
-   * queue and returns immediately.
-   */
   @Override
   public void onLog(String formattedMessage) {
     if (isRunning) {
@@ -55,22 +50,14 @@ public class FileLogListener implements ILog.LogListener {
     }
   }
 
-  /**
-   * This method runs on a dedicated background thread. It waits for messages from the queue and
-   * writes them to the file.
-   */
   private void processLogQueue() {
-    // Using try-with-resources to ensure the writer is always closed.
-    // The 'false' in FileWriter means the file will be overwritten on each app start.
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, false))) {
       writer.write("--- Log Session Started ---\n\n");
       writer.flush();
 
       while (isRunning || !logQueue.isEmpty()) {
-        // take() will wait patiently if the queue is empty, consuming no CPU.
         String logMessage = logQueue.take();
 
-        // A special message to tell the thread to shut down gracefully.
         if ("SHUTDOWN_LOGGER".equals(logMessage)) {
           break;
         }
@@ -89,11 +76,9 @@ public class FileLogListener implements ILog.LogListener {
     }
   }
 
-  /** Stops the logger gracefully, ensuring any pending logs are written. */
   public void stop() {
     if (isRunning) {
       isRunning = false;
-      // This special message will unblock the queue and terminate the loop.
       logQueue.offer("SHUTDOWN_LOGGER");
       executor.shutdown();
     }
