@@ -23,6 +23,7 @@
   -->
 
 <resources>
+    <dimen name="command_palette_corner_radius">16dp</dimen>
     <dimen name="dialog_fragment_unzip_padding">16dp</dimen>
     <dimen name="build_action_header_height">@dimen/dimen48dp</dimen>
     <!-- Change Log -->

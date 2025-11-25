@@ -204,7 +204,7 @@ public class CrumbTreePane extends Pane implements TreeNode.TreeNodeClickListene
 
         binding.loading.setVisibility(View.VISIBLE);
         listNode(rootNode, () -> {
-            treeView = new AndroidTreeView(getContext(), rootNode, R.drawable.base_ripple);
+            treeView = new AndroidTreeView(getContext(), rootNode, R.drawable.ripple_item);
             treeView.setUseAutoToggle(false);
             treeView.setDefaultNodeClickListener(this);
             treeView.setDefaultNodeLongClickListener(this);

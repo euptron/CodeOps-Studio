@@ -160,7 +160,6 @@ public class MainFragment extends Fragment
     mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
     fileViewModel = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
     lifeCycleObserver = new ContextualObserver(requireContext(), resultRegistry, requireActivity());
-    getLifecycle().addObserver(lifeCycleObserver);
   }
 
   @Nullable
@@ -170,6 +169,7 @@ public class MainFragment extends Fragment
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
     binding = FragmentMainBinding.inflate(inflater, container, false);
+    getViewLifecycleOwner().getLifecycle().addObserver(lifeCycleObserver);
     rootView = binding.getRoot();
     ((AppCompatActivity) requireActivity())
         .setSupportActionBar(binding.fragmentMainContent.toolbar);
@@ -183,7 +183,7 @@ public class MainFragment extends Fragment
     super.onViewCreated(view, savedInstanceState);
     AppCompatActivity activity = (AppCompatActivity) requireActivity();
     logger.attach(requireActivity());
-    
+
     logListener =
         formattedMessage -> {
           requireActivity()
@@ -351,6 +351,7 @@ public class MainFragment extends Fragment
   @Override
   public void onDestroyView() {
     super.onDestroyView();
+    BaseUtil.unregisterSoftInputChangedListener(requireActivity().getWindow());
     // mainViewModel.getDrawerState().removeObservers(getViewLifecycleOwner());
     mainViewModel.getToolbarTitle().removeObservers(getViewLifecycleOwner());
     mainViewModel.getToolbarSubTitle().removeObservers(getViewLifecycleOwner());
@@ -409,7 +410,7 @@ public class MainFragment extends Fragment
 
   private void setUpDrawer() {
     if (rootView instanceof AllowChildInterceptDrawerLayout drawerLayout) {
-      BaseUtil.applySystemWindowInsetToPadding(rootView, false, true);  
+      BaseUtil.applySystemWindowInsetToPadding(rootView, false, true);
       mainViewModel.setDrawerInstance(true);
 
       mainViewModel
@@ -570,9 +571,7 @@ public class MainFragment extends Fragment
       item.setChecked(newState);
       return true;
     } else if (id == R.id.menu_syntax_highlight) {
-      final boolean newState = !item.isChecked();
-      editorPane.setSyntaxHighlightEnabled(newState);
-      item.setChecked(newState);
+      editorPane.showLanguagePicker();
       return true;
     }
     return false;
@@ -643,7 +642,6 @@ public class MainFragment extends Fragment
     menu.findItem(R.id.menu_next_cursor_position).setEnabled(editorPane.canNavigateToNext());
     menu.findItem(R.id.menu_soft_wrap).setChecked(editorPane.isSoftWrapEnabled());
     menu.findItem(R.id.menu_lite_mode).setChecked(editorPane.isSmoothModeEnabled());
-    menu.findItem(R.id.menu_syntax_highlight).setChecked(editorPane.isSyntaxHighlightEnabled());
 
     if (editorPane.isReadOnlyMode()) {
       disableEditorMenuItems(menu);
@@ -807,11 +805,12 @@ public class MainFragment extends Fragment
           if (dialogBinding.tilName.getEditText() != null) {
             prepName = dialogBinding.tilName.getEditText().getText().toString();
           }
-          if (prepName != null && prepName.isEmpty()) {
-            if (lifeCycleObserver != null) {
-              lifeCycleObserver.createFile(getString(R.string.untitled));
-            }
+
+          if (prepName == null || prepName.isEmpty()) {
+            prepName = getString(R.string.untitled);
           }
+
+          lifeCycleObserver.createFile(prepName);
         });
 
     builder.setNegativeButton(getString(R.string.cancel), null);
@@ -830,11 +829,11 @@ public class MainFragment extends Fragment
   }
 
   public void openFileFromManager() {
-    if (lifeCycleObserver != null) lifeCycleObserver.pickFile();
+    lifeCycleObserver.pickFile();
   }
 
   public void openFolderFromManager() {
-    if (lifeCycleObserver != null) lifeCycleObserver.pickFolder();
+    lifeCycleObserver.pickFolder();
   }
 
   @UsedByReflection
@@ -846,6 +845,6 @@ public class MainFragment extends Fragment
 
   @UsedByReflection
   public void openZipFileFromManager() {
-    if (lifeCycleObserver != null) lifeCycleObserver.pickZipFile();
+    lifeCycleObserver.pickZipFile();
   }
 }

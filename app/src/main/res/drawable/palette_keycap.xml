@@ -22,11 +22,10 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@android:color/transparent" android:state_activated="true" />
-    <item android:alpha="@dimen/ripple_pressed_alpha" android:color="?attr/colorOnPrimary" android:state_pressed="true" />
-    <item android:alpha="@dimen/ripple_focused_alpha" android:color="?attr/colorOnPrimary" android:state_focused="true" />
-    <item android:alpha="@dimen/ripple_hovered_alpha" android:color="?attr/colorOnPrimary" android:state_hovered="true" />
-    <item android:alpha="@dimen/ripple_default_alpha" android:color="?attr/colorOnPrimary" />
-</selector>
-
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#15808080" />
+    <corners android:radius="3dp" />
+    <stroke
+        android:width="1dp"
+        android:color="#40808080" />
+</shape>

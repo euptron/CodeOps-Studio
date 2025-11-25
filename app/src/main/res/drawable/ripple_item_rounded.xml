@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ This file is part of CodeOps Studio.
   ~ CodeOps Studio - Code anywhere anytime
@@ -19,30 +18,33 @@
   ~ along with this program. If not, see https://www.gnu.org/licenses/
   ~
   ~ If you have more questions, feel free to message Etido Peter if you have any
-  ~ questions or need additional information. Email: euptron@gmail.com
-  -->
-
+  ~ questions or need additional information. Email: etido.up@gmail.com
+-->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="@color/rippleHighlightColor">
+    android:color="@color/selection_control_ripple_color_selector">
+
     <item android:id="@android:id/mask">
-        <shape>
-            <solid android:color="#000" />
-            <corners
-                android:bottomLeftRadius="8dp"
-                android:bottomRightRadius="8dp"
-                android:topLeftRadius="8dp"
-                android:topRightRadius="8dp" />
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#FFFFFF" />
         </shape>
     </item>
-    <item>
+
+    <item android:id="@android:id/background">
         <selector>
-            <item
-                android:drawable="@drawable/bg_ripple_disabled"
-                android:state_activated="true" />
-            <item
-                android:drawable="@drawable/bg_ripple_pressed"
-                android:state_selected="true" />
+            <item android:state_activated="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="8dp" />
+                    <solid android:color="?attr/colorControlHighlight" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="8dp" />
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
         </selector>
     </item>
-</ripple>
 
+</ripple>

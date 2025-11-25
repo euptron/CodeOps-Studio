@@ -33,9 +33,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:foreground="@drawable/base_ripple"
+        android:foreground="@drawable/ripple_item"
         android:gravity="center"
-        android:padding="@dimen/dimen4dp"
+        android:padding="@dimen/dimen2dp"
         android:textSize="@dimen/dimen11sp"
         tools:text="@string/app_name" />
 

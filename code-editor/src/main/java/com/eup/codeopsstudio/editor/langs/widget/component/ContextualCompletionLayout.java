@@ -47,158 +47,164 @@ import io.github.rosemoe.sora.widget.schemes.EditorColorScheme;
 
 public class ContextualCompletionLayout extends DefaultCompletionLayout {
 
-    public static final String TAG = "ContextualCompletionLayout";
-    private final ContextualCodeEditor editor;
-    private int layoutCornerRadius = 4; // ½ * original
-    private ListView listView;
-    private LinearLayout rootView;
-    private boolean isLoading = false;
-    private boolean enabledAnimation = false;
-    private EditorAutoCompletion editorAutoCompletion;
+  public static final String TAG = "ContextualCompletionLayout";
+  private final ContextualCodeEditor editor;
+  private int layoutCornerRadius = 4; // ½ * original
+  private ListView listView;
+  private LinearLayout rootView;
+  private boolean isLoading = false;
+  private boolean enabledAnimation = false;
+  private EditorAutoCompletion editorAutoCompletion;
 
-    public ContextualCompletionLayout(ContextualCodeEditor codeEditor) {
-        editor = codeEditor;
-    }
+  public ContextualCompletionLayout(ContextualCodeEditor codeEditor) {
+    editor = codeEditor;
+  }
 
-    @Override
-    public void setEditorCompletion(@NonNull EditorAutoCompletion completion) {
-        editorAutoCompletion = completion;
-    }
+  @Override
+  public void setEditorCompletion(@NonNull EditorAutoCompletion completion) {
+    editorAutoCompletion = completion;
+  }
 
-    @Override
-    public void setEnabledAnimation(boolean enabledAnimation) {
-        this.enabledAnimation = enabledAnimation;
+  @Override
+  public void setEnabledAnimation(boolean enabledAnimation) {
+    this.enabledAnimation = enabledAnimation;
 
-        if (enabledAnimation) {
-            LayoutTransition transition = new LayoutTransition();
-            transition.enableTransitionType(LayoutTransition.CHANGING);
-            transition.enableTransitionType(LayoutTransition.APPEARING);
-            transition.enableTransitionType(LayoutTransition.DISAPPEARING);
-            transition.enableTransitionType(LayoutTransition.CHANGE_APPEARING);
-            transition.enableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
-            transition.addTransitionListener(new LayoutTransition.TransitionListener() {
-                @Override
-                public void startTransition(LayoutTransition transition, ViewGroup container,
-                    View view, int transitionType) {
-                    // no-op
-                }
-
-                @Override
-                public void endTransition(LayoutTransition transition, ViewGroup container,
-                    View view, int transitionType) {
-                    if (view != listView) {
-                        return;
-                    }
-                    view.requestLayout();
-                }
-            });
-            rootView.setLayoutTransition(transition);
-            listView.setLayoutTransition(transition);
-        } else {
-            rootView.setLayoutTransition(null);
-            listView.setLayoutTransition(null);
-        }
-    }
-
-    @NonNull
-    @Override
-    public View inflate(@NonNull Context context) {
-        LinearLayout rootLayout = new LinearLayout(context);
-        rootView = rootLayout;
-        listView = new ListView(context);
-
-        rootLayout.setOrientation(LinearLayout.VERTICAL);
-
-        setEnabledAnimation(false);
-
-        rootLayout.addView(listView, new LinearLayout.LayoutParams(-1, -1));
-
-        GradientDrawable gd = new GradientDrawable();
-        gd.setCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-            layoutCornerRadius, context
-            .getResources().getDisplayMetrics()));
-
-        rootLayout.setBackground(gd);
-
-        listView.setDividerHeight(0);
-        setLoading(true);
-
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            try {
-                editorAutoCompletion.select(position);
-            } catch (Exception e) {
-                ILog.error(TAG, "Failed to inflate completion layout", e);
+    if (enabledAnimation) {
+      LayoutTransition transition = new LayoutTransition();
+      transition.enableTransitionType(LayoutTransition.CHANGING);
+      transition.enableTransitionType(LayoutTransition.APPEARING);
+      transition.enableTransitionType(LayoutTransition.DISAPPEARING);
+      transition.enableTransitionType(LayoutTransition.CHANGE_APPEARING);
+      transition.enableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
+      transition.addTransitionListener(
+          new LayoutTransition.TransitionListener() {
+            @Override
+            public void startTransition(
+                LayoutTransition transition, ViewGroup container, View view, int transitionType) {
+              // no-op
             }
+
+            @Override
+            public void endTransition(
+                LayoutTransition transition, ViewGroup container, View view, int transitionType) {
+              if (view != listView) {
+                return;
+              }
+              view.requestLayout();
+            }
+          });
+      rootView.setLayoutTransition(transition);
+      listView.setLayoutTransition(transition);
+    } else {
+      rootView.setLayoutTransition(null);
+      listView.setLayoutTransition(null);
+    }
+  }
+
+  @NonNull
+  @Override
+  public View inflate(@NonNull Context context) {
+    LinearLayout rootLayout = new LinearLayout(context);
+    rootView = rootLayout;
+    listView = new ListView(context);
+
+    rootLayout.setOrientation(LinearLayout.VERTICAL);
+
+    setEnabledAnimation(false);
+
+    rootLayout.addView(listView, new LinearLayout.LayoutParams(-1, -1));
+
+    GradientDrawable gd = new GradientDrawable();
+    gd.setCornerRadius(
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            layoutCornerRadius,
+            context.getResources().getDisplayMetrics()));
+
+    rootLayout.setBackground(gd);
+
+    listView.setDividerHeight(0);
+    setLoading(true);
+
+    listView.setOnItemClickListener(
+        (parent, view, position, id) -> {
+          try {
+            editorAutoCompletion.select(position);
+          } catch (Exception e) {
+            ILog.error(TAG, "Failed to inflate completion layout", e);
+          }
         });
-        return rootLayout;
-    }
+    return rootLayout;
+  }
 
-    @Override
-    public void onApplyColorScheme(@NonNull EditorColorScheme colorScheme) {
-        GradientDrawable gd = new GradientDrawable();
-        gd.setCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-            layoutCornerRadius, editorAutoCompletion
-            .getContext().getResources().getDisplayMetrics()));
-        gd.setStroke(1, MaterialColors.getColor(editor.getContext(),
-            com.google.android.material.R.attr.colorOutline, 0));
-        gd.setColor(SurfaceColors.SURFACE_1.getColor(editor.getContext()));
-        rootView.setBackground(gd);
-    }
+  @Override
+  public void onApplyColorScheme(@NonNull EditorColorScheme colorScheme) {
+    GradientDrawable gd = new GradientDrawable();
+    gd.setCornerRadius(
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            layoutCornerRadius,
+            editorAutoCompletion.getContext().getResources().getDisplayMetrics()));
+    gd.setStroke(
+        1,
+        MaterialColors.getColor(
+            editor.getContext(), com.google.android.material.R.attr.colorOutline, 0));
+    gd.setColor(SurfaceColors.SURFACE_1.getColor(editor.getContext()));
+    rootView.setBackground(gd);
+  }
 
-    public boolean isAnimationEnabled() {
-        return enabledAnimation;
-    }
+  public boolean isAnimationEnabled() {
+    return enabledAnimation;
+  }
 
-    public boolean isLoading() {
-        return isLoading;
-    }
+  public boolean isLoading() {
+    return isLoading;
+  }
 
-    @Override
-    public void setLoading(boolean state) {
-        isLoading = state;
-        editor.setIndexing(state);
-    }
+  @Override
+  public void setLoading(boolean state) {
+    isLoading = state;
+    editor.setIndexing(state);
+  }
 
-    @NonNull
-    @Override
-    public ListView getCompletionList() {
-        return listView;
-    }
+  @NonNull
+  @Override
+  public ListView getCompletionList() {
+    return listView;
+  }
 
-    @Override
-    public void ensureListPositionVisible(int position, int increment) {
-        listView.post(() -> {
-            while (listView.getFirstVisiblePosition() + 1 > position
-                && listView.canScrollList(-1)) {
-                doPerformScrollList(increment / 2);
-            }
-            while (listView.getLastVisiblePosition() - 1 < position && listView.canScrollList(1)) {
-                doPerformScrollList(-increment / 2);
-            }
+  @Override
+  public void ensureListPositionVisible(int position, int increment) {
+    listView.post(
+        () -> {
+          while (listView.getFirstVisiblePosition() + 1 > position && listView.canScrollList(-1)) {
+            doPerformScrollList(increment / 2);
+          }
+          while (listView.getLastVisiblePosition() - 1 < position && listView.canScrollList(1)) {
+            doPerformScrollList(-increment / 2);
+          }
         });
-    }
+  }
 
-    /**
-     * Perform motion events
-     */
-    private void doPerformScrollList(int offset) {
-        ListView adpView = getCompletionList();
+  /** Perform motion events */
+  private void doPerformScrollList(int offset) {
+    ListView adpView = getCompletionList();
 
-        long down = SystemClock.uptimeMillis();
-        MotionEvent ev = MotionEvent.obtain(down, down, MotionEvent.ACTION_DOWN, 0, 0, 0);
-        adpView.onTouchEvent(ev);
-        ev.recycle();
+    long down = SystemClock.uptimeMillis();
+    MotionEvent ev = MotionEvent.obtain(down, down, MotionEvent.ACTION_DOWN, 0, 0, 0);
+    adpView.onTouchEvent(ev);
+    ev.recycle();
 
-        ev = MotionEvent.obtain(down, down, MotionEvent.ACTION_MOVE, 0, offset, 0);
-        adpView.onTouchEvent(ev);
-        ev.recycle();
+    ev = MotionEvent.obtain(down, down, MotionEvent.ACTION_MOVE, 0, offset, 0);
+    adpView.onTouchEvent(ev);
+    ev.recycle();
 
-        ev = MotionEvent.obtain(down, down, MotionEvent.ACTION_CANCEL, 0, offset, 0);
-        adpView.onTouchEvent(ev);
-        ev.recycle();
-    }
+    ev = MotionEvent.obtain(down, down, MotionEvent.ACTION_CANCEL, 0, offset, 0);
+    adpView.onTouchEvent(ev);
+    ev.recycle();
+  }
 
-    public void setCornerRadius(final int radius) {
-        layoutCornerRadius = radius;
-    }
+  public void setCornerRadius(final int radius) {
+    layoutCornerRadius = radius;
+  }
 }

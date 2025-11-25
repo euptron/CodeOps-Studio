@@ -81,18 +81,7 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
         mainViewModel.getZipFile().observe(requireActivity(), this::openZipFile);
 
         configureWelcomePaneCheckBox();
-
-        binding.welcomeCheckbox.setOnCheckedChangeListener((button, isChecked) -> PreferencesUtils.setCanShowWelcomePane(isChecked));
-        binding.newFile.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
-            "createFileFromManager"));
-        binding.importZipBtn.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
-            "openFileFromManager"));
-        binding.openFolder.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
-            "openFolderFromManager"));
-        binding.gitVcs.setOnClickListener(v -> {
-            var gitUI = new GitUI(requireContext());
-            gitUI.showCloneDialog(project -> mainViewModel.setTreeViewFragmentTreeDir(project));
-        });
+        
         binding.importZipBtn.setOnClickListener(v -> {
             callFragmentMethod(MainFragment.TAG, "openZipFileFromManager");
         });
@@ -102,6 +91,17 @@ public class WelcomePane extends Pane implements SharedPreferences.OnSharedPrefe
             dialogFragment.show(requireActivity().getSupportFragmentManager(),
                 RecentProjectsBottomSheetDialogFragment.TAG);
         });
+        binding.newFile.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
+            "createFileFromManager"));
+        binding.openFile.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
+            "openFileFromManager"));
+        binding.openFolder.setOnClickListener(v -> callFragmentMethod(MainFragment.TAG,
+            "openFolderFromManager"));
+        binding.gitVcs.setOnClickListener(v -> {
+            var gitUI = new GitUI(requireContext());
+            gitUI.showCloneDialog(project -> mainViewModel.setTreeViewFragmentTreeDir(project));
+        });
+        binding.welcomeCheckbox.setOnCheckedChangeListener((button, isChecked) -> PreferencesUtils.setCanShowWelcomePane(isChecked));
     }
 
     private void openZipFile(File zipFile) {

@@ -110,4 +110,8 @@ public class JsonLanguageInfoProvider implements LanguageInfoProvider {
     public String getScope(String extensionEntry) {
         return scopeMap.get(extensionEntry);
     }
+    
+    public Map<String, String> getScopeMap() {
+        return Collections.unmodifiableMap(scopeMap);
+    }
 }

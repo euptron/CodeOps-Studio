@@ -69,7 +69,8 @@ public final class Constants {
     public static final Set<String> NON_PREVIEWABLE_EXTENSIONS = Collections.unmodifiableSet(Stream
         .of(DOCUMENT_EXTENSIONS, ARCHIVE_EXTENSIONS).flatMap(Collection::stream)
         .collect(Collectors.toSet()));
-
+        
+    public static final String TEXTMATE_ASSET_SCOPE_PATH = "editor/textmate/language_scopes.json";
     public static final int EXPIRATION_YEAR = 2026;
     public static final int EXPIRATION_MONTH = Calendar.MARCH;
     public static final int EXPIRATION_DAY = 4;

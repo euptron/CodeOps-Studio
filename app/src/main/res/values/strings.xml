@@ -42,6 +42,7 @@
     <string name="sharelayout_summarytext">Share this link with anyone passionate about coding, and let them experience seamless coding on the go.</string>
     <string name="sharelayout_titletext">Share this application</string>
     <!-- Functions -->
+    <string name="waiting">Waiting</string>
     <string name="retry">Retry</string>
     <string name="released_on">Released on</string>
     <string name="version">Version</string>
@@ -256,13 +257,13 @@
     <string name="show_welcome_pane">Display welcome pane on startup</string>
     <string name="share_app_info">Discover %1$s – the fast, secure, and multifunctional code editor/IDE for Android that I use to develop software packages. Experience seamless coding on the go. Download it here: %2$s</string>
     <!-- Logs -->
-    <string name="warn">[WARNING]</string>
+    <string name="warn">Warn</string>
     <string name="unzipping">Unzipping</string>
     <string name="initialilizing">Initialilizing</string>
     <string name="cause">cause</string>
-    <string name="info">[INFO]</string>
-    <string name="debug">[DEBUG]</string>
-    <string name="error">[ERROR]</string>
+    <string name="info">Info</string>
+    <string name="debug">Debug</string>
+    <string name="error">Error</string>
     <string name="clear_log">Clear logs</string>
     <string name="failed_to_delete_file">Unable to delete file</string>
     <string name="delete_folder_success">Folder[%s] Deleted successfully</string>
@@ -599,4 +600,22 @@
     <string name="failed_to_calculate_statistics">Failed to calculate statistics</string>
     <string name="invalid_directory">Invalid directory</string>
     <string name="same_file_error">Cannot save to the same file</string>
+    <!-- Command Palette -->
+    <string name="select_language_mode">Select Language Mode</string>
+    <string name="select_syntax_highlight">Select Syntax Highlight</string>
+    <string name="cpt_syntax">syntax</string>
+    <string name="invalid_goto_line_range">Line must be between 1 and %d</string>
+    <string name="invalid_range">Invalid range</string>
+    <string name="current_file">Current File</string>
+    <string name="goto_line">Go to line %d</string>
+    <string name="go_to_line">Go to Line</string>
+    <string name="line_number_rule_positive_integer">Line cannot be negative or zero</string>
+    <string name="type_valid_line_number">Type a valid number</string>
+    <string name="line_navigation_not_available">Line navigation unavailable</string>
+    <string name="invalid_code_editor">Invalid CodeEditor</string>
+    <string name="navigation_short">Nav</string>
+    <string name="type_number_within_range">Type a line number between 1 and %d</string>
+    <string name="help">Help</string>
+    <string name="show_commands">Show Commands</string>
+    <string name="goto_symbols_or_plugins">Go to Symbol / Plugins</string>
 </resources>

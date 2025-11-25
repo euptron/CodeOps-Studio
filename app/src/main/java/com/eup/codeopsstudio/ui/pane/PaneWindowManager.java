@@ -200,7 +200,12 @@ public class PaneWindowManager implements PaneWindow {
       pane.onSelected(); // mark also for persistency
       selectedPane = pane;
       selectedTabPosition = tab.getPosition();
-      ILog.debug(TAG, "Internal onTabSelected called for: " + selectedPane.getTitle() + ", pos: " + selectedTabPosition);
+      ILog.debug(
+          TAG,
+          "Internal onTabSelected called for: "
+              + selectedPane.getTitle()
+              + ", pos: "
+              + selectedTabPosition);
       syncTabs();
       eventWatcher.onTabSelected(tab, selectedPane);
     }
@@ -284,11 +289,9 @@ public class PaneWindowManager implements PaneWindow {
               handled = true;
             }
 
-            if (handled) {
-              tabLayout.post(() -> syncTabs());
-            }
+            if (handled) syncTabs();
+
             validateState();
-            invalidateMenuIfPossible();
             return handled;
           });
     }
@@ -376,20 +379,16 @@ public class PaneWindowManager implements PaneWindow {
       }
     }
 
-    tabLayout.addOnTabSelectedListener(this); // Re-add listener
+    tabLayout.addOnTabSelectedListener(this); // Optmize: re-add listener
 
     if (changed) {
       // Select the first added tab if no tab was previously selected or if list was empty
       if (selectedTabPosition == -1 && addedCount > 0) {
-        final int firstAddedIndex = startIndex; // index of the first newly added item
+        final int firstAddedIndex = startIndex;
         tabLayout.post(() -> selectTab(firstAddedIndex));
       } else {
-        // Ensure UI is synced and state validated
-        tabLayout.post(
-            () -> {
-              syncTabs(); // Sync all tabs UI
-              validateState();
-            });
+        syncTabs();
+        validateState();
       }
     }
 
@@ -654,10 +653,10 @@ public class PaneWindowManager implements PaneWindow {
 
       if (newSelectionIndex != -1) {
         final int finalSelection = newSelectionIndex;
-        tabLayout.post(() -> selectTab(finalSelection));
+        selectTab(finalSelection);
       } else {
         // no selection, list empty ?
-        tabLayout.post(() -> syncTabs());
+        syncTabs();
       }
       return true;
     } catch (Exception e) {
@@ -846,6 +845,7 @@ public class PaneWindowManager implements PaneWindow {
   @Override
   public void showTabIcons(boolean show) {
     this.showTabIcons = show;
+    syncTabs();
   }
 
   @Override
@@ -889,6 +889,7 @@ public class PaneWindowManager implements PaneWindow {
     } else if (panes.isEmpty()) {
       displayEmptyPaneIfRequired();
     }
+    invalidateMenuIfPossible();
   }
 
   @Override
@@ -1137,11 +1138,10 @@ public class PaneWindowManager implements PaneWindow {
 
       if (newSelectionIndex != -1) {
         final int finalSelectionIndex = newSelectionIndex;
-        tabLayout.post(() -> selectTab(finalSelectionIndex));
+        selectTab(finalSelectionIndex);
       } else {
-        tabLayout.post(() -> syncTabs());
+        syncTabs();
       }
-
       return true;
     } catch (Exception e) {
       var msg =

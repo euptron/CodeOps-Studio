@@ -25,7 +25,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/base_ripple"
+    android:background="@drawable/ripple_item"
     android:baselineAligned="false"
     android:clipToPadding="false"
     android:gravity="center_vertical"

@@ -105,7 +105,7 @@ public class ContextualObserver implements DefaultLifecycleObserver {
         resultRegistry.register(
             KEY_CREATE_FILE,
             owner,
-            new ActivityResultContracts.CreateDocument(MetaDocument.MimeType.ALL.toString()),
+            new ActivityResultContracts.CreateDocument(MetaDocument.MimeType.TEXT.toString()),
             this::mediateFileCreation);
 
     pickFolderLauncher =
@@ -148,7 +148,20 @@ public class ContextualObserver implements DefaultLifecycleObserver {
   }
 
   public void pickFile() {
-    launchFilePicker(MetaDocument.MimeType.ALL.toString());
+    launchFilePicker(MetaDocument.MimeType.TEXT.toString());
+  }
+
+  public void pickFolder() {
+    try {
+      pickFolderLauncher.launch(null); // null to open root
+    } catch (ActivityNotFoundException e) {
+      String errorMsg = context.getString(R.string.msg_folder_selection_failed_no_act);
+      notifyError(new ActivityNotFoundException(errorMsg));
+    }
+  }
+
+  public void pickZipFile() {
+    launchFilePicker(MetaDocument.MimeType.ZIP.toString());
   }
 
   public void launchFilePicker(String mimeType) {
@@ -168,19 +181,6 @@ public class ContextualObserver implements DefaultLifecycleObserver {
 
   private void toast(String msg) {
     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-  }
-
-  public void pickFolder() {
-    try {
-      pickFolderLauncher.launch(null); // null to open root
-    } catch (ActivityNotFoundException e) {
-      String errorMsg = context.getString(R.string.msg_folder_selection_failed_no_act);
-      notifyError(new ActivityNotFoundException(errorMsg));
-    }
-  }
-
-  public void pickZipFile() {
-    launchFilePicker(MetaDocument.MimeType.ZIP.toString());
   }
 
   public void requestDirPermission(final Uri uri) {
@@ -258,12 +258,20 @@ public class ContextualObserver implements DefaultLifecycleObserver {
   }
 
   private void mediateFileCreation(Uri uri) {
-    if (isInValidUri(uri)) return;
+    // if (isInValidUri(uri)) return;
+
+    if (isInValidUri(uri)) {
+      toast("Invalid URI");
+      return;
+    }
 
     try {
       FileUriMediator mediator = FileUriMediator.resolveDocument(uri, context);
 
-      if (isInValidUriAuthority(mediator.getAuthority())) return;
+      if (isInValidUriAuthority(mediator.getAuthority())) {
+        toast("Invalid URI authority");
+        return;
+      }
       String storageType = mediator.getStorageType();
 
       // only allow internal storage to be modified for now until doc api is ready

@@ -26,24 +26,27 @@ package com.eup.codeopsstudio.logger;
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 
+/**
+ * @author Etido Peter
+ */
 public enum LogLevel {
-    WARN(IdeApplication.getInstance().getString(R.string.warn)),
-    INFO(IdeApplication.getInstance().getString(R.string.info)),
-    DEBUG(IdeApplication.getInstance().getString(R.string.debug)),
-    ERROR(IdeApplication.getInstance().getString(R.string.error));
+  WARN(IdeApplication.getInstance().getString(R.string.warning).toUpperCase()),
+  INFO(IdeApplication.getInstance().getString(R.string.info).toUpperCase()),
+  DEBUG(IdeApplication.getInstance().getString(R.string.debug).toUpperCase()),
+  ERROR(IdeApplication.getInstance().getString(R.string.error).toUpperCase());
 
-    public final String level;
+  public final String level;
 
-    LogLevel(String level) {
-        this.level = level;
+  LogLevel(String level) {
+    this.level = "[" + level + "]";
+  }
+
+  public static String getLevel(LogLevel level) {
+    for (LogLevel value : values()) {
+      if (value.level.equals(level.level)) {
+        return value.level;
+      }
     }
-
-    public static String getLevel(LogLevel level) {
-        for (LogLevel value : values()) {
-            if (value.level.equals(level.level)) {
-                return value.level;
-            }
-        }
-        return "INVALID-LOG-LEVEL";
-    }
+    return "INVALID-LOG-LEVEL";
+  }
 }

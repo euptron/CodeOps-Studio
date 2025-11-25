@@ -33,7 +33,7 @@
         android:id="@+id/shortcut_label"
         android:layout_width="@dimen/dimen45dp"
         android:layout_height="@dimen/dimen45dp"
-        android:background="@drawable/selection_control_ripple"
+        android:background="@drawable/ripple_item_rounded"
         android:gravity="center"
         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         tools:text="{" />

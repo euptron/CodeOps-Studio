@@ -134,7 +134,7 @@ public class BaseFragment extends Fragment
     mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
     stateViewModel = new ViewModelProvider(requireActivity()).get(SavedStateViewModel.class);
     logger.attach(requireActivity());
-    
+
     paneWindow = new PaneWindowManager(requireContext(), binding.paneWindow, this, this, this);
     paneWindow.closeTabsRelativeToFirst(PreferencesUtils.canCloseRelativeToFirstDepth());
     closeUnPinnedProjectPanes = PreferencesUtils.canCloseUnPinnedProjectPanes();
@@ -144,9 +144,7 @@ public class BaseFragment extends Fragment
     configureObservers();
     createWelcomePane();
 
-    view.post(() -> paneWindow.restorePanes(this::onPanesReadyForRestoration));
-
-    invalidateMainMenus();
+    paneWindow.restorePanes(this::onPanesReadyForRestoration);
   }
 
   @Override
@@ -315,11 +313,17 @@ public class BaseFragment extends Fragment
   }
 
   private View createEmptyPaneView() {
-    var windowPane = new EmptyPaneWindow(mainViewModel, this, requireContext(), "Empty Pane");
+    var windowPane = new EmptyPaneWindow(mainViewModel, getViewLifecycleOwner(), requireContext(), "Empty Pane");
     return windowPane.createView();
   }
 
   private void onPanesReadyForRestoration(List<Pane> loadedPanes) {
+    // SAFETY CHECK: If the app was stopped while loading panes, stop here.
+    if (!isAdded() || isStateSaved()) {
+      ILog.warning(TAG, "Skipping pane restoration: Fragment is not added or state is saved.");
+      return;
+    }
+
     if (loadedPanes == null || loadedPanes.isEmpty()) {
       return;
     }
@@ -444,10 +448,6 @@ public class BaseFragment extends Fragment
     final String content = PaneFactoryImpl.requireString(CONTENT_KEY, arguments);
 
     pane.setText(content);
-  }
-
-  private void invalidateMainMenus() {
-    mainViewModel.setShouldUpdateMenu(true);
   }
 
   private void configureObservers() {

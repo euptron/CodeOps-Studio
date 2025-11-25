@@ -49,6 +49,7 @@ import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.editor.event.IndexingEvent;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
 import com.eup.codeopsstudio.logger.Logger;
+import com.eup.codeopsstudio.palette.CommandPaletteDialog;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.ui.editor.code.breadcrumb.pane.CrumbTreePane;
 import com.eup.codeopsstudio.ui.editor.code.manager.FileOperationsManager;
@@ -152,7 +153,7 @@ public class CodeEditorPane extends Pane
   private static final String KEY_FILE_MTIME = "file_mtime";
   private static final String KEY_FILE_SIZE = "file_size";
   private static final String KEY_WAS_DIRTY = "was_dirty";
-  private static final String LANG_SCOPE_PATH = "editor/textmate/language_scopes.json";
+  private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
   private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
   private static final int CURSOR_HISTORY_LIMIT = 50;
 
@@ -213,20 +214,21 @@ public class CodeEditorPane extends Pane
       restoreFileFromArguments();
     }
   }
-  
+
   @Override
   protected void onViewLaidOut(@NonNull View view) {
     super.onViewLaidOut(view);
     logger.i(TAG, "Editor UI ready - content will load on selection: " + getTitle());
     setupEmptyEditor();
     enableEditorFeatures();
-    
-        // Notify listeners that the editor is fully initialized and ready.
+
+    // Notify listeners that the editor is fully initialized and ready.
     // We check isSelected() so we only notify for the pane that is
     // currently active and waiting for this signal.
     if (isSelected() && getEditor() != null) {
-        ILog.debug(TAG, "Editor is fully laid out and ready, posting EditorReadyEvent for: " + getTitle());
-        EventBus.getDefault().post(new com.eup.codeopsstudio.domain.events.EditorReadyEvent(this));
+      ILog.debug(
+          TAG, "Editor is fully laid out and ready, posting EditorReadyEvent for: " + getTitle());
+      EventBus.getDefault().post(new com.eup.codeopsstudio.domain.events.EditorReadyEvent(this));
     }
   }
 
@@ -932,8 +934,13 @@ public class CodeEditorPane extends Pane
   public boolean canUndo() {
     return binding != null && binding.editor.canUndo();
   }
-
+  
   public void doJumpToLine() {
+    CommandPaletteDialog.newScopedInstance(this, ":", getString(R.string.menu_jump_to_line))
+        .show(requireActivity().getSupportFragmentManager(), "goto_line_palette");
+  }
+  
+  public void doJumpToLineX() {
     if (binding == null) return;
 
     int totalLineCount = binding.editor.getLineCount();
@@ -1121,11 +1128,11 @@ public class CodeEditorPane extends Pane
           }
         });
   }
-  
+
   public ContextualCodeEditor getEditor() {
     if (!hasPerformedOnViewCreated() | binding == null) {
-       ILog.warning(TAG, "Editor not available - view not created or binding null");
-       return null;
+      ILog.warning(TAG, "Editor not available - view not created or binding null");
+      return null;
     }
     return binding.editor;
   }
@@ -1324,20 +1331,9 @@ public class CodeEditorPane extends Pane
     return getEditor().isBasicDisplayMode();
   }
 
-  public void setSyntaxHighlightEnabled(boolean enabled) {
-    if (getEditor() == null) return;
-    if (enabled) {
-      // Re-apply the language to enable syntax highlighting
-      refreshEditorLanguageSyntax();
-    } else {
-      // Set an empty language to disable syntax highlighting
-      getEditor().setEditorLanguage(new EmptyLanguage());
-    }
-  }
-
-  public boolean isSyntaxHighlightEnabled() {
-    if (getEditor() == null) return true; // Default to true
-    return !(getEditor().getEditorLanguage() instanceof EmptyLanguage);
+  public void showLanguagePicker() {
+    CommandPaletteDialog.newScopedInstance(this, "@syntax -", getString(R.string.select_language_mode))
+        .show(requireActivity().getSupportFragmentManager(), "language_picker_palette");
   }
 
   private static class FileStats {

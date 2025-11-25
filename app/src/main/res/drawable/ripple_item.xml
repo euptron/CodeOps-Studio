@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ This file is part of CodeOps Studio.
   ~ CodeOps Studio - Code anywhere anytime
@@ -19,18 +18,32 @@
   ~ along with this program. If not, see https://www.gnu.org/licenses/
   ~
   ~ If you have more questions, feel free to message Etido Peter if you have any
-  ~ questions or need additional information. Email: euptron@gmail.com
-  -->
+  ~ questions or need additional information. Email: etido.up@gmail.com
+-->
 
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/selection_control_ripple_color_selector">
 
-    <solid android:color="#000" />
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
 
-    <corners
-        android:bottomLeftRadius="8dp"
-        android:bottomRightRadius="8dp"
-        android:topLeftRadius="8dp"
-        android:topRightRadius="8dp" />
-</shape>
+    <item android:id="@android:id/background">
+        <selector>
+            <item android:state_activated="true">
+                <shape android:shape="rectangle">
 
+                    <solid android:color="?attr/colorControlHighlight" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+
+</ripple>

@@ -34,7 +34,7 @@
         android:id="@+id/tv_privacy_policy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/base_ripple"
+        android:background="@drawable/ripple_item_rounded"
         android:text="@string/privacy_policy"
         android:textSize="12sp" />
 
@@ -50,7 +50,7 @@
         android:id="@+id/tv_terms_of_service"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/base_ripple"
+        android:background="@drawable/ripple_item_rounded"
         android:text="@string/terms_of_service"
         android:textSize="12sp" />
 

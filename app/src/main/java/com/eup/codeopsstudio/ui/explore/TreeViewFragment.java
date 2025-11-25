@@ -566,7 +566,7 @@ public class TreeViewFragment extends Fragment implements TreeNode.TreeNodeClick
         binding.filetreeProgressIndicator.setVisibility(View.VISIBLE);
 
         listNode(rootNode, () -> {
-            treeView = new AndroidTreeView(requireContext(), rootNode, R.drawable.base_ripple);
+            treeView = new AndroidTreeView(requireContext(), rootNode, R.drawable.ripple_item);
             treeView.setDefaultNodeClickListener(this);
             treeView.setDefaultNodeLongClickListener(this);
 

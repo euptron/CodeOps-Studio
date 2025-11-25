@@ -357,6 +357,27 @@ public class BaseUtil {
     contentView.setTag(TAG_ON_GLOBAL_LAYOUT_LISTENER, onGlobalLayoutListener);
   }
 
+  public static void unregisterSoftInputChangedListener(@NonNull final Activity activity) {
+    unregisterSoftInputChangedListener(activity.getWindow());
+  }
+
+  /**
+   * Unregister soft input changed listener.
+   *
+   * @param window The window.
+   */
+  public static void unregisterSoftInputChangedListener(@NonNull final Window window) {
+    final View contentView = window.findViewById(android.R.id.content);
+    if (contentView == null) {
+      return;
+    }
+    Object tag = contentView.getTag(TAG_ON_GLOBAL_LAYOUT_LISTENER);
+    if (tag instanceof OnGlobalLayoutListener) {
+      contentView.getViewTreeObserver().removeOnGlobalLayoutListener((OnGlobalLayoutListener) tag);
+      contentView.setTag(TAG_ON_GLOBAL_LAYOUT_LISTENER, null);
+    }
+  }
+
   public static void rotateChevron(boolean isOpen, ImageView chevronView) {
     float startRotation = isOpen ? -90f : 0f;
     float endRotation = isOpen ? 0f : -90f;
@@ -471,23 +492,6 @@ public class BaseUtil {
     AsyncTask.runOnUiThread(
         () ->
             Toast.makeText(IdeApplication.getGlobalContext(), stringRes, Toast.LENGTH_LONG).show());
-  }
-
-  /**
-   * Unregister soft input changed listener.
-   *
-   * @param window The window.
-   */
-  public static void unregisterSoftInputChangedListener(@NonNull final Window window) {
-    final View contentView = window.findViewById(android.R.id.content);
-    if (contentView == null) {
-      return;
-    }
-    Object tag = contentView.getTag(TAG_ON_GLOBAL_LAYOUT_LISTENER);
-    if (tag instanceof OnGlobalLayoutListener) {
-      contentView.getViewTreeObserver().removeOnGlobalLayoutListener((OnGlobalLayoutListener) tag);
-      contentView.setTag(TAG_ON_GLOBAL_LAYOUT_LISTENER, null);
-    }
   }
 
   private void showExitDialog(

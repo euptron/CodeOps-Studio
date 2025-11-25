@@ -47,63 +47,75 @@ import com.eup.codeopsstudio.common.ILog;
  */
 public abstract class FragmentPane extends Pane {
 
-    public static final String TAG = FragmentPane.class.getSimpleName();
-    private final int containerId;
-    private Fragment fragment;
-    private FragmentTransaction fragmentTransaction;
+  public static final String TAG = FragmentPane.class.getSimpleName();
+  private final int containerId;
+  private Fragment fragment;
+  private FragmentTransaction fragmentTransaction;
 
-    protected FragmentPane(@NonNull Context context, @Nullable String title,
-        @NonNull Fragment fragment) {
-        this(context, title, true, fragment);
-    }
+  protected FragmentPane(
+      @NonNull Context context, @Nullable String title, @NonNull Fragment fragment) {
+    this(context, title, true, fragment);
+  }
 
-    protected FragmentPane(@NonNull Context context, @Nullable String title, boolean generateUUID,
-        @NonNull Fragment fragment) {
-        super(context, title, generateUUID);
-        this.fragment = fragment;
-        // Generate a unique container ID for each instance of this class
-        containerId = View.generateViewId();
-    }
+  protected FragmentPane(
+      @NonNull Context context,
+      @Nullable String title,
+      boolean generateUUID,
+      @NonNull Fragment fragment) {
+    super(context, title, generateUUID);
+    this.fragment = fragment;
+    // Generate a unique container ID for each instance of this class
+    containerId = View.generateViewId();
+  }
 
-    @Override
-    public View onCreateView() {
-        var container = new FragmentContainerView(requireContext());
-        container.setLayoutParams(PaneLayout.FILL_LAYOUT);
-        container.setId(containerId);
-        return container;
-    }
+  @Override
+  public View onCreateView() {
+    var container = new FragmentContainerView(requireContext());
+    container.setLayoutParams(PaneLayout.FILL_LAYOUT);
+    container.setId(containerId);
+    return container;
+  }
 
-    @Override
-    public void onViewCreated(@NonNull View view) {
-        super.onViewCreated(view);
-        if (fragment != null) {
-            fragmentTransaction = requireActivity().getSupportFragmentManager().beginTransaction();
-            final String name = fragment.getClass().getSimpleName();
-            fragmentTransaction.replace(containerId, fragment, name);
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.setPrimaryNavigationFragment(fragment);
-            fragmentTransaction.commit();
-        }
-    }
+  @Override
+  public void onViewCreated(@NonNull View view) {
+    super.onViewCreated(view);
+    if (fragment != null) {
+      final String name = fragment.getClass().getSimpleName();
+      final var fragmentManager = requireActivity().getSupportFragmentManager();
+      fragmentTransaction = fragmentManager.beginTransaction();
+      fragmentTransaction.replace(containerId, fragment, name);
+      fragmentTransaction.addToBackStack(null);
+      fragmentTransaction.setPrimaryNavigationFragment(fragment);
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        fragment            = null;
-        fragmentTransaction = null;
+      if (!fragmentManager.isStateSaved()) {
+        fragmentTransaction.commit();
+      } else {
+        ILog.warning(
+            TAG,
+            "Activity state already saved. Forcing commit (allowStateLoss) to complete UI restoration.");
+        fragmentTransaction.commitAllowingStateLoss();
+      }
     }
+  }
 
-    @Override
-    public void persist() {
-        super.persist();
-        ILog.debug(TAG, getTitle() + " persisted");
-    }
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    fragment = null;
+    fragmentTransaction = null;
+  }
 
-    public int getContainerId() {
-        return this.containerId;
-    }
+  @Override
+  public void persist() {
+    super.persist();
+    ILog.debug(TAG, getTitle() + " persisted");
+  }
 
-    public Fragment getFragment() {
-        return fragment;
-    }
+  public int getContainerId() {
+    return this.containerId;
+  }
+
+  public Fragment getFragment() {
+    return fragment;
+  }
 }
