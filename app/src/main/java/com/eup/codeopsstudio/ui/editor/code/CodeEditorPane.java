@@ -35,6 +35,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.util.Pair;
+import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
@@ -45,6 +46,7 @@ import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.LayoutCodeEditorBinding;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
+import com.eup.codeopsstudio.domain.events.EditorReadyEvent;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.editor.event.IndexingEvent;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
@@ -63,7 +65,7 @@ import io.github.rosemoe.sora.event.ContentChangeEvent;
 import io.github.rosemoe.sora.event.EventReceiver;
 import io.github.rosemoe.sora.event.PublishSearchResultEvent;
 import io.github.rosemoe.sora.event.SelectionChangeEvent;
-import io.github.rosemoe.sora.text.CharPosition; 
+import io.github.rosemoe.sora.text.CharPosition;
 import io.github.rosemoe.sora.text.Content;
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +73,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -143,33 +146,36 @@ public class CodeEditorPane extends Pane
     implements SharedPreferences.OnSharedPreferenceChangeListener {
 
   public static final String TAG = "CodeEditorPane";
-  public static final String KEY_LEFT_COLUMN = "left_column";
   public static final String KEY_LEFT_LINE = "left_line";
   public static final String KEY_FILE_PATH = "file_path";
-  public static final String KEY_FILE_EXTENSION = "file_extension";
+  public static final String KEY_FILE_SCOPE = "file_scope";
+  public static final String KEY_LEFT_COLUMN = "left_column";
   public static final String KEY_EDITOR_CONTENT = "editor_content";
+  public static final String KEY_FILE_EXTENSION = "file_extension";
 
-  private static final String KEY_FILE_MTIME = "file_mtime";
+  private static final int CURSOR_HISTORY_LIMIT = 50;
   private static final String KEY_FILE_SIZE = "file_size";
   private static final String KEY_WAS_DIRTY = "was_dirty";
-  private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
+  private static final String KEY_FILE_MTIME = "file_mtime";
   private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
-  private static final int CURSOR_HISTORY_LIMIT = 50;
+  private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
 
-  private final Logger logger = new Logger(Logger.LogClass.IDE);
-  private File mEditorFile;
-  private LayoutCodeEditorBinding binding;
-  private boolean isModified = false;
-  private String fileExtension;
   private String fileScope;
+  private File mEditorFile;
+  private String fileExtension;
+  private boolean isModified = false;
   private SearchManager searchManager;
-  private FileOperationsManager fileOperationsManager;
+  private LayoutCodeEditorBinding binding;
   private boolean isContentLoaded = false;
-  private boolean isHardwareAccelerated = false;
-  private Charset currentCharset = StandardCharsets.UTF_8;
-  private final LinkedList<CharPosition> previousCursorPositions = new LinkedList<>();
-  private final LinkedList<CharPosition> nextCursorPositions = new LinkedList<>();
   private boolean navigationInProgress = false;
+  private boolean isHardwareAccelerated = false;
+  private FileOperationsManager fileOperationsManager;
+  private Charset currentCharset = StandardCharsets.UTF_8;
+  private JsonLanguageInfoProvider cachedLanguageProvider;
+  private final Logger logger = new Logger(Logger.LogClass.IDE);
+  private final LinkedList<CharPosition> nextCursorPositions = new LinkedList<>();
+  private final Map<String, Pair<String, String>> languageCache = new HashMap<>();
+  private final LinkedList<CharPosition> previousCursorPositions = new LinkedList<>();
 
   public CodeEditorPane(Context context, String title) {
     this(context, title, true);
@@ -190,7 +196,6 @@ public class CodeEditorPane extends Pane
     super.onViewCreated(view);
     logger.attach(requireActivity());
     PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
-
     applyEditorTheme();
 
     searchManager = new SearchManager(requireContext(), binding);
@@ -217,8 +222,6 @@ public class CodeEditorPane extends Pane
   @Override
   protected void onViewLaidOut(@NonNull View view) {
     super.onViewLaidOut(view);
-    logger.i(TAG, "Editor UI ready - content will load on selection: " + getTitle());
-    setupEmptyEditor();
     enableEditorFeatures();
   }
 
@@ -233,6 +236,7 @@ public class CodeEditorPane extends Pane
     } catch (Exception e) {
       // Ignore if not registered
     }
+
     PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
     if (binding != null && binding.editor != null) {
       try {
@@ -249,11 +253,13 @@ public class CodeEditorPane extends Pane
   @Override
   public void onSelected() {
     super.onSelected();
-    if (binding != null) binding.editor.requestFocus();
+    if (binding != null) {
+      binding.editor.requestFocus();
 
-    if (!isContentLoaded) {
-      ILog.debug(TAG, "Loading content on selection: " + getTitle());
-      loadEditorContentOnSelection();
+      if (!isContentLoaded) {
+        ILog.debug(TAG, "Loading content on selection: " + getTitle());
+        binding.editor.post(this::loadEditorContentOnSelection);
+      }
     }
   }
 
@@ -265,6 +271,7 @@ public class CodeEditorPane extends Pane
     addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
     addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
     addArguments(KEY_FILE_EXTENSION, fileExtension);
+    addArguments(KEY_FILE_SCOPE, fileScope);
 
     // Save file metadata for change detection
     if (mEditorFile.exists()) {
@@ -298,110 +305,6 @@ public class CodeEditorPane extends Pane
     }
   }
 
-  public void reloadFile() {
-    if (mEditorFile == null || !mEditorFile.exists()) {
-      showSnackBar(getString(R.string.file_not_found));
-      return;
-    }
-
-    if (isModified()) {
-      showReloadConfirmationDialog();
-    } else {
-      performReload();
-    }
-  }
-
-  public void reloadFileWithCharset(@NonNull Charset charset) {
-    if (mEditorFile == null || !mEditorFile.exists()) {
-      showSnackBar(getString(R.string.file_not_found));
-      return;
-    }
-
-    this.currentCharset = charset;
-    if (isModified()) {
-      showReloadWithCharsetConfirmationDialog(charset);
-    } else {
-      performReloadWithCharset(charset);
-    }
-  }
-
-  public void showCharsetSelectionDialog() {
-    List<String> charsets = EncodingDetector.getSupportedEncodings();
-    int defaultCharsetIndex = charsets.indexOf(Constants.FALLBACK_FILE_ENCODING);
-    if (defaultCharsetIndex < 0) {
-      defaultCharsetIndex = charsets.indexOf(StandardCharsets.UTF_8.name());
-    }
-
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(R.string.select_charset)
-        .setSingleChoiceItems(
-            charsets.toArray(new String[0]),
-            defaultCharsetIndex,
-            (dialog, which) -> {
-              Charset selectedCharset = EncodingDetector.findEncoding(charsets.get(which));
-              reloadFileWithCharset(selectedCharset);
-              dialog.dismiss();
-            })
-        .setNegativeButton(R.string.cancel, null)
-        .show();
-  }
-
-  public void saveAs() {
-    if (binding == null || mEditorFile == null) return;
-
-    String currentContent = binding.editor.getText().toString();
-    if (currentContent.isEmpty()) {
-      showSnackBar(getString(R.string.no_content_to_save));
-      return;
-    }
-
-    showSaveAsDialog();
-  }
-
-  public void showStatistics() {
-    if (binding == null) return;
-
-    binding.editor.setIndexing(true);
-
-    AsyncTask.runNonCancelable(
-        () -> {
-          return calculateFileStatistics();
-        },
-        (stats, throwable) -> {
-          binding.editor.setIndexing(false);
-          if (throwable == null && stats != null) {
-            var message = new StringBuilder();
-            message
-                .append("File Name: ")
-                .append(mEditorFile != null ? mEditorFile.getName() : "Untitled")
-                .append("\n");
-            message.append("File Size: ").append(formatFileSize(stats.fileSize)).append("\n");
-            message.append("Total Lines: ").append(stats.totalLines).append("\n");
-            message.append("Total Words: ").append(stats.totalWords).append("\n");
-            message.append("Total Characters: ").append(stats.totalChars).append("\n");
-            message
-                .append("Total Characters (no spaces): ")
-                .append(stats.totalCharsNoSpaces)
-                .append("\n");
-            message.append("Encoding: ").append(stats.encoding).append("\n");
-            message.append("Line Separator: ").append(stats.lineSeparator);
-
-            new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.file_statistics)
-                .setMessage(message.toString())
-                .setPositiveButton(R.string.close, null)
-                .show();
-          } else {
-            String errorMsg =
-                getString(R.string.failed_to_calculate_statistics)
-                    + ": "
-                    + (throwable != null ? throwable.getMessage() : "Unknown error");
-            showSnackBar(errorMsg);
-            logger.e(TAG, errorMsg, throwable);
-          }
-        });
-  }
-
   private void loadEditorContentOnSelection() {
     boolean hasPersistedChanges = hasPersistedEditorChanges();
 
@@ -422,27 +325,9 @@ public class CodeEditorPane extends Pane
     }
   }
 
-  private void setupEmptyEditor() {
-    binding.editor.setText("", null);
-    if (mEditorFile != null) {
-      loadEditorLanguage(mEditorFile);
-    }
-    setModified(false);
-  }
-
   private void completeLazyLoading() {
     isContentLoaded = true;
     ILog.debug(TAG, "Completed lazy loading for: " + getTitle());
-  }
-
-  public boolean hasPersistedEditorChanges() {
-    final Map<String, Object> args = getArguments();
-    if (args == null) return false;
-
-    final boolean wasDirty = PaneFactoryImpl.requireBoolean(KEY_WAS_DIRTY, args);
-    final String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
-
-    return wasDirty && persistedContent != null && !persistedContent.isEmpty();
   }
 
   private boolean hasFileChangedExternally() {
@@ -718,42 +603,48 @@ public class CodeEditorPane extends Pane
   private void restoreFromPersistence() {
     setLoading(true);
 
-    final Map<String, Object> args = getArguments();
-    if (args == null) return;
+    AsyncTask.runNonCancelable(
+        () -> {
+          final Map<String, Object> args = getArguments();
+          if (args == null) return null;
 
-    String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
-    if (persistedContent != null) {
-      binding.editor.setText(persistedContent);
-      binding.editor.setLanguageExtension(PaneFactoryImpl.requireString(KEY_FILE_EXTENSION, args));
+          PersistenceData data = new PersistenceData();
+          data.content = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
+          data.extension = PaneFactoryImpl.requireString(KEY_FILE_EXTENSION, args);
+          data.scope = PaneFactoryImpl.requireString(KEY_FILE_SCOPE, args);
+          data.leftLine = PaneFactoryImpl.requireInt(KEY_LEFT_LINE, args);
+          data.leftColumn = PaneFactoryImpl.requireInt(KEY_LEFT_COLUMN, args);
+          return data;
+        },
+        (data, throwable) -> {
+          setLoading(false);
+          if (binding == null || binding.editor == null || data == null) return;
 
-      int leftLine = PaneFactoryImpl.requireInt(KEY_LEFT_LINE, args);
-      int leftColumn = PaneFactoryImpl.requireInt(KEY_LEFT_COLUMN, args);
+          if (data.content != null) {
+            binding.editor.setText(data.content);
+            // memory is of the essence
+            data.content = null;
 
-      Content text = binding.editor.getText();
-      int totalLines = text.getLineCount();
+            Content text = binding.editor.getText();
+            int totalLines = text.getLineCount();
 
-      // Only set cursor if position is valid
-      if (leftLine >= 0 && leftLine < totalLines) {
-        int maxColumn = text.getColumnCount(leftLine);
-        if (leftColumn >= 0 && leftColumn <= maxColumn) {
-          binding.editor.getCursor().set(leftLine, leftColumn);
-        } else {
-          // Fallback: set to start of line
-          binding.editor.getCursor().set(leftLine, 0);
-        }
-      } else {
-        // Fallback: set to start of document
-        binding.editor.getCursor().set(0, 0);
-      }
+            // Validate cursor
+            int line = (data.leftLine >= 0 && data.leftLine < totalLines) ? data.leftLine : 0;
+            int maxCol = text.getColumnCount(line);
+            int col = (data.leftColumn >= 0 && data.leftColumn <= maxCol) ? data.leftColumn : 0;
 
-      setModified(true);
-      if (mEditorFile != null) {
-        loadEditorLanguage(mEditorFile);
-      }
-      setLoading(false);
+            binding.editor.getCursor().set(line, col);
+            setModified(true);
+            if (mEditorFile != null) {
+              loadEditorLanguage(mEditorFile);
+              boolean autoComplete = PreferencesUtils.enableAutoComplete();
+              boolean autoCloseBrackets = PreferencesUtils.enableBracketAutoClosing();
 
-      logger.i(TAG, "Restored editor content from persistence");
-    }
+              setEditorLanguage(autoComplete, autoCloseBrackets, false, data.extension, data.scope);
+            }
+            logger.i(TAG, "Restored editor content from persistence");
+          }
+        });
   }
 
   private void readFileContent() {
@@ -806,6 +697,213 @@ public class CodeEditorPane extends Pane
         });
   }
 
+  @Nullable
+  private Pair<String, String> getEditorLanguageInfo(@NonNull File file) throws IOException {
+    if (isInvalidContext()) return null;
+
+    String extension = FileUtil.getFileExtension(file);
+
+    // Check cache first
+    if (languageCache.containsKey(extension)) {
+      return languageCache.get(extension);
+    }
+
+    if (cachedLanguageProvider == null) {
+      InputStream is = getAssets().open(LANG_SCOPE_PATH);
+      cachedLanguageProvider = new JsonLanguageInfoProvider(is);
+    }
+
+    String scope = cachedLanguageProvider.getScope(extension);
+    Pair<String, String> result = new Pair<>(extension, scope);
+
+    // Cache the result
+    languageCache.put(extension, result);
+    return result;
+  }
+
+  private boolean isInvalidContext() {
+    if (getContext() == null) {
+      logger.w(TAG, "INVALID EDITOR STATE! RESTART IS REQUIRED");
+      ILog.debug(TAG, "Context is null");
+      return true;
+    }
+    return false;
+  }
+
+  private void applyEditorTheme() {
+    try {
+      boolean isDarkMode = binding.editor.isUIDarkMode();
+      String lightTheme = ContextualCodeEditor.THEME_QUIET_LIGHT;
+      String darkTheme = ContextualCodeEditor.THEME_DARCULA;
+
+      binding.editor.applyTheme(isDarkMode ? darkTheme : lightTheme);
+    } catch (Exception e) {
+      logger.e(TAG, e.getMessage(), e);
+    }
+  }
+
+  private void updateCrumbPanelVisibility() {
+    if (binding != null) {
+      binding.breadCrumbBar.setVisible(PreferencesUtils.displayNavigationPanel());
+    }
+  }
+
+  private void restoreFileFromArguments() {
+    final Map<String, Object> args = getArguments();
+    if (args != null) {
+      String filePath = PaneFactoryImpl.requireString(KEY_FILE_PATH, args);
+      if (filePath != null && !filePath.isEmpty()) {
+        mEditorFile = new File(filePath);
+        ILog.debug(TAG, "Restored mEditorFile from arguments: " + filePath);
+      }
+    }
+  }
+
+  private void setLoading(boolean loading) {
+    if (binding == null) return;
+    binding.progressbar.setVisibility(loading ? View.VISIBLE : View.GONE);
+  }
+
+  private void updateAlertVisibility(boolean show) {
+    if (show) {
+      searchManager.openSearchPanel(false);
+      binding.editor.setVisibility(View.GONE);
+      binding.editorAlertLayout.rootContainer.setVisibility(View.VISIBLE);
+      binding.breadCrumbBar.setVisibility(View.GONE);
+      binding.editorAlertLayout.actionButton.setText(getString(R.string.open_anyway));
+      binding.editorAlertLayout.alertMessage.setText(
+          getString(R.string.alrt_unsupported_txt_encoding));
+      binding.editorAlertLayout.actionButton.setOnClickListener(v -> updateAlertVisibility(false));
+    } else {
+      binding.editor.setVisibility(View.VISIBLE);
+      binding.editorAlertLayout.rootContainer.setVisibility(View.GONE);
+      binding.breadCrumbBar.setVisibility(View.VISIBLE);
+    }
+  }
+
+  public boolean canRedo() {
+    return binding != null && binding.editor.canRedo();
+  }
+
+  public boolean canUndo() {
+    return binding != null && binding.editor.canUndo();
+  }
+
+  // --- PUBLIC
+  public boolean hasPersistedEditorChanges() {
+    final Map<String, Object> args = getArguments();
+    if (args == null) return false;
+
+    final boolean wasDirty = PaneFactoryImpl.requireBoolean(KEY_WAS_DIRTY, args);
+    final String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
+
+    return wasDirty && persistedContent != null && !persistedContent.isEmpty();
+  }
+
+  public void reloadFile() {
+    if (mEditorFile == null || !mEditorFile.exists()) {
+      showSnackBar(getString(R.string.file_not_found));
+      return;
+    }
+
+    if (isModified()) {
+      showReloadConfirmationDialog();
+    } else {
+      performReload();
+    }
+  }
+
+  public void reloadFileWithCharset(@NonNull Charset charset) {
+    if (mEditorFile == null || !mEditorFile.exists()) {
+      showSnackBar(getString(R.string.file_not_found));
+      return;
+    }
+
+    this.currentCharset = charset;
+    if (isModified()) {
+      showReloadWithCharsetConfirmationDialog(charset);
+    } else {
+      performReloadWithCharset(charset);
+    }
+  }
+
+  public void showCharsetSelectionDialog() {
+    List<String> charsets = EncodingDetector.getSupportedEncodings();
+    int defaultCharsetIndex = charsets.indexOf(Constants.FALLBACK_FILE_ENCODING);
+    if (defaultCharsetIndex < 0) {
+      defaultCharsetIndex = charsets.indexOf(StandardCharsets.UTF_8.name());
+    }
+
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.select_charset)
+        .setSingleChoiceItems(
+            charsets.toArray(new String[0]),
+            defaultCharsetIndex,
+            (dialog, which) -> {
+              Charset selectedCharset = EncodingDetector.findEncoding(charsets.get(which));
+              reloadFileWithCharset(selectedCharset);
+              dialog.dismiss();
+            })
+        .setNegativeButton(R.string.cancel, null)
+        .show();
+  }
+
+  public void saveAs() {
+    if (binding == null || mEditorFile == null) return;
+
+    String currentContent = binding.editor.getText().toString();
+    if (currentContent.isEmpty()) {
+      showSnackBar(getString(R.string.no_content_to_save));
+      return;
+    }
+
+    showSaveAsDialog();
+  }
+
+  public void showStatistics() {
+    if (binding == null) return;
+
+    binding.editor.setIndexing(true);
+
+    AsyncTask.runNonCancelable(
+        () -> {
+          return calculateFileStatistics();
+        },
+        (stats, throwable) -> {
+          binding.editor.setIndexing(false);
+          if (throwable == null && stats != null) {
+            var message = new StringBuilder();
+            message
+                .append("File Name: ")
+                .append(mEditorFile != null ? mEditorFile.getName() : "Untitled")
+                .append("\n");
+            message.append("File Size: ").append(formatFileSize(stats.fileSize)).append("\n");
+            message.append("Total Lines: ").append(stats.totalLines).append("\n");
+            message.append("Total Words: ").append(stats.totalWords).append("\n");
+            message.append("Total Characters: ").append(stats.totalChars).append("\n");
+            message
+                .append("Total Characters (no spaces): ")
+                .append(stats.totalCharsNoSpaces)
+                .append("\n");
+            message.append("Encoding: ").append(stats.encoding).append("\n");
+            message.append("Line Separator: ").append(stats.lineSeparator);
+
+            new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.file_statistics)
+                .setMessage(message.toString())
+                .setPositiveButton(R.string.close, null)
+                .show();
+          } else {
+            String errorMsg =
+                getString(R.string.failed_to_calculate_statistics)
+                    + ": "
+                    + (throwable != null ? throwable.getMessage() : "Unknown error");
+            showSnackBar(errorMsg);
+            logger.e(TAG, errorMsg, throwable);
+          }
+        });
+  }
+
   public void showSnackBar(@NonNull String message) {
     if (binding == null || binding.editor == null) return;
 
@@ -837,189 +935,75 @@ public class CodeEditorPane extends Pane
   }
 
   public void refreshEditorLanguageSyntax() {
-    loadEditorLanguageInternal(
+    loadEditorLanguage(
         PreferencesUtils.enableAutoComplete(),
         PreferencesUtils.enableBracketAutoClosing(),
         true,
         mEditorFile);
   }
 
-  private void loadEditorLanguageInternal(
+  public void loadEditorLanguage(@NonNull File file) {
+    loadEditorLanguage(
+        PreferencesUtils.enableAutoComplete(),
+        PreferencesUtils.enableBracketAutoClosing(),
+        false,
+        file);
+  }
+
+  public void loadEditorLanguage(
       boolean autoComplete, boolean autoCloseBrackets, boolean refresh, @NonNull File file) {
+
+    if (refresh) setLoading(true);
+
+    AsyncTask.runNonCancelable(
+        () -> {
+          return getEditorLanguageInfo(file);
+        },
+        (result, throwable) -> {
+          if (refresh) setLoading(false);
+
+          if (binding == null || binding.editor == null) return; // View died
+
+          if (throwable != null) {
+            logger.e(TAG, "Failed to load editor lang", throwable);
+            return;
+          }
+
+          if (result != null) {
+            fileExtension = result.first;
+            fileScope = result.second;
+            setEditorLanguage(autoComplete, autoCloseBrackets, refresh, fileExtension, fileScope);
+          }
+        });
+  }
+
+  public void setEditorLanguage(
+      boolean autoComplete,
+      boolean autoCloseBrackets,
+      boolean refresh,
+      @NonNull String extension,
+      @NonNull String scope) {
     try {
-      Pair<String, String> languageInfo = getEditorLanguageInfo(file);
-
-      if (languageInfo == null) {
-        ILog.warning(TAG, "Language Info is null");
-        return;
-      }
-
-      fileExtension = languageInfo.first;
-      fileScope = languageInfo.second;
-
       if (refresh) binding.editor.refreshTheme();
+      binding.editor.setEditorLanguage(extension, scope, autoComplete, autoCloseBrackets, refresh);
 
-      binding.editor.setEditorLanguage(
-          fileExtension, fileScope, autoComplete, autoCloseBrackets, refresh);
+      if (isSelected()) {
+        binding.editor.post(() -> EventBus.getDefault().post(new EditorReadyEvent(this)));
+      }
     } catch (Exception e) {
-      String clause =
-          (refresh
-              ? getString(R.string.refresh).toLowerCase()
-              : getString(R.string.load).toLowerCase());
+      String clause = refresh ? getString(R.string.refresh) : getString(R.string.load);
       String msg = getString(R.string.msg_editor_load_configs_failed, clause);
       logger.e(TAG, msg, e);
-      showSnackBar(msg);
     }
-  }
-
-  @Nullable
-  private Pair<String, String> getEditorLanguageInfo(@NonNull File file) throws IOException {
-    if (isInvalidContext()) return null;
-
-    InputStream is = getAssets().open(LANG_SCOPE_PATH);
-    var provider = new JsonLanguageInfoProvider(is);
-    String extension = FileUtil.getFileExtension(file);
-    String scope = provider.getScope(extension);
-    Set<String> extensions = provider.getLanguageExtensions(scope);
-    String scopedExtensions = Arrays.toString(extensions.toArray());
-    ILog.debug(
-        TAG,
-        String.format(
-            "File: %s, Extension: '%s', Scope: '%s', Shared Extensions: %s",
-            file.getName(), extension, scope, scopedExtensions));
-    return new Pair<>(extension, scope);
-  }
-
-  private boolean isInvalidContext() {
-    if (getContext() == null) {
-      logger.w(TAG, "INVALID EDITOR STATE! RESTART IS REQUIRED");
-      ILog.debug(TAG, "Context is null");
-      return true;
-    }
-    return false;
-  }
-
-  private void applyEditorTheme() {
-    try {
-      boolean isDarkMode = binding.editor.isUIDarkMode();
-      String lightTheme = ContextualCodeEditor.THEME_QUIET_LIGHT;
-      String darkTheme = ContextualCodeEditor.THEME_DARCULA;
-
-      binding.editor.applyTheme(isDarkMode ? darkTheme : lightTheme);
-    } catch (Exception e) {
-      logger.e(TAG, e.getMessage(), e);
-    }
-  }
-
-  private void updateCrumbPanelVisibility() {
-    if (binding != null) {
-      binding.breadCrumbBar.setVisible(PreferencesUtils.displayNavigationPanel());
-    }
-  }
-
-  public boolean canRedo() {
-    return binding != null && binding.editor.canRedo();
-  }
-
-  public boolean canUndo() {
-    return binding != null && binding.editor.canUndo();
-  }
-  
-  public void doJumpToLine() {
-    CommandPaletteDialog.newScopedInstance(this, ":", getString(R.string.menu_jump_to_line))
-        .show(requireActivity().getSupportFragmentManager(), "goto_line_palette");
-  }
-  
-  public void doJumpToLineX() {
-    if (binding == null) return;
-
-    int totalLineCount = binding.editor.getLineCount();
-    if (totalLineCount == -1) return;
-
-    final var inflate = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
-
-    if (inflate.tilName == null || inflate.tilName.getEditText() == null) {
-      ILog.error(TAG, "Error: TIL name or its edittext = null");
-      return;
-    }
-
-    final var tilName = inflate.tilName;
-    final var tilNameEditText = inflate.tilName.getEditText();
-
-    tilName.setHint(String.format("1...%s", totalLineCount));
-    tilNameEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
-
-    var builder = new MaterialAlertDialogBuilder(requireContext());
-    builder.setView(inflate.getRoot());
-    builder.setTitle(R.string.menu_jump_to_line);
-    builder.setNegativeButton(R.string.cancel, null);
-    builder.setPositiveButton(R.string.ok, null);
-    builder.setCancelable(false);
-
-    AlertDialog dialog = builder.create();
-
-    dialog.setOnShowListener(
-        d -> {
-          Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-          positiveButton.setEnabled(false);
-
-          tilNameEditText.requestFocus();
-          tilNameEditText.addTextChangedListener(
-              new TextWatcherAdapter() {
-                @Override
-                public void afterTextChanged(@NonNull Editable editable) {
-                  if (Wizard.isEmpty(editable.toString())) return;
-
-                  try {
-                    var lineToJump = Integer.parseInt(editable.toString());
-
-                    if (lineToJump < 1 || lineToJump > totalLineCount) {
-                      positiveButton.setEnabled(false);
-                      tilName.setError(getString(R.string.msg_invalid_jump_line));
-                      tilName.setErrorEnabled(true);
-                    } else {
-                      positiveButton.setEnabled(true);
-                      tilName.setErrorEnabled(false);
-                    }
-                  } catch (NumberFormatException e) {
-                    positiveButton.setEnabled(false);
-                    tilName.setError(getString(R.string.msg_invalid_jump_line));
-                    tilName.setErrorEnabled(true);
-                  }
-                }
-              });
-
-          positiveButton.setOnClickListener(
-              v -> {
-                var jumpText = tilNameEditText.getText().toString();
-
-                try {
-                  // reject empty or invalid input
-                  boolean condition1 = Wizard.isEmpty(jumpText);
-                  var lineToJump = Integer.parseInt(jumpText);
-                  boolean condition2 = lineToJump < 1 || lineToJump > totalLineCount;
-
-                  if (condition1 || condition2) {
-                    tilName.setError(getString(R.string.msg_invalid_jump_line));
-                    tilName.setErrorEnabled(true);
-                    return;
-                  }
-
-                  int targetLine = lineToJump - 1;
-                  binding.editor.jumpToLine(targetLine);
-                  dialog.dismiss();
-                } catch (NumberFormatException e) {
-                  tilName.setError(getString(R.string.msg_invalid_jump_line));
-                  tilName.setErrorEnabled(true);
-                }
-              });
-        });
-
-    dialog.show();
   }
 
   public File getFile() {
     return mEditorFile;
+  }
+
+  public void doJumpToLine() {
+    CommandPaletteDialog.newScopedInstance(this, ":", getString(R.string.menu_jump_to_line))
+        .show(requireActivity().getSupportFragmentManager(), "goto_line_palette");
   }
 
   public void setFile(File file) {
@@ -1208,49 +1192,6 @@ public class CodeEditorPane extends Pane
     }
   }
 
-  private void loadEditorLanguage(@NonNull File file) {
-    loadEditorLanguageInternal(
-        PreferencesUtils.enableAutoComplete(),
-        PreferencesUtils.enableBracketAutoClosing(),
-        false,
-        file);
-  }
-
-  private void setLoading(boolean loading) {
-    if (binding == null) return;
-    binding.progressbar.setVisibility(loading ? View.VISIBLE : View.GONE);
-  }
-
-  private void updateAlertVisibility(boolean show) {
-    if (show) {
-      searchManager.openSearchPanel(false);
-      binding.editor.setVisibility(View.GONE);
-      binding.editorAlertLayout.rootContainer.setVisibility(View.VISIBLE);
-      binding.breadCrumbBar.setVisibility(View.GONE);
-      binding.editorAlertLayout.actionButton.setText(getString(R.string.open_anyway));
-      binding.editorAlertLayout.alertMessage.setText(
-          getString(R.string.alrt_unsupported_txt_encoding));
-      binding.editorAlertLayout.actionButton.setOnClickListener(v -> updateAlertVisibility(false));
-    } else {
-      binding.editor.setVisibility(View.VISIBLE);
-      binding.editorAlertLayout.rootContainer.setVisibility(View.GONE);
-      binding.breadCrumbBar.setVisibility(View.VISIBLE);
-    }
-  }
-
-  private void restoreFileFromArguments() {
-    final Map<String, Object> args = getArguments();
-    if (args != null) {
-      String filePath = PaneFactoryImpl.requireString(KEY_FILE_PATH, args);
-      if (filePath != null && !filePath.isEmpty()) {
-        mEditorFile = new File(filePath);
-        ILog.debug(TAG, "Restored mEditorFile from arguments: " + filePath);
-      }
-    }
-  }
-
-  // --- Start
-  /** Navigates to the previous cursor position in the history. */
   public void navigateToPreviousCursorPosition() {
     if (!previousCursorPositions.isEmpty()) {
       navigationInProgress = true;
@@ -1263,7 +1204,6 @@ public class CodeEditorPane extends Pane
     }
   }
 
-  /** Navigates to the next cursor position in the history. */
   public void navigateToNextCursorPosition() {
     if (!nextCursorPositions.isEmpty()) {
       navigationInProgress = true;
@@ -1322,7 +1262,8 @@ public class CodeEditorPane extends Pane
   }
 
   public void showLanguagePicker() {
-    CommandPaletteDialog.newScopedInstance(this, "@syntax -", getString(R.string.select_language_mode))
+    CommandPaletteDialog.newScopedInstance(
+            this, "@syntax -", getString(R.string.select_language_mode))
         .show(requireActivity().getSupportFragmentManager(), "language_picker_palette");
   }
 
@@ -1334,5 +1275,13 @@ public class CodeEditorPane extends Pane
     int totalCharsNoSpaces;
     String encoding;
     String lineSeparator;
+  }
+
+  private static class PersistenceData {
+    String content;
+    String extension;
+    String scope;
+    int leftLine;
+    int leftColumn;
   }
 }

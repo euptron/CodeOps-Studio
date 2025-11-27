@@ -134,6 +134,7 @@
   "lua": "source.lua",
   "bib": "text.bibtex",
   "conf": "source.ini",
+  "pro": "source.ini",
   "properties": "source.ini",
   "cfg": "source.ini",
   "directory": "source.ini",

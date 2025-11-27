@@ -41,6 +41,7 @@ import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentBuildActionBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
+import com.eup.codeopsstudio.domain.events.EditorReadyEvent;
 import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider;
 import com.eup.codeopsstudio.ui.editor.actions.adapters.BuildActionPagerAdapter;
 import com.eup.codeopsstudio.ui.editor.actions.adapters.EditorShortcutAdapter;
@@ -68,7 +69,6 @@ public class BuildActionFragment extends Fragment
   public static final String TAG = "BuildActionFragment";
 
   private static final int MIN_HEADER_HEIGHT = 0;
-  private static final float HALF_EXPANDED_SHEET_OFFSET = 0.5f;
   private static final long SHOW_MEMORY_OVERLAY_DELAY_MS = 3000L;
   private static final long HIDE_MEMORY_OVERLAY_DELAY_MS = 4000L;
   private static final long MEMORY_UPDATE_INTERVAL_MS = 200L;
@@ -85,6 +85,7 @@ public class BuildActionFragment extends Fragment
   private int previousDisplayedChild = 0;
   private Runnable toggleMemoryOverlayRunnable;
   private boolean isMemoryOverlayVisible = false;
+  private boolean onEditorReadyEventCalled = false;
 
   public static BuildActionFragment newInstance() {
     return new BuildActionFragment();
@@ -177,12 +178,10 @@ public class BuildActionFragment extends Fragment
   public void onCurrentPaneChangeEvent(@NonNull CurrentPaneEvent event) {
     try {
       if (event.getPane() instanceof CodeEditorPane editorPane) {
-        if (editorPane.getEditor() != null) {
+        if (onEditorReadyEventCalled) {
           setupEditorShortcuts(editorPane);
-          if (editorPane.isSelected()) {
-            setupEditorShortcuts(editorPane);
-          }
         }
+        binding.actionsHeader.setDisplayedChild(1);
       } else {
         binding.actionsHeader.setDisplayedChild(0);
       }
@@ -190,6 +189,15 @@ public class BuildActionFragment extends Fragment
       ILog.error(TAG, "Error handling current pane event " + e.getMessage(), e);
       binding.actionsHeader.setDisplayedChild(0); // Fail-safe
     }
+  }
+
+  @Subscribe(threadMode = ThreadMode.MAIN)
+  public void onEditorReadyEvent(@NonNull EditorReadyEvent event) {
+    CodeEditorPane editorPane = event.getEditorPane();
+    if (editorPane.isSelected()) {
+      setupEditorShortcuts(editorPane);
+    }
+    onEditorReadyEventCalled = true;
   }
 
   private void setupEditorShortcuts(@NonNull CodeEditorPane editorPane) {
@@ -205,11 +213,20 @@ public class BuildActionFragment extends Fragment
       }
 
       refreshShortcuts();
-      binding.actionsHeader.setDisplayedChild(1);
     } catch (Throwable e) {
       ILog.error(TAG, "Critical error during setupEditorShortcuts: " + e.getMessage(), e);
       binding.actionsHeader.setDisplayedChild(0); // Fail-safe
     }
+  }
+
+  private void refreshShortcuts() {
+    if (shortcutWizard == null) return;
+    boolean useTabs = PreferencesUtils.useTabIndentation();
+    int tabSize = PreferencesUtils.getCodeEditorTabSize();
+
+    shortcutWizard.invalidateCache();
+    List<EditorAction> actions = shortcutWizard.getActions();
+    shortcutAdapter.submitList(EditorShortcutWizard.configureTabAction(actions, useTabs, tabSize));
   }
 
   private void configTabs(TabLayout.Tab tab, int position) {
@@ -230,20 +247,6 @@ public class BuildActionFragment extends Fragment
       ILog.error(TAG, "Failed to load shortcuts JSON file.", e);
       return "{}";
     }
-  }
-
-  private void refreshShortcuts() {
-    if (shortcutWizard == null) return;
-
-    boolean useTabs = PreferencesUtils.useTabIndentation();
-    int numberOfTabs = PreferencesUtils.getCodeEditorTabSize();
-
-    shortcutWizard.invalidateCache();
-
-    List<EditorAction> baseActions = shortcutWizard.getActions();
-    List<EditorAction> configuredActions =
-        EditorShortcutWizard.configureTabAction(baseActions, useTabs, numberOfTabs);
-    shortcutAdapter.submitList(configuredActions);
   }
 
   private void applyHeaderOffset(float offset) {

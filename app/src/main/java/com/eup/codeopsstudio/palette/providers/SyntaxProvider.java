@@ -104,20 +104,10 @@ public class SyntaxProvider implements CommandProvider {
               context.getString(R.string.cpt_syntax),
               () -> {
                 if (codeEditorPane != null) {
-                  try {
-                    final boolean autoComplete = PreferencesUtils.enableAutoComplete();
-                    final boolean autoCloseBrackets = PreferencesUtils.enableBracketAutoClosing();
-                    codeEditorPane
-                        .getEditor()
-                        .setEditorLanguage(ext, scope, autoComplete, autoCloseBrackets, false);
-                  } catch (Exception e) {
-                    String msg =
-                        context.getString(
-                            R.string.msg_editor_load_configs_failed,
-                            context.getString(R.string.load).toLowerCase());
-                    showToast(msg);
-                    ILog.error(TAG, msg, e);
-                  }
+                  final boolean autoComplete = PreferencesUtils.enableAutoComplete();
+                  final boolean autoCloseBrackets = PreferencesUtils.enableBracketAutoClosing();
+                    
+                  codeEditorPane.setEditorLanguage(autoComplete, autoCloseBrackets, false, ext, scope);
                 } else {
                   showToast("Invalid CodeEditorPane");
                 }

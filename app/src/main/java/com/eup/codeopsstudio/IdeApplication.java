@@ -47,20 +47,18 @@ import com.google.firebase.crashlytics.CustomKeysAndValues;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class IdeApplication extends Application implements Thread.UncaughtExceptionHandler {
 
   public static final String TAG = IdeApplication.class.getSimpleName();
-  private static final long SLEEP_DURATION = 2000; // milliseconds
+
   private static IdeApplication instance;
-  private final StringBuilder errorMessage = new StringBuilder();
-  private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
-  private FirebaseCrashlytics crashlytics;
+  private static final long SLEEP_DURATION = 2000; // milliseconds
+
   private ThemeManager themeManager;
+  private FirebaseCrashlytics crashlytics;
   private FileLogListener fileLogListener;
+  private final StringBuilder errorMessage = new StringBuilder();
 
   @Override
   public void onCreate() {
@@ -111,24 +109,12 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
   }
 
   private void loadEditorConfigurations() {
-    CompletableFuture.runAsync(
-            () -> {
-              try {
-                ContextualCodeEditor.loadConfigurations(IdeApplication.this);
-              } catch (Exception e) {
-                throw new RuntimeException(e);
-              }
-            },
-            backgroundExecutor)
-        .exceptionally(
-            throwable -> {
-              if (throwable == null) {
-                ILog.info(TAG, "Code editor configurations loaded successfully");
-              } else {
-                ILog.error(TAG, "Error loading code editor configurations", throwable);
-              }
-              return null;
-            });
+    try {
+      ContextualCodeEditor.loadConfigurations(IdeApplication.this);
+      ILog.info(TAG, "Code editor configurations loaded successfully");
+    } catch (Exception e) {
+      ILog.error(TAG, "Error loading code editor configurations", e);
+    }
   }
 
   /**
@@ -194,7 +180,7 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
 
   @Override
   public void onTerminate() {
-    // Although not guaranteed to be called, this is the correct place to stop the logger.
+    // invocation not guaranteed
     if (fileLogListener != null) {
       fileLogListener.stop();
     }

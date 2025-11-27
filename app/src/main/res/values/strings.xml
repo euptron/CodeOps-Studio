@@ -343,7 +343,6 @@
     <string name="msg_checking_plugins">Checking plugins</string>
     <string name="msg_js_plugin_absent">Js console plugin for web is not installed</string>
     <string name="msg_installing_js_console_plugins">Installing js console plugin</string>
-    <string name="msg_invalid_jump_line">Line to jump to is out of range</string>
     <string name="msg_crash_report">Crash Report</string>
     <string name="msg_restart_app">Restart app</string>
     <string name="msg_file_does_not_exist">File %s does not exist</string>

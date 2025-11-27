@@ -45,79 +45,78 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class EditorShortcutWizard {
 
-    private static final String DEFAULT_SEQUENCE_KEY = "default";
-    private final Map<String, List<EditorAction>> allSequences;
-    private final Map<String, List<EditorAction>> cachedLanguageSequences;
-    private ContextualCodeEditor codeEditor;
+  private static final String DEFAULT_SEQUENCE_KEY = "default";
+  private final Map<String, List<EditorAction>> allSequences;
+  private final Map<String, List<EditorAction>> cachedLanguageSequences;
+  private ContextualCodeEditor codeEditor;
 
-    public EditorShortcutWizard(ContextualCodeEditor codeEditor, String jsonSequence) {
-        this.codeEditor         = codeEditor;
-        this.allSequences       = parseAllSequences(jsonSequence);
-        cachedLanguageSequences = new ConcurrentHashMap<>();
+  public EditorShortcutWizard(ContextualCodeEditor codeEditor, String jsonSequence) {
+    this.codeEditor = codeEditor;
+    this.allSequences = parseAllSequences(jsonSequence);
+    cachedLanguageSequences = new ConcurrentHashMap<>();
+  }
+
+  @NonNull
+  private Map<String, List<EditorAction>> parseAllSequences(String json) {
+    if (json == null || json.isEmpty()) return Collections.emptyMap();
+
+    Gson gson = new Gson();
+    Type type = new TypeToken<Map<String, List<EditorAction>>>() {}.getType();
+    Map<String, List<EditorAction>> parsedMap = gson.fromJson(json, type);
+    return parsedMap != null ? parsedMap : Collections.emptyMap();
+  }
+
+  public static List<EditorAction> configureTabAction(
+      @NonNull List<EditorAction> actions, boolean useTabs, int numberOfTabs) {
+    for (EditorAction action : actions) {
+      if ("TAB".equals(action.getName())) {
+        var indentation = useTabs ? Constants.TAB.repeat(numberOfTabs) : " ".repeat(numberOfTabs);
+        action.setValue(indentation);
+        break;
+      }
+    }
+    return actions;
+  }
+
+  public List<EditorAction> getActions() {
+    String currentLanguage = codeEditor.getLanguageExtension();
+    return cachedLanguageSequences.computeIfAbsent(
+        currentLanguage, this::buildAndConfigureSequence);
+  }
+
+  /**
+   * Builds the definitive list of actions by selecting the correct language sequence (or the
+   * default) and then dynamically configuring any actions that depend on editor state.
+   *
+   * @param language The language for which to build the sequence (e.g., "java", "python").
+   * @return A new, configured list of EditorActions ready for use.
+   */
+  @NonNull
+  private List<EditorAction> buildAndConfigureSequence(String language) {
+    List<EditorAction> baseSequence = allSequences.get(language);
+    if (baseSequence == null) {
+      baseSequence = allSequences.getOrDefault(DEFAULT_SEQUENCE_KEY, Collections.emptyList());
     }
 
-    @NonNull
-    private Map<String, List<EditorAction>> parseAllSequences(String json) {
-        if (json == null || json.isEmpty()) return Collections.emptyMap();
-
-        Gson gson = new Gson();
-        Type type = new TypeToken<Map<String, List<EditorAction>>>() { }.getType();
-        Map<String, List<EditorAction>> parsedMap = gson.fromJson(json, type);
-        return parsedMap != null ? parsedMap : Collections.emptyMap();
+    Objects.requireNonNull(baseSequence);
+    List<EditorAction> configuredSequence = new ArrayList<>(baseSequence.size());
+    for (EditorAction action : baseSequence) {
+      configuredSequence.add(new EditorAction(action.getName(), action.getValue()));
     }
+    return configuredSequence;
+  }
 
-    public static List<EditorAction> configureTabAction(@NonNull List<EditorAction> actions,
-        boolean useTabs, int numberOfTabs) {
-        for (EditorAction action : actions) {
-            if ("TAB".equals(action.getName())) {
-                var indentation =
-                    useTabs ? Constants.TAB.repeat(numberOfTabs) : " ".repeat(numberOfTabs);
-                action.setValue(indentation);
-                break;
-            }
-        }
-        return actions;
-    }
+  public void setEditorContext(ContextualCodeEditor editor) {
+    this.codeEditor = editor;
+    invalidateCache();
+  }
 
-    public List<EditorAction> getActions() {
-        String currentLanguage = codeEditor.getLanguageExtension();
-        return cachedLanguageSequences.computeIfAbsent(currentLanguage,
-            this::buildAndConfigureSequence);
-    }
-
-    /**
-     * Builds the definitive list of actions by selecting the correct language sequence
-     * (or the default) and then dynamically configuring any actions that depend on editor state.
-     *
-     * @param language The language for which to build the sequence (e.g., "java", "python").
-     * @return A new, configured list of EditorActions ready for use.
-     */
-    @NonNull
-    private List<EditorAction> buildAndConfigureSequence(String language) {
-        List<EditorAction> baseSequence = allSequences.get(language);
-        if (baseSequence == null) {
-            baseSequence = allSequences.getOrDefault(DEFAULT_SEQUENCE_KEY, Collections.emptyList());
-        }
-
-        Objects.requireNonNull(baseSequence);
-        List<EditorAction> configuredSequence = new ArrayList<>(baseSequence.size());
-        for (EditorAction action : baseSequence) {
-            configuredSequence.add(new EditorAction(action.getName(), action.getValue()));
-        }
-        return configuredSequence;
-    }
-
-    public void setEditorContext(ContextualCodeEditor editor) {
-        this.codeEditor = editor;
-        invalidateCache();
-    }
-
-    /**
-     * Clears the cache of compiled language sequences. This is called if editor
-     * preferences (like tab size or indentation style) are changed by the user,
-     * to ensure the TAB key and other dynamic actions are correctly configured on the next request.
-     */
-    public void invalidateCache() {
-        cachedLanguageSequences.clear();
-    }
+  /**
+   * Clears the cache of compiled language sequences. This is called if editor preferences (like tab
+   * size or indentation style) are changed by the user, to ensure the TAB key and other dynamic
+   * actions are correctly configured on the next request.
+   */
+  public void invalidateCache() {
+    cachedLanguageSequences.clear();
+  }
 }

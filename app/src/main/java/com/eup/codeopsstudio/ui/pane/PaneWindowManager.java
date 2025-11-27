@@ -648,7 +648,7 @@ public class PaneWindowManager implements PaneWindow {
         selectedPane = null;
         selectedTabPosition = -1;
         syncTabs();
-        displayEmptyPaneIfRequired()
+        displayEmptyPaneIfRequired();
         validateState();
         return;
       }
