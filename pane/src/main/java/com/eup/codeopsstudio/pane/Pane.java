@@ -710,6 +710,8 @@ public abstract class Pane {
             throw new IllegalStateException(
                 getClass().getSimpleName() + " did not invoke createView()");
         }
+        
+        ILog.debug(getClassName(), "Pane: "+ getTitle() +", ID: "+ getUUID().toString() + " persisted");
     }
 
     public void runOnBackgroundThread(Runnable runnable) {

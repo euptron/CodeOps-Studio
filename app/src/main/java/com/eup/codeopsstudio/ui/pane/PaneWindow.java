@@ -236,11 +236,11 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
   void destroy();
 
   default <T> T findPane(Class<T> clazz) {
-    T found = null;
     for (var pane : getPanes()) {
-      found = PaneFactory.getPane(pane, clazz);
+      T found = PaneFactory.getPane(pane, clazz);
+      if (found != null) return found;
     }
-    return found;
+    return null;
   }
 
   /**
