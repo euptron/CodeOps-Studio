@@ -536,14 +536,12 @@ public class PaneWindowManager implements PaneWindow {
 
       if (!Objects.equals(paneToRemove, panes.get(index))) return false;
       if (paneToRemove.isPinned()) return false;
-
+      removePersistedPane(paneToRemove);
       panes.remove(index);
       paneContainer.removeViewAt(index);
       tabLayout.removeTabAt(index);
-
       paneToRemove.destroy();
-      removePersistedPane(paneToRemove);
-
+      
       if (panes.size() <= 0) {
         // No tabs left
         selectedPane = null;
@@ -580,6 +578,12 @@ public class PaneWindowManager implements PaneWindow {
   public void removePersistedPane(@NonNull Pane pane) {
     new PaneContracts.RemovePersistedPane(sharedPreferences)
         .publish(pane, result -> ILog.info(TAG, result));
+  }
+    
+  @Override
+  public void removePersistedPanes(@NonNull List<Pane> panes) {
+    new PaneContracts.RemovePersistedPanes(sharedPreferences)
+        .publish(panes, result -> ILog.info(TAG, result));
   }
 
   @Override
@@ -898,6 +902,7 @@ public class PaneWindowManager implements PaneWindow {
       if (!modified) {
         return false;
       }
+            removePersistedPanes(panesBeingRemoved);
 
       // Sort indices in descending order to ensure correct removal from list/views
       // (Important because we collected them in descending order of checking,
@@ -938,10 +943,9 @@ public class PaneWindowManager implements PaneWindow {
                   + panes.size());
         }
       }
-
+      
       for (Pane p : panesBeingRemoved) {
         p.destroy();
-        removePersistedPane(p);
       }
 
       // Update selection

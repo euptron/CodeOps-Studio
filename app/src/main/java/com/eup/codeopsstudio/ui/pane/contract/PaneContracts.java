@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.Collections;
 
 /**
  * A collection of contracts for managing panes within the {@code PaneWindow}
@@ -58,200 +59,282 @@ import java.util.function.Consumer;
  */
 public final class PaneContracts {
 
-    private static final String KEY_PERSISTED_PANES =
-        Constants.SharedPreferenceKeys.KEY_PERSISTED_PANES;
-    private static final String EMPTY_JSON_ARRAY = "[]";
+  private static final String KEY_PERSISTED_PANES =
+      Constants.SharedPreferenceKeys.KEY_PERSISTED_PANES;
+  private static final String EMPTY_JSON_ARRAY = "[]";
 
-    private PaneContracts() {
-        // No-Instance
+  private PaneContracts() {
+    // No-Instance
+  }
+
+  /**
+   * Converts a JSON string to a list of map objects.
+   *
+   * @param json the JSON string to convert, can be null or empty
+   * @return the list-map representation of the JSON string, never null
+   */
+  public static List<Map<String, Object>> fromJson(@Nullable String json) {
+    if (json == null || json.isEmpty()) {
+      return new ArrayList<>();
     }
 
+    return new Gson()
+        .fromJson(json, new TypeToken<List<LinkedTreeMap<String, Object>>>() {}.getType());
+  }
+
+  /**
+   * Gets the JSON representation of the persisted panes from the specified {@link
+   * SharedPreferences}.
+   *
+   * @param sharedPreferences the shared preferences to read from, can be null
+   * @return the JSON model of the persisted panes, never null
+   */
+  @NonNull
+  public static String getPersistedPanesGsonModel(
+      @Nullable final SharedPreferences sharedPreferences) {
+    if (sharedPreferences == null) return "{}";
+
+    final String encoded = sharedPreferences.getString(KEY_PERSISTED_PANES, EMPTY_JSON_ARRAY);
+    byte[] bytes = EncodeUtils.base64Decode(encoded);
+    return new String(bytes);
+  }
+
+  private static String encode(String string) {
+    return EncodeUtils.base64Encode2String(string.getBytes());
+  }
+
+  /**
+   * Checks if a {@link Pane} exists in the persisted pane storage.
+   *
+   * @param pane the pane to check for persistence, can be null
+   * @param sharedPreferences the shared preferences to check in, can be null
+   * @return true if the pane was persisted in {@link SharedPreferences}, false otherwise
+   */
+  private static boolean isPersisted(
+      @Nullable Pane pane, @Nullable SharedPreferences sharedPreferences) {
+    return pane != null
+        && sharedPreferences != null
+        && pane.getUUID() != null
+        && getPersistedPaneTree(sharedPreferences).stream()
+            .map(map -> map.get(Pane.KEY_UUID))
+            .map(Object::toString)
+            .anyMatch(pane.getUUID().toString()::equals);
+  }
+
+  /**
+   * Converts the JSON model of persisted panes into list-map objects.
+   *
+   * @param sharedPreferences the shared preferences containing the persisted panes
+   * @return a list of persisted pane data, never null
+   */
+  @NonNull
+  private static List<Map<String, Object>> getPersistedPaneTree(
+      SharedPreferences sharedPreferences) {
+    return Optional.of(getPersistedPanesGsonModel(sharedPreferences))
+        .map(PaneContracts::fromJson)
+        .orElse(new LinkedList<>());
+  }
+
+  private static boolean commitRemoval(SharedPreferences prefs, List<String> uuidsToRemove) {
+    if (uuidsToRemove == null || uuidsToRemove.isEmpty()) return false;
+
+    List<Map<String, Object>> persistedPaneStates = getPersistedPaneTree(prefs);
+    if (persistedPaneStates.isEmpty()) return false;
+
+    boolean isModified = false;
+
+    for (String uuidToRemove : uuidsToRemove) {
+      boolean removed =
+          persistedPaneStates.removeIf(
+              map -> Objects.equals(uuidToRemove, String.valueOf(map.get(Pane.KEY_UUID))));
+      isModified |= removed;
+    }
+
+    if (isModified) {
+      SharedPreferences.Editor editor = prefs.edit();
+      String encodedPanes = encode(new Gson().toJson(persistedPaneStates));
+      editor.putString(KEY_PERSISTED_PANES, encodedPanes);
+      return editor.commit();
+    }
+
+    return false;
+  }
+
+  /** A {@link PaneContract} to persist panes via {@link PaneWindow#persistPanes}. */
+  public static final class PersistPanes extends PaneContract<List<Pane>, Boolean> {
+    private static final String TAG = "PaneContracts#PersistPanes";
+
+    private final SharedPreferences sharedPreferences;
+
     /**
-     * Converts a JSON string to a List-Map
+     * Constructs a contract
      *
-     * @return the List-Map representation of a JSON string
+     * @param sharedPreferences the {@link SharedPreferences} to store pane information
+     * @throws NullPointerException if @param sharedPreferences is null
      */
-    public static List<Map<String, Object>> fromJson(@Nullable String json) {
-        if (json == null || json.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        return new Gson().fromJson(json,
-            new TypeToken<List<LinkedTreeMap<String, Object>>>() { }.getType());
+    public PersistPanes(SharedPreferences sharedPreferences) {
+      this.sharedPreferences =
+          Objects.requireNonNull(sharedPreferences, TAG + " SharedPreferences must not be null");
     }
 
-    /**
-     * Gets the JSON representation of the persisted panes from the specified {@link
-     * SharedPreferences}
-     *
-     * @return the JSON model of the persisted panes or an empty string if model was invalid
-     */
-    @NonNull
-    public static String getPersistedPanesGsonModel(final SharedPreferences sharedPreferences) {
-        final String encoded = sharedPreferences.getString(KEY_PERSISTED_PANES, EMPTY_JSON_ARRAY);
-        byte[] bytes = EncodeUtils.base64Decode(encoded);
-        return new String(bytes);
-    }
+    @Override
+    public void publish(@NonNull List<Pane> panes, @NonNull Consumer<Boolean> output) {
+      ILog.info(TAG, "Attempting to persist panes");
 
-    private static String encode(String string) {
-        return EncodeUtils.base64Encode2String(string.getBytes());
-    }
+      AsyncTask.runOnUiThread(
+          () -> {
+            if (panes.isEmpty()) {
+              output.accept(false);
+              return;
+            }
 
-    /**
-     * An {@link PaneContract} to {@link PaneWindow#persistPanes to persist panes}
-     */
-    public static final class PersistPanes extends PaneContract<List<Pane>, Boolean> {
-        private static final String TAG = "PaneContracts#PersistPanes";
-        /**
-         * {@link SharedPreferences} to store pane information
-         */
-        private final SharedPreferences sharedPreferences;
+            List<Map<String, Object>> listMap = new LinkedList<>();
 
-        /**
-         * Constructs a contract
-         *
-         * @param sharedPreferences the {@link SharedPreferences} to store pane information
-         * @throws NullPointerException if @param sharedPreferences is null
-         */
-        public PersistPanes(SharedPreferences sharedPreferences) {
-            this.sharedPreferences = Objects.requireNonNull(sharedPreferences,
-                TAG + " SharedPreferences must not be null");
-        }
-        
-        @Override
-        public void publish(@NonNull List<Pane> panes, @NonNull Consumer<Boolean> output) {
-            ILog.info(TAG, "Attempting to persist panes");
-            
-            AsyncTask.runOnUiThread(() -> {
-                if (panes.isEmpty()) {
-                   output.accept(false);
-                   return;
-                }
-                
-                List<Map<String, Object>> listMap = new LinkedList<>();
-                
-                for (Pane pane : panes) {
-                    if (pane != null) {
-                        pane.persist(); // persist synchronously
-                        listMap.add(pane.getArguments());
-                    }
-                }
-                
-                AsyncTask.runNonCancelable(() -> {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    final String json = new Gson().toJson(listMap);
-                    editor.putString(KEY_PERSISTED_PANES, encode(json));
-                    return editor.commit();
-                }, (result, throwable) -> {
-                    if (throwable != null) {
-                        output.accept(false);
-                        ILog.debug(TAG, "Failed to persist panes due to unexpected error", throwable);
-                    } else {
-                        output.accept(result);
-                        ILog.debug(TAG, String.format("Panes persisted = '%s'", result));
-                    }
+            for (Pane pane : panes) {
+              if (pane != null) {
+                pane.persist(); // persist synchronously
+                listMap.add(pane.getArguments());
+              }
+            }
+
+            AsyncTask.runNonCancelable(
+                () -> {
+                  SharedPreferences.Editor editor = sharedPreferences.edit();
+                  final String json = new Gson().toJson(listMap);
+                  editor.putString(KEY_PERSISTED_PANES, encode(json));
+                  return editor.commit();
+                },
+                (result, throwable) -> {
+                  if (throwable != null) {
+                    output.accept(false);
+                    ILog.debug(TAG, "Failed to persist panes due to unexpected error", throwable);
+                  } else {
+                    output.accept(result);
+                    ILog.debug(TAG, String.format("Panes persisted = '%s'", result));
+                  }
                 });
-            });
-        }
+          });
     }
+  }
+
+  /**
+   * A {@link PaneContract} to remove a persisted pane via {@link
+   * PaneWindow#removePersistedPane(Pane)}.
+   */
+  public static final class RemovePersistedPane extends PaneContract<Pane, String> {
+    private static final String TAG = "PaneContracts#RemovePersistedPane";
+
+    private final SharedPreferences sharedPreferences;
 
     /**
-     * An {@link PaneContract} to {@link PaneWindow#removePersistedPane(Pane)}  to remove the
-     * persisted
-     * panes}
+     * Constructs a contract
+     *
+     * @param sharedPreferences the {@link SharedPreferences} to remove pane information
+     * @throws NullPointerException if @param sharedPreferences is null
      */
-    public static final class RemovePersistedPane extends PaneContract<Pane, String> {
-        private static final String TAG = "PaneContracts#RemovePersistedPane";
-        /**
-         * {@link SharedPreferences} to store pane information
-         */
-        private final SharedPreferences sharedPreferences;
-
-        /**
-         * Constructs a contract
-         *
-         * @param sharedPreferences the {@link SharedPreferences} to remove pane information
-         * @throws NullPointerException if @param sharedPreferences is null
-         */
-        public RemovePersistedPane(SharedPreferences sharedPreferences) {
-            this.sharedPreferences = Objects.requireNonNull(sharedPreferences,
-                TAG + " SharedPreferences must not be null!");
-        }
-
-        @Override
-        public void publish(@NonNull Pane pane, @NonNull Consumer<String> output) {
-            ILog.info(TAG, "Attempting to remove persisted pane: " + pane.getTID());
-
-            AsyncTask.runNonCancelable(() -> {
-                if (isPersisted(pane)) {
-                    List<Map<String, Object>> persistedPanes = getPersistedPaneTree();
-                    persistedPanes.removeIf(map -> Objects.equals(pane.getUUID(),
-                        map.get(Pane.KEY_UUID)));
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(KEY_PERSISTED_PANES,
-                        encode(new Gson().toJson(persistedPanes)));
-                    return editor.commit();
-                }
-                return false;
-            }, (removed, throwable) -> {
-                if (throwable != null) {
-                    var msg = "Failed to remove persisted panes due to unexpected error: "
-                        + pane.getTID();
-                    output.accept(msg + " , " + throwable.getMessage());
-                    ILog.error(TAG, msg, throwable);
-                } else {
-                    if (Boolean.TRUE.equals(removed)) {
-                        output.accept("Successfully removed pane:" + pane.getTID()
-                            + " from persistent storage");
-                    } else {
-                        output.accept(
-                            "Failed to remove pane: " + pane.getTID() + " from persistent storage, persisted = " + isPersisted(pane));
-                    }
-                }
-            });
-        }
-
-        /**
-         * Checks if a {@link Pane} exists in the persisted pane storage.
-         *
-         * @return true if @param pane was persisted in {@link SharedPreferences}
-         */
-        private boolean isPersisted(@Nullable Pane pane) {
-            return pane != null && pane.getUUID() != null && getPersistedPaneTree().stream()
-                                                                                   .map(map -> map.get(Pane.KEY_UUID))
-                                                                                   .anyMatch(pane
-                                                                                       .getUUID()
-                                                                                       .toString()::equals);
-        }
-
-        /**
-         * Converts the JSON model of persisted panes into List-Map objects
-         *
-         * <p>Never returns a null
-         *
-         * @return a list of persisted pane data, returns empty List-Map if JSON model is invalid
-         */
-        @NonNull
-        private List<Map<String, Object>> getPersistedPaneTree() {
-            return Optional.of(getPersistedPanesGsonModel(sharedPreferences))
-                           .map(PaneContracts::fromJson).orElse(new LinkedList<>());
-        }
+    public RemovePersistedPane(SharedPreferences sharedPreferences) {
+      this.sharedPreferences =
+          Objects.requireNonNull(sharedPreferences, TAG + " SharedPreferences must not be null!");
     }
+
+    @Override
+    public void publish(@NonNull Pane pane, @NonNull Consumer<String> output) {
+      ILog.info(TAG, "Attempting to remove persisted pane: " + pane.getTID());
+
+      if (pane.getUUID() == null) {
+        output.accept("Pane has no UUID");
+        return;
+      }
+
+      AsyncTask.runNonCancelable(
+          () -> {
+            List<String> singleId = Collections.singletonList(pane.getUUID().toString());
+            return commitRemoval(sharedPreferences, singleId);
+          },
+          (removed, throwable) -> {
+            if (throwable != null) {
+              var msg = "Failed to remove persisted pane: " + pane.getTID();
+              output.accept(msg + " , " + throwable.getMessage());
+              ILog.error(TAG, msg, throwable);
+            } else {
+              if (Boolean.TRUE.equals(removed)) {
+                output.accept("Successfully removed pane:" + pane.getTID());
+              } else {
+                output.accept(
+                    "Failed to remove pane: " + pane.getTID() + " (Not found in storage)");
+              }
+            }
+          });
+    }
+  }
+
+  /**
+   * A {@link PaneContract} to remove multiple persisted panes via {@link
+   * PaneWindow#removePersistedPanes(List)}.
+   */
+  public static final class RemovePersistedPanes extends PaneContract<List<Pane>, String> {
+    private static final String TAG = "PaneContracts#RemovePersistedPanes";
+
+    private final SharedPreferences sharedPreferences;
 
     /**
-     * An {@link PaneContract} to {@link PaneWindow#restorePanes to restore the persisted
-     * panes}
+     * Constructs a contract
+     *
+     * @param sharedPreferences the {@link SharedPreferences} to remove pane information
+     * @throws NullPointerException if @param sharedPreferences is null
      */
-    public static final class LoadPersistedPanes extends PaneContract<String, List<Pane>> {
-        private final PaneFactory factory;
-
-        public LoadPersistedPanes(@NonNull PaneFactory factory) {
-            this.factory = factory;
-        }
-
-        @Override
-        public void publish(@NonNull String json, @NonNull Consumer<List<Pane>> output) {
-            output.accept(factory.loadPanes(json));
-        }
+    public RemovePersistedPanes(SharedPreferences sharedPreferences) {
+      this.sharedPreferences =
+          Objects.requireNonNull(sharedPreferences, TAG + " SharedPreferences must not be null!");
     }
+
+    @Override
+    public void publish(@NonNull List<Pane> panes, @NonNull Consumer<String> output) {
+      AsyncTask.runNonCancelable(
+          () -> {
+            List<String> uuidsToRemove = getUUIDs(panes);
+            if (uuidsToRemove.isEmpty()) return 0;
+
+            boolean success = commitRemoval(sharedPreferences, uuidsToRemove);
+            return success ? uuidsToRemove.size() : 0;
+          },
+          (count, throwable) -> {
+            if (throwable != null) {
+              String msg = "Failed to remove persisted panes: " + throwable.getMessage();
+              ILog.error(TAG, msg, throwable);
+              output.accept(msg);
+            } else {
+              if (count > 0) {
+                output.accept("Successfully removed " + count + " panes");
+              } else {
+                output.accept("No panes were removed (none found in storage)");
+              }
+            }
+          });
+    }
+
+    private List<String> getUUIDs(List<Pane> panes) {
+      List<String> uuids = new ArrayList<>();
+      for (Pane p : panes) {
+        if (p != null && p.getUUID() != null) {
+          uuids.add(p.getUUID().toString());
+        }
+      }
+      return uuids;
+    }
+  }
+
+  /** A {@link PaneContract} to restore persisted panes via {@link PaneWindow#restorePanes}. */
+  public static final class LoadPersistedPanes extends PaneContract<String, List<Pane>> {
+    private final PaneFactory factory;
+
+    public LoadPersistedPanes(@NonNull PaneFactory factory) {
+      this.factory = factory;
+    }
+
+    @Override
+    public void publish(@NonNull String json, @NonNull Consumer<List<Pane>> output) {
+      output.accept(factory.loadPanes(json));
+    }
+  }
 }

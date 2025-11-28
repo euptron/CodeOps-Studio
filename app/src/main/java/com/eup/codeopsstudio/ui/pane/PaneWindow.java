@@ -327,7 +327,10 @@ public interface PaneWindow extends TabLayout.OnTabSelectedListener {
 
   /** Removes any persisted pane state information (optional operation). */
   void removePersistedPane(@NonNull Pane pane);
-
+  
+  /** Removes any persisted pane states information (optional operation). */
+  void removePersistedPanes(@NonNull List<Pane> panes);
+  
   /**
    * Removes all panes within the specified index range (fromIndex inclusive, toIndex exclusive),
    * skipping any panes that are pinned.

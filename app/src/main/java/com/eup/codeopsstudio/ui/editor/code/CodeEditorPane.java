@@ -148,15 +148,15 @@ public class CodeEditorPane extends Pane
   public static final String TAG = "CodeEditorPane";
   public static final String KEY_LEFT_LINE = "left_line";
   public static final String KEY_FILE_PATH = "file_path";
+  public static final String KEY_FILE_SIZE = "file_size";
+  public static final String KEY_WAS_DIRTY = "was_dirty";
+  public static final String KEY_FILE_MTIME = "file_mtime";
   public static final String KEY_FILE_SCOPE = "file_scope";
   public static final String KEY_LEFT_COLUMN = "left_column";
   public static final String KEY_EDITOR_CONTENT = "editor_content";
   public static final String KEY_FILE_EXTENSION = "file_extension";
-
+  
   private static final int CURSOR_HISTORY_LIMIT = 50;
-  private static final String KEY_FILE_SIZE = "file_size";
-  private static final String KEY_WAS_DIRTY = "was_dirty";
-  private static final String KEY_FILE_MTIME = "file_mtime";
   private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
   private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
 
