@@ -141,7 +141,7 @@ public class ChangeLogFragment extends Fragment {
         this.binding = null;
     }
 
-    public boolean hasInternetConnection() {
+    private boolean hasInternetConnection() {
         ConnectivityManager connectivityManager =
             (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();

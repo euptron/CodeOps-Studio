@@ -599,7 +599,7 @@ public class BaseFragment extends Fragment
             @Override
             public void run() {
               mainViewModel.requestCloseDrawer();
-              paneWindow.add(finalPane, true);
+              paneWindow.add(finalPane, false);
             }
           };
       pane = finalPane;
@@ -608,13 +608,10 @@ public class BaseFragment extends Fragment
     pane.loadFile(file);
     pane.setZoomable(true);
     pane.enableDeskTopMode(false);
+    if (action != null) action.run();
 
-    if (action == null) {
-      mainViewModel.requestCloseDrawer();
-      paneWindow.selectTab(pane);
-    } else {
-      action.run();
-    }
+    mainViewModel.requestCloseDrawer();
+    paneWindow.selectTab(pane);
   }
 
   private void restoreViewState(int behaviorState) {

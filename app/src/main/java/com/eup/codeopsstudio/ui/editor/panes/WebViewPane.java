@@ -64,14 +64,15 @@ public class WebViewPane extends Pane {
   private static final String USER_AGENT =
       "Mozilla/5.0 (Windows NT 10) AppleWebKit/537.36 "
           + "(KHTML, like Gecko) Chrome/60.0.3112.78 Safari/537.36";
-  private LayoutPaneWebviewBinding binding;
-  private boolean showConsole = true;
-  private boolean isDesktopMode = false;
-  private boolean isZoomable = true;
+
+  private Logger logger;
+  private File fileToPreview;
   private LiveServer liveServer;
   private LiveServer consoleServer;
-  private File mFile;
-  private Logger logger;
+  private boolean isZoomable = true;
+  private boolean showConsole = true;
+  private boolean isDesktopMode = false;
+  private LayoutPaneWebviewBinding binding;
 
   public WebViewPane(Context context, String title) {
     this(context, title, /* generate new uuid= */ true);
@@ -85,6 +86,8 @@ public class WebViewPane extends Pane {
   public View onCreateView() {
     binding = LayoutPaneWebviewBinding.inflate(LayoutInflater.from(getContext()));
     logger = new Logger(Logger.LogClass.IDE);
+    liveServer = new LiveServer(requireContext());
+    consoleServer = new LiveServer(requireContext());
     return binding.getRoot();
   }
 
@@ -92,9 +95,6 @@ public class WebViewPane extends Pane {
   public void onViewCreated(@NonNull View view) {
     super.onViewCreated(view);
     logger.attach(requireActivity());
-
-    liveServer = new LiveServer(requireContext());
-    consoleServer = new LiveServer(requireContext());
 
     WebSettings webSettings = binding.webview.getSettings();
     webSettings.setMediaPlaybackRequiresUserGesture(true);
@@ -113,6 +113,10 @@ public class WebViewPane extends Pane {
     webSettings.setLoadsImagesAutomatically(true);
     webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
     webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+    webSettings.setAllowUniversalAccessFromFileURLs(true);
+    webSettings.setAllowFileAccessFromFileURLs(true);
+    // for better CSS/JS support
+    webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
     setZoomable(true);
     enableDeskTopMode(false);
 
@@ -123,6 +127,27 @@ public class WebViewPane extends Pane {
     binding.progressbar.setMax(100);
     binding.progressbar.setProgress(1);
     binding.progressbar.setVisibility(View.GONE);
+
+    binding.webview.setWebChromeClient(
+        new WebChromeClient() {
+          @Override
+          public void onProgressChanged(WebView view, int progress) {
+            binding.progressbar.setProgressCompat(progress, true);
+
+            if (view.getTitle() != null && Objects.equals(view.getTitle(), "about:blank")) {
+              setTitle(view.getTitle());
+            }
+          }
+
+          @Override
+          public void onReceivedTitle(WebView view, String pageTitle) {
+            super.onReceivedTitle(view, pageTitle);
+
+            if (!Wizard.isEmpty(pageTitle)) {
+              setTitle(pageTitle);
+            }
+          }
+        });
 
     binding.webview.setWebViewClient(
         new WebViewClient() {
@@ -135,17 +160,15 @@ public class WebViewPane extends Pane {
           @Override
           public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
-            // show progress bar
             binding.progressbar.setVisibility(View.VISIBLE);
           }
 
           @Override
           public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            // hide progress bar
             binding.progressbar.setVisibility(View.GONE);
 
-            if (showConsole) {
+            if (showConsole && consoleServer.getUrl() != null) {
               String msg = getString(R.string.msg_console_welcome, getString(R.string.app_name));
               String initializeConsole =
                   """
@@ -176,33 +199,22 @@ public class WebViewPane extends Pane {
             }
           }
         });
-
-    binding.webview.setWebChromeClient(
-        new WebChromeClient() {
-          @Override
-          public void onProgressChanged(WebView view, int progress) {
-            if (binding == null) return;
-            binding.progressbar.setProgressCompat(progress, true);
-            if (view.getTitle() != null && Objects.equals(view.getTitle(), "about:blank")) {
-              setTitle(view.getTitle());
-            }
-          }
-
-          @Override
-          public void onReceivedTitle(WebView view, String pageTitle) {
-            super.onReceivedTitle(view, pageTitle);
-            if (!Wizard.isEmpty(pageTitle)) {
-              setTitle(pageTitle);
-            }
-          }
-        });
   }
 
-  /** Called before the pane is destroyed */
   @Override
   public void onDestroyView() {
     super.onDestroyView();
-    binding.webview.destroy();
+    if (liveServer != null) {
+      liveServer.stop();
+    }
+
+    if (consoleServer != null) {
+      consoleServer.stop();
+    }
+
+    if (binding.webview != null) {
+      binding.webview.destroy();
+    }
 
     liveServer = null;
     consoleServer = null;
@@ -216,12 +228,20 @@ public class WebViewPane extends Pane {
       return;
     }
 
-    if (mFile == null && liveServer != null && liveServer.getSourceFile() != null) {
-      mFile = liveServer.getSourceFile();
+    if (fileToPreview != null && liveServer != null) {
+      try {
+        liveServer.setSingleFileMode(fileToPreview);
+      } catch (IllegalArgumentException e) {
+        logger.e(LOG_TAG, "Error setting file mode: " + e.getMessage());
+      }
     }
 
-    if (mFile != null
-        && Constants.WEB_MARKUP_LANGUAGE.stream().anyMatch(mFile.getName()::endsWith)) {
+    if (fileToPreview == null) {
+      fileToPreview = liveServer.getSourceFile();
+    }
+
+    if (fileToPreview != null
+        && Constants.WEB_MARKUP_LANGUAGE.stream().anyMatch(fileToPreview.getName()::endsWith)) {
       try {
         consoleServer.setSingleFileMode(FileUtil.Path.ERUDA_CONSOLE);
       } catch (IllegalArgumentException e) {
@@ -230,10 +250,11 @@ public class WebViewPane extends Pane {
       consoleServer.launchWithLocalHost();
     }
 
-    // fix for overhead ~ 600ms in versions 1.0.0 and 1.0.2
     AsyncTask.runNonCancelable(
         () -> {
-          liveServer.launch();
+          if (!liveServer.isAlive()) {
+            liveServer.launch();
+          }
           return liveServer.getUrl();
         },
         (result, throwable) -> {
@@ -253,7 +274,6 @@ public class WebViewPane extends Pane {
   @Override
   public void onUnselected() {
     super.onUnselected();
-    // Stop active servers
     if (liveServer != null) {
       liveServer.stop();
     }
@@ -265,9 +285,25 @@ public class WebViewPane extends Pane {
   @Override
   public void persist() {
     super.persist();
-    addArguments(KEY_PREVIEW_FILE_PATH, Wizard.getFilePathOrEmpty(mFile));
+    addArguments(KEY_PREVIEW_FILE_PATH, Wizard.getFilePathOrEmpty(fileToPreview));
     addArguments(KEY_IS_ZOOMABLE, isZoomable);
     addArguments(KEY_DESKTOP_MODE, isDesktopMode);
+  }
+
+  /**
+   * Loads file preset for selected
+   *
+   * @param file the file
+   */
+  public void loadFile(File file) {
+    fileToPreview = file;
+    if (liveServer == null) return;
+
+    try {
+      liveServer.setSingleFileMode(file);
+    } catch (IllegalArgumentException e) {
+      logger.e(LOG_TAG, e.getMessage());
+    }
   }
 
   public void enableDeskTopMode(boolean enabled) {
@@ -293,7 +329,7 @@ public class WebViewPane extends Pane {
   }
 
   public File getFile() {
-    return this.mFile;
+    return this.fileToPreview;
   }
 
   public WebView getWebView() {
@@ -332,25 +368,6 @@ public class WebViewPane extends Pane {
     if (!hasPerformedCreateView()) return;
     isZoomable = enabled;
     binding.webview.getSettings().setSupportZoom(enabled);
-  }
-
-  /**
-   * Loads file preset for selected
-   *
-   * @param file the file
-   */
-  public void loadFile(File file) {
-    if (liveServer != null) {
-      mFile = file;
-      try {
-        liveServer.setSingleFileMode(file);
-      } catch (IllegalArgumentException e) {
-        logger.e(LOG_TAG, e.getMessage());
-      }
-      if (liveServer.isAlive()) {
-        binding.webview.loadUrl(liveServer.getUrl());
-      }
-    }
   }
 
   public void openInDeviceBrowser() {

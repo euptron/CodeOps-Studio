@@ -49,7 +49,7 @@ public final class Constants {
   public static final String USER_DISPLAY_DATE_TIME_FORMAT = "dd-MM-yyyy HH:mm:ss";
   public static final String USER_DISPLAY_TIME_DATE_FORMAT = "HH:mm:ss dd-MM-yyyy";
   public static final String ISO_8601_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss Z";
-  public static final Set<String> WEB_MARKUP_LANGUAGE = Set.of("html", "htm");
+  public static final Set<String> WEB_MARKUP_LANGUAGE = Set.of("html", "htm", ".xhtml");
   public static final Set<String> MODIFIABLE_EXTERNAL_STORAGE_IDS = Set.of("primary", "home");
   public static final Set<String> VIDEO_EXTENSIONS =
       Set.of("avi", "mp4", "mov", "mkv", "wmv", "flv", "webm", "3gp", "rmvb", "m4v");
@@ -72,6 +72,9 @@ public final class Constants {
           Stream.of(DOCUMENT_EXTENSIONS, ARCHIVE_EXTENSIONS)
               .flatMap(Collection::stream)
               .collect(Collectors.toSet()));
+  public static final Set<String> WEB_STYLESHEET_EXTENSIONS =
+      Set.of(".css", ".scss", ".sass", ".less");
+  public static final Set<String> WEB_SCRIPT_EXTENSIONS = Set.of(".js", ".mjs");
 
   public static final String TEXTMATE_ASSET_SCOPE_PATH = "editor/textmate/language_scopes.json";
   public static final int EXPIRATION_YEAR = 2026;

@@ -231,11 +231,12 @@ public class MainFragment extends Fragment
         new OnBackPressedCallback(/* enabled= */ false) {
           @Override
           public void handleOnBackPressed() {
-            var webViewPane = getSelectedWebViewPane();
+            var webViewPane = selected(WebViewPane.class);
             if (webViewPane != null && webViewPane.getWebView().canGoBack()) {
               webViewPane.getWebView().goBack();
               return;
             }
+
             if (rootView instanceof AllowChildInterceptDrawerLayout) {
               if (mainViewModel.isDrawerOpen()) {
                 mainViewModel.requestCloseDrawer();
@@ -472,8 +473,8 @@ public class MainFragment extends Fragment
 
   private boolean onToolbarOptionsMenuItemSelected(MenuItem item) {
     final int id = item.getItemId();
-    final CodeEditorPane editorPane = getSelectedCodeEditorPane();
-    final WebViewPane webViewPane = getSelectedWebViewPane();
+    final CodeEditorPane editorPane = selected(CodeEditorPane.class);
+    final WebViewPane webViewPane = selected(WebViewPane.class);
 
     if (editorPane != null && editorPane.getEditor() != null) {
       return handleCodeEditorActions(item, id, editorPane);
@@ -616,8 +617,8 @@ public class MainFragment extends Fragment
   }
 
   private void onPrepareToolbarOptionsMenus(Menu menu) {
-    CodeEditorPane editorPane = getSelectedCodeEditorPane();
-    WebViewPane webViewPane = getSelectedWebViewPane();
+    CodeEditorPane editorPane = selected(CodeEditorPane.class);
+    WebViewPane webViewPane = selected(WebViewPane.class);
 
     if (editorPane != null) {
       configureEditorMenu(menu, editorPane);
@@ -770,16 +771,10 @@ public class MainFragment extends Fragment
     }
   }
 
-  private WebViewPane getSelectedWebViewPane() {
+  private <T extends Pane> T selected(Class<T> type) {
     if (currentPanePair == null) return null;
     Pane current = currentPanePair.second;
-    return (current instanceof WebViewPane) ? (WebViewPane) current : null;
-  }
-
-  private CodeEditorPane getSelectedCodeEditorPane() {
-    if (currentPanePair == null) return null;
-    Pane current = currentPanePair.second;
-    return (current instanceof CodeEditorPane) ? (CodeEditorPane) current : null;
+    return type.isInstance(current) ? type.cast(current) : null;
   }
 
   public void closeApp() {
