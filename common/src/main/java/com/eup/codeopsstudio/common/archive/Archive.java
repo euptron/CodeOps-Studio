@@ -29,64 +29,64 @@ import androidx.annotation.NonNull;
  * @author Etido Peter
  */
 public interface Archive {
-    @NonNull
-    String getType();
+  @NonNull
+  String getType();
 
-    interface OnArchiveListener {
-        void onComplete(String message);
+  interface OnArchiveListener {
+    void onComplete(String message);
 
-        void onError(Exception exception);
+    void onError(Exception exception);
 
-        void onFileProgress(long bytesWritten, long totalBytes, String fileName);
+    void onFileProgress(long bytesWritten, long totalBytes, String fileName);
 
-        void onInitialize(String message);
+    void onInitialize(String message);
 
-        void onSpeedUpdate(String message);
+    void onSpeedUpdate(String message);
 
-        void onStart(int totalItems);
+    void onStart(int totalItems);
 
-        void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft);
+    void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft);
+  }
+
+  public static class NoOPListener implements OnArchiveListener {
+
+    public NoOPListener() {
+      // Default
     }
 
-    public static class NoOPListener implements OnArchiveListener {
-
-        public NoOPListener() {
-            // Default
-        }
-
-        @Override
-        public void onInitialize(String message) {
-            // No-op
-        }
-
-        @Override
-        public void onStart(int totalItems) {
-            // No-op
-        }
-
-        @Override
-        public void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft) {
-            // No-op
-        }
-
-        @Override
-        public void onFileProgress(long bytesWritten, long totalBytes, String fileName) {
-            // No-op
-        }
-
-        @Override
-        public void onComplete(String message) {
-            // No-op
-        }
-
-        @Override
-        public void onError(Exception exception) {
-            // No-op
-        }
-
-        @Override
-        public void onSpeedUpdate(String message) {
-            // No-op
-        }
+    @Override
+    public void onInitialize(String message) {
+      // No-op
     }
+
+    @Override
+    public void onStart(int totalItems) {
+      // No-op
+    }
+
+    @Override
+    public void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft) {
+      // No-op
+    }
+
+    @Override
+    public void onFileProgress(long bytesWritten, long totalBytes, String fileName) {
+      // No-op
+    }
+
+    @Override
+    public void onComplete(String message) {
+      // No-op
+    }
+
+    @Override
+    public void onError(Exception exception) {
+      // No-op
+    }
+
+    @Override
+    public void onSpeedUpdate(String message) {
+      // No-op
+    }
+  }
 }

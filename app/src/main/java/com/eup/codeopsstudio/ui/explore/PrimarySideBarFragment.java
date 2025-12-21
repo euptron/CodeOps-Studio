@@ -23,28 +23,27 @@
 
 package com.eup.codeopsstudio.ui.explore;
 
-import android.graphics.Insets;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.view.Window;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-
+import com.eup.codeopsstudio.BuildConfig;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.databinding.FragmentPrimarySideBarBinding;
 import com.eup.codeopsstudio.util.BaseUtil;
+import com.eup.codeopsstudio.util.ThemeExporter;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
-import com.google.android.material.navigationrail.NavigationRailView;
 
 /**
  * A Fragment subclass responsible for displaying the primary side bar in the Explore section of the
@@ -76,11 +75,20 @@ public class PrimarySideBarFragment extends Fragment {
   @Override
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    applySystemInsets(requireActivity().getWindow(), binding.getRoot());
-
-    int host = com.eup.codeopsstudio.R.id.nav_host_primary_side_bar_fragment;
+    applySystemInsets(binding.fragmentContainer);
+    int host = R.id.nav_host_primary_side_bar_fragment;
     navController = Navigation.findNavController(requireActivity(), host);
     binding.navigationRail.setOnItemSelectedListener(this::onNavDestinationSelected);
+
+    binding
+        .navigationRail
+        .getHeaderView()
+        .setOnClickListener(
+            headerView -> {
+              if (BuildConfig.DEBUG) {
+                ThemeExporter.exportThemeToXML(requireActivity());
+              }
+            });
   }
 
   @Override
@@ -88,27 +96,10 @@ public class PrimarySideBarFragment extends Fragment {
     super.onDestroyView();
     this.binding = null;
   }
-
-  public static void applySystemInsets(@NonNull Window w, @NonNull View v) {
-    if (android.os.Build.VERSION.SDK_INT < 35) return;
-
-    int systemInsets =
-        WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
-
-    View decorView = w.getDecorView();
-    decorView.post(
-        () -> {
-          WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decorView);
-          if (insets != null) {
-            ViewGroup.MarginLayoutParams params =
-                (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-            params.topMargin = insets.getInsets(systemInsets).top;
-            params.bottomMargin = insets.getInsets(systemInsets).bottom;
-            params.leftMargin = insets.getInsets(systemInsets).left;
-            params.rightMargin = insets.getInsets(systemInsets).right;
-            v.setLayoutParams(params);
-          }
-        });
+  
+  private void applySystemInsets(@NonNull View view) {
+    int systemBars = WindowInsetsCompat.Type.systemBars();
+    BaseUtil.applyWindowInsetToPadding(view, false, true, false, true, systemBars);
   }
 
   /**

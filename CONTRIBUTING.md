@@ -71,6 +71,204 @@ We use GitHub issues to track bugs. If you encounter a bug, please report it
 by [opening a new issue](https://github.com/euptron/CodeOps-Studio/issues). Include detailed steps
 to reproduce the bug, expected behavior, actual behavior observed, and any relevant code snippets.
 
+
+## Versioning Policy (Required)
+
+CodeOps Studio uses a **strict, enforced variation of Semantic Versioning** that is intentionally designed to support:
+
+* deterministic update checks
+* forced minimum-version enforcement
+* Android `versionCode` constraints
+* Git-based build traceability
+* reliable client/server version comparison
+
+This policy is **not optional**. Any deviation may cause update logic to fail silently or force incorrect downgrade/upgrade behavior.
+
+---
+
+### Version Format
+
+The application version **MUST** follow this structure:
+
+```
+MAJOR.MINOR.PATCH [RELEASE_TYPE]
+```
+
+Examples:
+
+* `1.0.5`
+* `1.0.5 beta`
+* `1.2.0 rc`
+* `2.0.0 stable`
+
+Internally, spaces are normalized and treated as `-` during comparison.
+
+---
+
+### Core Version (Mandatory)
+
+The **core version**:
+
+```
+MAJOR.MINOR.PATCH
+```
+
+* MUST contain **exactly three numeric segments**
+* MUST be strictly numeric
+* MUST NOT include prefixes (`v`), suffixes, or metadata
+* MUST increase monotonically
+
+Valid:
+
+* `1.0.0`
+* `1.2.3`
+
+Invalid:
+
+* `1.0`
+* `1.0.0.1`
+* `v1.0.0`
+* `1.0.0-beta` (labels are handled separately)
+
+The core version is used for **primary ordering** during version comparison.
+
+---
+
+### Release Types (Controlled Vocabulary)
+
+Release maturity is expressed using a **single release-type label**, mapped to a strict priority order.
+
+| Release Type | Key      | Priority |
+| ------------ | -------- | -------- |
+| Alpha        | `alpha`  | 1        |
+| Beta         | `beta`   | 2        |
+| RC           | `rc`     | 3        |
+| Pre-release  | `pr`     | 4        |
+| Stable       | `stable` | 5        |
+
+Ordering rule:
+
+```
+alpha < beta < rc < pr < stable
+```
+
+Only these labels are recognized.
+
+---
+
+### Release Type Rules
+
+* The release type:
+
+  * MUST be a **single word**
+  * MUST NOT contain punctuation
+  * MUST NOT contain dashes, commas, or numbers
+* Only one release type may be present
+* If omitted, the version is treated as **STABLE**
+
+Valid:
+
+* `1.0.5 beta`
+* `1.0.5 rc`
+* `1.0.5`
+
+Invalid:
+
+* `1.0.5-beta-2`
+* `1.0.5 beta1`
+* `1.0.5 preview`
+* `1.0.5 final`
+
+---
+
+### Why This Is Strictly Enforced
+
+CodeOps Studio uses a **custom version comparator** to determine:
+
+* update availability
+* forced update requirements
+* backward compatibility guarantees
+
+The comparator works in **two phases**:
+
+1. **Numeric comparison** of `MAJOR.MINOR.PATCH`
+2. **Priority comparison** of release type
+
+Because Android update logic depends on this ordering:
+
+* malformed versions may appear *newer* than they are
+* stable releases may be downgraded incorrectly
+* forced updates may never trigger
+* CI and Play Store builds may diverge
+
+This is why:
+
+* free-form SemVer prerelease identifiers are not allowed
+* build metadata is intentionally ignored
+* release types are finite and ordered
+
+---
+
+### Git Integration and Version Code
+
+* `versionCode` is derived from **Git commit count**
+* A fallback monotonic value is used when Git is unavailable
+* Contributors **must not** manually override `versionCode`
+
+This guarantees:
+
+* Play Store–safe monotonic upgrades
+* reproducible builds
+* traceable releases
+
+---
+
+### What Contributors Are Allowed to Change
+
+Only the following versioning fields may be modified when explicitly required:
+
+* `baseVersion` (core semantic version only)
+* `suffix` (release type only)
+
+Contributors **must not**:
+
+* manually construct `versionName`
+* append commit hashes themselves
+* introduce additional version labels
+* add formatting, symbols, or separators
+
+---
+
+### Tagging Releases
+
+Git tags **MUST** match the core version:
+
+```
+vMAJOR.MINOR.PATCH
+```
+
+Examples:
+
+* `v1.0.5`
+* `v2.1.0`
+
+Tags must not include release types or metadata.
+
+---
+
+### Violations
+
+Pull requests that:
+
+* introduce unsupported version formats
+* modify version comparison logic
+* bypass version normalization
+* add unrecognized release labels
+
+**will be rejected**.
+
+This policy exists to protect update correctness and user safety.
+
 ## Licensing
 
 By contributing to CodeOps Studio, you agree that your contributions will be licensed under

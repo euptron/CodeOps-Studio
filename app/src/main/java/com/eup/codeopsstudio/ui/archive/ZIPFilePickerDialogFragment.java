@@ -55,154 +55,163 @@ import java.util.Objects;
  * @author Etido Peter
  */
 public class ZIPFilePickerDialogFragment extends DialogFragment {
-    public static final String TAG = "ZIPFilePickerDialogFragment";
-    private static final String KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH = "zip_file_path";
+  public static final String TAG = "ZIPFilePickerDialogFragment";
+  private static final String KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH = "zip_file_path";
 
-    private Logger logger;
-    private LayoutDialogTextInputBinding dialogTextInputBinding;
-    private File zipFile;
-    private String zipPath;
-    private FileViewModel fileViewModel;
+  private Logger logger;
+  private LayoutDialogTextInputBinding dialogTextInputBinding;
+  private File zipFile;
+  private String zipPath;
+  private FileViewModel fileViewModel;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        logger  = new Logger(Logger.LogClass.IDE);
-        zipPath = requireArguments().getString(KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH);
-        zipFile = new File(Objects.requireNonNull(zipPath));
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    logger = new Logger(Logger.LogClass.IDE);
+    zipPath = requireArguments().getString(KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH);
+    zipFile = new File(Objects.requireNonNull(zipPath));
 
-        fileViewModel = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
-        logger.attach(requireActivity());
-    }
+    fileViewModel = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
+    logger.attach(requireActivity());
+  }
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        dialogTextInputBinding = LayoutDialogTextInputBinding.inflate(getLayoutInflater());
+  @NonNull
+  @Override
+  public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+    dialogTextInputBinding = LayoutDialogTextInputBinding.inflate(getLayoutInflater());
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
-        builder.setTitle(R.string.create_project);
-        builder.setView(dialogTextInputBinding.getRoot());
-        dialogTextInputBinding.tilOther.setVisibility(View.VISIBLE);
-        dialogTextInputBinding.inputDescription.setVisibility(View.VISIBLE);
-        dialogTextInputBinding.inputDescription.setText(R.string.msg_unzip_project_into_dir_based_on_project_name);
-        dialogTextInputBinding.tilName.setHint(getString(R.string.project_name));
-        Objects.requireNonNull(dialogTextInputBinding.tilName.getEditText())
-               .setText(FileUtil.getFileNameWithoutExtension(zipFile));
-        dialogTextInputBinding.tilOther.setHint(getString(R.string.save_location));
-        dialogTextInputBinding.tilOther.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
-        dialogTextInputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
-        dialogTextInputBinding.tilOther.setEndIconOnClickListener(v -> {
-            MainActivity mainActivity = (MainActivity) requireActivity();
-            mainActivity.getLifecycleObserver().pickFolder();
+    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+    builder.setTitle(R.string.create_project);
+    builder.setView(dialogTextInputBinding.getRoot());
+    dialogTextInputBinding.tilOther.setVisibility(View.VISIBLE);
+    dialogTextInputBinding.inputDescription.setVisibility(View.VISIBLE);
+    dialogTextInputBinding.inputDescription.setText(
+        R.string.msg_unzip_project_into_dir_based_on_project_name);
+    dialogTextInputBinding.tilName.setHint(getString(R.string.project_name));
+    Objects.requireNonNull(dialogTextInputBinding.tilName.getEditText())
+        .setText(FileUtil.getFileNameWithoutExtension(zipFile));
+    dialogTextInputBinding.tilOther.setHint(getString(R.string.save_location));
+    dialogTextInputBinding.tilOther.setEndIconMode(TextInputLayout.END_ICON_CUSTOM);
+    dialogTextInputBinding.tilOther.setEndIconDrawable(R.drawable.ic_folder_outline);
+    dialogTextInputBinding.tilOther.setEndIconOnClickListener(
+        v -> {
+          MainActivity mainActivity = (MainActivity) requireActivity();
+          mainActivity.getLifecycleObserver().pickFolder();
         });
 
-        builder.setPositiveButton(getString(R.string.create), (dialog, which) -> {
-            String projectName = dialogTextInputBinding.tilName.getEditText().getText().toString();
-            String destDirPath = Objects
-                .requireNonNull(dialogTextInputBinding.tilOther.getEditText()).getText().toString();
-            // show unzip dialog
-            File destDir = new File(destDirPath, projectName);
-            int bufferSize = PreferencesUtils.getCurrentBufferSize();
-            UnzipDialogFragment unzipDialog = UnzipDialogFragment.newInstance(zipPath,
-                destDir.getAbsolutePath(), bufferSize);
-            unzipDialog.show(getParentFragmentManager(), UnzipDialogFragment.TAG);
+    builder.setPositiveButton(
+        getString(R.string.create),
+        (dialog, which) -> {
+          String projectName = dialogTextInputBinding.tilName.getEditText().getText().toString();
+          String destDirPath =
+              Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText())
+                  .getText()
+                  .toString();
+          // show unzip dialog
+          File destDir = new File(destDirPath, projectName);
+          int bufferSize = PreferencesUtils.getCurrentBufferSize();
+          UnzipDialogFragment unzipDialog =
+              UnzipDialogFragment.newInstance(zipPath, destDir.getAbsolutePath(), bufferSize);
+          unzipDialog.show(getParentFragmentManager(), UnzipDialogFragment.TAG);
         });
-        builder.setNegativeButton(android.R.string.cancel, null);
+    builder.setNegativeButton(android.R.string.cancel, null);
 
-        AlertDialog dialog = builder.create();
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setOnShowListener(d -> configurePositiveButton(dialog));
-        return dialog;
+    AlertDialog dialog = builder.create();
+    dialog.setCancelable(false);
+    dialog.setCanceledOnTouchOutside(false);
+    dialog.setOnShowListener(d -> configurePositiveButton(dialog));
+    return dialog;
+  }
+
+  private void configurePositiveButton(@NonNull AlertDialog dialog) {
+    final Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+    positiveButton.setEnabled(false);
+    Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText());
+
+    dialogTextInputBinding
+        .tilOther
+        .getEditText()
+        .addTextChangedListener(
+            new TextWatcherAdapter() {
+              @Override
+              public void afterTextChanged(@NonNull Editable editable) {
+                final File output = new File(editable.toString());
+                if (!output.exists()) {
+                  positiveButton.setEnabled(false);
+                  dialogTextInputBinding.tilOther.setErrorEnabled(true);
+                  dialogTextInputBinding.tilOther.setError(getString(R.string.msg_dir_not_exist));
+                } else {
+                  positiveButton.setEnabled(true);
+                  if (dialogTextInputBinding.tilOther.isErrorEnabled()) {
+                    dialogTextInputBinding.tilOther.setErrorEnabled(false);
+                  }
+                }
+              }
+            });
+
+    Objects.requireNonNull(dialogTextInputBinding.tilName.getEditText());
+    dialogTextInputBinding
+        .tilName
+        .getEditText()
+        .addTextChangedListener(
+            new TextWatcherAdapter() {
+              @Override
+              public void afterTextChanged(@NonNull Editable editable) {
+                String projectName =
+                    dialogTextInputBinding.tilName.getEditText().getText().toString();
+                final File output = new File(editable.toString(), projectName);
+                if (output.exists()) {
+                  positiveButton.setEnabled(false);
+                  dialogTextInputBinding.tilName.setErrorEnabled(true);
+                  dialogTextInputBinding.tilName.setError(getString(R.string.msg_dir_does_exist));
+                } else {
+                  positiveButton.setEnabled(true);
+                  if (dialogTextInputBinding.tilName.isErrorEnabled()) {
+                    dialogTextInputBinding.tilName.setErrorEnabled(false);
+                  }
+                }
+              }
+            });
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    if (isDialogVisible()) {
+      fileViewModel.observePickedFolders(requireActivity(), this::handlePickedFolder);
+      if (!zipFile.exists() || !zipFile.isFile()) {
+        logger.w(TAG, getString(R.string.cannot_open_invalid_zip_file));
+        dismiss();
+      }
+
+      if (!zipFile.getName().endsWith(".zip")) {
+        String msg = getString(R.string.msg_selected_file_not_valid_type, getString(R.string.zip));
+        BaseUtil.toastShort(msg);
+        logger.w(TAG, msg);
+        dismiss();
+      }
     }
+  }
 
-    private void configurePositiveButton(@NonNull AlertDialog dialog) {
-        final Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-        positiveButton.setEnabled(false);
-        Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText());
-
-        dialogTextInputBinding.tilOther.getEditText()
-                                       .addTextChangedListener(new TextWatcherAdapter() {
-                                           @Override
-                                           public void afterTextChanged(
-                                               @NonNull Editable editable) {
-                                               final File output = new File(editable.toString());
-                                               if (!output.exists()) {
-                                                   positiveButton.setEnabled(false);
-                                                   dialogTextInputBinding.tilOther.setErrorEnabled(true);
-                                                   dialogTextInputBinding.tilOther.setError(getString(R.string.msg_dir_not_exist));
-                                               } else {
-                                                   positiveButton.setEnabled(true);
-                                                   if (dialogTextInputBinding.tilOther.isErrorEnabled()) {
-                                                       dialogTextInputBinding.tilOther.setErrorEnabled(false);
-                                                   }
-                                               }
-                                           }
-                                       });
-
-        Objects.requireNonNull(dialogTextInputBinding.tilName.getEditText());
-        dialogTextInputBinding.tilName.getEditText()
-                                      .addTextChangedListener(new TextWatcherAdapter() {
-                                          @Override
-                                          public void afterTextChanged(@NonNull Editable editable) {
-                                              String projectName = dialogTextInputBinding.tilName
-                                                  .getEditText().getText().toString();
-                                              final File output = new File(editable.toString(),
-                                                  projectName);
-                                              if (output.exists()) {
-                                                  positiveButton.setEnabled(false);
-                                                  dialogTextInputBinding.tilName.setErrorEnabled(true);
-                                                  dialogTextInputBinding.tilName.setError(getString(R.string.msg_dir_does_exist));
-                                              } else {
-                                                  positiveButton.setEnabled(true);
-                                                  if (dialogTextInputBinding.tilName.isErrorEnabled()) {
-                                                      dialogTextInputBinding.tilName.setErrorEnabled(false);
-                                                  }
-                                              }
-                                          }
-                                      });
+  private void handlePickedFolder(@NonNull File file) {
+    if (file.exists()) {
+      var folderPath = file.getAbsolutePath();
+      Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText());
+      dialogTextInputBinding.tilOther.getEditText().setText(folderPath);
+      logger.d(TAG, getString(R.string.folder_selection_success));
     }
+  }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (isDialogVisible()) {
-            fileViewModel.observePickedFolders(requireActivity(), this::handlePickedFolder);
-            if (!zipFile.exists() || !zipFile.isFile()) {
-                logger.w(TAG, getString(R.string.cannot_open_invalid_zip_file));
-                dismiss();
-            }
+  private boolean isDialogVisible() {
+    return getDialog() != null && getDialog().isShowing();
+  }
 
-            if (!zipFile.getName().endsWith(".zip")) {
-                String msg = getString(R.string.msg_selected_file_not_valid_type,
-                    getString(R.string.zip));
-                BaseUtil.toastShort(msg);
-                logger.w(TAG, msg);
-                dismiss();
-            }
-        }
-    }
-
-    private void handlePickedFolder(@NonNull File file) {
-        if (file.exists()) {
-            var folderPath = file.getAbsolutePath();
-            Objects.requireNonNull(dialogTextInputBinding.tilOther.getEditText());
-            dialogTextInputBinding.tilOther.getEditText().setText(folderPath);
-            logger.d(TAG, getString(R.string.folder_selection_success));
-        }
-    }
-
-    private boolean isDialogVisible() {
-        return getDialog() != null && getDialog().isShowing();
-    }
-
-    @NonNull
-    public static ZIPFilePickerDialogFragment newInstance(String selectedZIPFilePath) {
-        ZIPFilePickerDialogFragment fragment = new ZIPFilePickerDialogFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString(KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH, selectedZIPFilePath);
-        fragment.setArguments(arguments);
-        return fragment;
-    }
+  @NonNull
+  public static ZIPFilePickerDialogFragment newInstance(String selectedZIPFilePath) {
+    ZIPFilePickerDialogFragment fragment = new ZIPFilePickerDialogFragment();
+    Bundle arguments = new Bundle();
+    arguments.putString(KEY_ARGUMENT_SELECTED_ZIP_FILE_PATH, selectedZIPFilePath);
+    fragment.setArguments(arguments);
+    return fragment;
+  }
 }

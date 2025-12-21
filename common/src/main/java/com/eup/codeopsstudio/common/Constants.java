@@ -41,6 +41,49 @@ import java.util.stream.Stream;
  * @author Etido Peter
  */
 public final class Constants {
+  public static final String KEY_APP_FIRST_LAUNCH = "firstLaunch";
+
+  public static final String MANAGE_EXTERNAL_STORAGE_PERMISSION = "android:manage_external_storage";
+
+  // SharedPreferences keys
+  public static final String PREF_APP_UPDATES = "app_updates";
+  public static final String PREF_UPDATE_VERSION = "update_version";
+  public static final String PREF_UPDATE_DOWNLOAD_URL = "update_download_url";
+  public static final String PREF_UPDATE_DOWNLOAD_SIZE = "download_size";
+  public static final String PREF_UPDATE_CHANGELOG = "update_changelog";
+  public static final String PREF_UPDATE_FORCED = "update_forced";
+  public static final String PREF_UPDATE_CHECK_TIME = "update_check_time";
+  public static final String PREF_UPDATE_MIN_VERSION = "update_min_version";
+
+  // Notification data keys
+  public static final String KEY_UPDATE_VERSION = "version";
+  public static final String KEY_DOWNLOAD_URL = "download_url";
+  public static final String KEY_CHANGELOG = "changelog";
+  public static final String KEY_FORCE_UPDATE = "force_update";
+  public static final String KEY_MIN_VERSION = "min_version";
+  public static final String KEY_UPDATE_DOWNLOAD_SIZE = "download_size";
+  // Notification types
+  public static final String NOTIFICATION_TYPE_APP_UPDATE = "app_update";
+  public static final String NOTIFICATION_TYPE_DEFAULT = "default";
+
+  // Notification IDs
+  public static final int NOTIFICATION_ID_APP_UPDATE = 1001;
+
+  // FCM targeting keys
+  public static final String FCM_TARGET_COUNTRY = "target_country";
+  public static final String FCM_TARGET_USER_ID = "target_user_id";
+  public static final String FCM_TARGET_ANDROID_VERSION = "target_android_version";
+  public static final String FCM_TARGET_APP_VERSION = "target_app_version";
+  public static final String FCM_TARGET_LOCALE = "target_locale";
+  public static final String FCM_LONG_TASK = "long_task";
+  public static final String FCM_IMAGE_URL = "image_url";
+  public static final String FCM_NOTIFICATION_TYPE = "notification_type";
+
+  // Other constants
+  public static final String APP_FILE_PREFIX = "codeops-studio-";
+  public static final String APK_FILE_EXTENSION = ".apk";
+  public static final String CHANNEL_ID_APP_UPDATES = "app_updates";
+
   public static final String DEFAULT_DATE_FORMAT = "EEE, dd-MMM-yyyy HH:mm:ss";
   public static final String IDE_LOGS_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.S";
   public static final String DEBUG_LOGS_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
@@ -174,7 +217,6 @@ public final class Constants {
 
   // Inner class for shared preference keys
   public static class SharedPreferenceKeys {
-
     public static final String KEY_RECENT_PROJECTS = "recent_projects";
     public static final String KEY_LAST_OPENED_PROJECT = "last_opened_project";
     public static final String KEY_PERSISTED_PANES = "persisted_cues";

@@ -33,10 +33,11 @@ import java.util.List;
  * A multi-functional provider handling symbol navigation and plugin management.
  *
  * <p>Triggered by the {@code @} prefix, this provider manages complex sub-queries such as:
+ *
  * <ul>
- *   <li><b>Symbol Search:</b> Navigating to classes or methods in the current file.</li>
- *   <li><b>Plugin Commands:</b> Handling arguments like {@code @plugins -git} to expose
- *   specific sub-menus.</li>
+ *   <li><b>Symbol Search:</b> Navigating to classes or methods in the current file.
+ *   <li><b>Plugin Commands:</b> Handling arguments like {@code @plugins -git} to expose specific
+ *       sub-menus.
  * </ul>
  *
  * @author Etido Peter
@@ -119,7 +120,7 @@ public class SymbolProvider implements CommandProvider {
               "JGit",
               null,
               () -> {
-                showToast(context, "Executing JGit: " + gitCmd);
+                toast("Executing JGit: " + gitCmd);
                 // In a real app, call your GitManager here
               }));
     } else {
@@ -138,11 +139,7 @@ public class SymbolProvider implements CommandProvider {
 
       list.add(
           new PaletteItem(
-              "g_status",
-              "Status",
-              "Show status",
-              "JGit",
-              () -> showToast(context, "Executing Status")));
+              "g_status", "Status", "Show status", "JGit", () -> toast("Executing Status")));
     }
   }
 
@@ -154,13 +151,9 @@ public class SymbolProvider implements CommandProvider {
             "Javac: Compile",
             "Compile current file",
             "Java",
-            () -> showToast(context, "Running javac...")));
+            () -> toast("Running javac...")));
     list.add(
         new PaletteItem(
-            "j_run",
-            "Java: Run",
-            "Run main method",
-            "Java",
-            () -> showToast(context, "Running java...")));
+            "j_run", "Java: Run", "Run main method", "Java", () -> toast("Running java...")));
   }
 }

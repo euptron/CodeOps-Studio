@@ -28,13 +28,12 @@ import com.eup.codeopsstudio.palette.PaletteItem;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * A command provider that handles global editor actions.
  *
- * <p>Triggered by the {@code >} prefix, this provider exposes general IDE commands
- * such as "Toggle Word Wrap", "Format Document", or "Open Settings". It connects
- * UI selection events to the underlying {@code CommandManager}.
+ * <p>Triggered by the {@code >} prefix, this provider exposes general IDE commands such as "Toggle
+ * Word Wrap", "Format Document", or "Open Settings". It connects UI selection events to the
+ * underlying {@code CommandManager}.
  *
  * @author Etido Peter
  */
@@ -68,15 +67,12 @@ public class ActionProvider implements CommandProvider {
 
   private void seedCommands() {
     globalCommands.add(
-        new PaletteItem(
-            "cmd1", "Toggle Word Wrap", "View", "Cmd", () -> showToast(context, "Wrap Toggled")));
+        new PaletteItem("cmd1", "Toggle Word Wrap", "View", "Cmd", () -> toast("Wrap Toggled")));
 
     globalCommands.add(
-        new PaletteItem(
-            "cmd2", "Change Color Theme", "Preferences", "Cmd", () -> showToast(context, "Theme")));
+        new PaletteItem("cmd2", "Change Color Theme", "Preferences", "Cmd", () -> toast("Theme")));
 
     globalCommands.add(
-        new PaletteItem(
-            "cmd3", "Format Document", "Formatter", "Cmd", () -> showToast(context, "Formatted")));
+        new PaletteItem("cmd3", "Format Document", "Formatter", "Cmd", () -> toast("Formatted")));
   }
 }

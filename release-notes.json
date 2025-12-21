@@ -32,5 +32,6 @@
       "hasVersionName": true,
       "supportsHtml": true
     }
-  ]
+  ],
+  "latest_version" : "1.1.0"
 }

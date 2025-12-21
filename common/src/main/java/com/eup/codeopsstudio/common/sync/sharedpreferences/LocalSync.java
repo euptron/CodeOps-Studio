@@ -37,7 +37,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @author Etiido Peter
+ * TODO:
+ *  - Implement this synchronization logic fully within the app module
+ *    to back up all application settings and preferences data.
+ *  - Design and implement a functional user interface that allows users
+ *    to manually back up and restore application settings/preferences.
+ *
+ * @author Etido Peter
  */
 public class LocalSync implements Sync {
 

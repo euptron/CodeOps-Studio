@@ -31,16 +31,13 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.models.ProjectEvent;
@@ -49,8 +46,8 @@ import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentBaseBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
-import com.eup.codeopsstudio.models.ExtensionTable;
 import com.eup.codeopsstudio.logger.Logger;
+import com.eup.codeopsstudio.models.ExtensionTable;
 import com.eup.codeopsstudio.pane.EditorPane;
 import com.eup.codeopsstudio.pane.Pane;
 import com.eup.codeopsstudio.pane.TextPane;
@@ -64,22 +61,19 @@ import com.eup.codeopsstudio.ui.pane.PaneWindowManager;
 import com.eup.codeopsstudio.ui.pane.factory.PaneFactoryImpl;
 import com.eup.codeopsstudio.ui.settings.PreferencesFragment;
 import com.eup.codeopsstudio.ui.settings.SettingsPane;
-import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.util.manager.FileManager;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import com.eup.codeopsstudio.viewmodel.SavedStateViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.tabs.TabLayout;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 /**
  * Base fragment: A class that holds a functional editor Including its action sheets TES: Tabbed

@@ -29,12 +29,10 @@ import android.os.Process;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
-
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.databinding.ActivityCrashBinding;

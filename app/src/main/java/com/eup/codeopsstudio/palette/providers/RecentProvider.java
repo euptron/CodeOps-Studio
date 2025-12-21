@@ -61,10 +61,10 @@ public class RecentProvider implements CommandProvider {
             "UI Settings",
             "Recent",
             "Ctrl+Shift+R",
-            () -> showToast(context, "Settings")));
+            () -> toast("Settings")));
     results.add(
         new PaletteItem(
-            "recent_2", "git status", "JGit", "Recent", () -> showToast(context, "git status")));
+            "recent_2", "git status", "JGit", "Recent", () -> toast("git status")));
 
     return results;
   }

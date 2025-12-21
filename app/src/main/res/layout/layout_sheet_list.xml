@@ -38,11 +38,12 @@
 
     <TextView
         android:id="@android:id/title"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/dimen8dp"
         android:layout_marginEnd="@dimen/dimen8dp"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        android:layout_marginBottom="@dimen/dimen4dp"
+        android:textAppearance="@style/AppTheme.MainToolBar.TitleAppearance"
         tools:text="Sheet List Title" />
 
     <TextView
@@ -50,10 +51,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/dimen8dp"
-        android:layout_marginTop="@dimen/dimen2dp"
         android:layout_marginEnd="@dimen/dimen8dp"
         android:layout_marginBottom="@dimen/dimen4dp"
-        android:textSize="@dimen/dimen14sp"
+        android:textSize="@dimen/dimen12sp"
         tools:text="Sheet List Summary" />
 
     <com.google.android.material.divider.MaterialDivider
@@ -65,7 +65,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/sheetList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/dimen8dp"
         android:layout_marginStart="@dimen/dimen8dp"
         android:layout_marginEnd="@dimen/dimen8dp"
         android:layout_marginBottom="@dimen/dimen4dp"

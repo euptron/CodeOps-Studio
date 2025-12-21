@@ -32,20 +32,17 @@ import android.content.pm.ServiceInfo;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.observers.FileWatcher;
 import com.eup.codeopsstudio.observers.FileWatcher.OnFileChangeListener;
-
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.ref.WeakReference;
 
 /**
  * A foreground service that monitors file changes in a specified directory.
@@ -68,174 +65,174 @@ import java.lang.ref.WeakReference;
  *
  * @author Etido Peter
  */
-public class FileWatcherService extends Service implements FileWatcher.OnFileChangeListener {
+public class FileWatcherService extends Service {
 
-    public static final String TAG = "FileMonitorService";
-    private final List<WeakReference<OnFileChangeListener>> listeners = new ArrayList<>();
-    private final IBinder binder = new LocalBinder();
+  public static final String TAG = "FileMonitorService";
+
+  private final IBinder binder = new LocalBinder();
+
+  public FileWatcherService() {
+    // Default
+  }
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    // ensure immediate start
+    performStartForeground();
+  }
+
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    // restart if killed.
+    performStartForeground();
+    return START_STICKY;
+  }
+
+  @Nullable
+  @Override
+  public IBinder onBind(Intent intent) {
+    return binder;
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    getBinder().stopMonitoring();
+    getBinder().release();
+    performStopService();
+  }
+
+  public LocalBinder getBinder() {
+    return (LocalBinder) this.binder;
+  }
+
+  /**
+   * Stops the service completely.
+   *
+   * <p>This method first removes the service from the foreground state and then stops it.
+   */
+  private void performStopService() {
+    performStopForeground();
+    stopSelf();
+  }
+
+  /**
+   * Removes the service from the foreground state, which allows it to be killed if the system needs
+   * memory.
+   *
+   * <p>This method does not stop the service; it only removes the persistent foreground
+   * notification.
+   */
+  private void performStopForeground() {
+    stopForeground(STOP_FOREGROUND_REMOVE);
+  }
+
+  /**
+   * Puts the service into the foreground state with a persistent notification.
+   *
+   * <p><b>Note:</b> This method does not launchWithLocalHost the service. To launchWithLocalHost
+   * the service, call {@link #startForegroundService(Intent)} on Android 8.0 (API 26) and above,
+   * {@link #startService(Intent)} is not allowed for long-running background work and will fail
+   * unless the service enters foreground immediately.
+   */
+  private void performStartForeground() {
+    createNotificationChannel();
+    Notification notification = buildNotification();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      startForeground(
+          Constants.APP_NOTIFICATION_ID,
+          notification,
+          ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+    } else {
+      startForeground(Constants.APP_NOTIFICATION_ID, notification);
+    }
+  }
+
+  private void createNotificationChannel() {
+    final String channelId = Constants.FILE_WATCHER_NOTIFICATION_CHANNEL_ID;
+    final CharSequence channelName = getString(R.string.file_watcher_notification_channel_name);
+    String description = getString(R.string.file_watcher_notification_channel_description);
+    final int importance = NotificationManager.IMPORTANCE_LOW;
+
+    NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
+    channel.setDescription(description);
+    NotificationManager notificationManager = getSystemService(NotificationManager.class);
+    if (notificationManager != null) {
+      notificationManager.createNotificationChannel(channel);
+    }
+  }
+
+  private Notification buildNotification() {
+    return new NotificationCompat.Builder(this, Constants.FILE_WATCHER_NOTIFICATION_CHANNEL_ID)
+        .setContentTitle(getString(R.string.app_name))
+        .setSmallIcon(R.drawable.ic_folder_sync_outline)
+        .setContentText(getString(R.string.file_watcher_desc))
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
+        .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+        .build();
+  }
+
+  public static class LocalBinder extends Binder implements FileWatcher.OnFileChangeListener {
+
     private FileWatcher fileWatcher;
     private boolean isMonitoring = false;
+    private final List<WeakReference<OnFileChangeListener>> listeners = new ArrayList<>();
 
-    public FileWatcherService() {
-        // Default
+    public LocalBinder() {
+      // Default
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        performStartForeground();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        performStartForeground();
-        return START_STICKY; // restart if killed.
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopWatching();
-        listeners.clear();
-        performStopService();
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return binder;
-    }
-    
     @Override
     public void onFileChanged(int event, String path) {
+      listeners.removeIf(ref -> ref.get() == null);
+
+      for (WeakReference<OnFileChangeListener> ref : listeners) {
+        OnFileChangeListener listener = ref.get();
+        if (listener != null) {
+          listener.onFileChanged(event, path);
+        }
+      }
+    }
+
+    public void addListener(OnFileChangeListener listener) {
+      if (listener != null) {
         listeners.removeIf(ref -> ref.get() == null);
-        
-        for (WeakReference<OnFileChangeListener> ref : listeners) {
-            OnFileChangeListener listener = ref.get();
-            if (listener != null) {
-               listener.onFileChanged(event, path);
-            }
-        }
+        listeners.add(new WeakReference<>(listener));
+      }
     }
 
-    private void stopWatching() {
-        if (fileWatcher != null) {
-            fileWatcher.stopWatching();
-            fileWatcher = null;
-        }
+    public void removeListener(OnFileChangeListener listener) {
+      listeners.removeIf(ref -> ref.get() == listener || ref.get() == null);
     }
 
-    /**
-     * Stops the service completely.
-     *
-     * <p>This method first removes the service from the foreground state and then stops it.
-     */
-    private void performStopService() {
-        performStopForeground();
-        stopSelf();
+    public void release() {
+      listeners.clear();
     }
 
-    /**
-     * Removes the service from the foreground state, which allows it to be killed if the system
-     * needs
-     * memory.
-     *
-     * <p>This method does not stop the service; it only removes the persistent foreground
-     * notification.
-     */
-    private void performStopForeground() {
-        stopForeground(STOP_FOREGROUND_REMOVE);
-    }
-
-    /**
-     * Puts the service into the foreground state with a persistent notification.
-     *
-     * <p><b>Note:</b> This method does not launchWithLocalHost the service. To
-     * launchWithLocalHost the service, call {@link
-     * #startService(Intent)}.
-     */
-    private void performStartForeground() {
-        createNotificationChannel();
-        Notification notification = buildNotification();
-
+    public void startMonitoring(File file) {
+      if (!isMonitoring && file != null) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(Constants.APP_NOTIFICATION_ID, notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+          fileWatcher = new FileWatcher(file, LocalBinder.this);
         } else {
-            startForeground(Constants.APP_NOTIFICATION_ID, notification);
+          fileWatcher = new FileWatcher(file.getAbsolutePath(), LocalBinder.this);
         }
+
+        fileWatcher.startWatching();
+        isMonitoring = true;
+        ILog.debug(TAG, "Monitoring started");
+      }
     }
 
-    private void createNotificationChannel() {
-        final String channelId = Constants.FILE_WATCHER_NOTIFICATION_CHANNEL_ID;
-        final CharSequence channelName = getString(R.string.file_watcher_notification_channel_name);
-        String description = getString(R.string.file_watcher_notification_channel_description);
-        final int importance = NotificationManager.IMPORTANCE_LOW;
-
-        NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
-        channel.setDescription(description);
-        NotificationManager notificationManager = getSystemService(NotificationManager.class);
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(channel);
-        }
+    public void stopMonitoring() {
+      if (fileWatcher != null) {
+        fileWatcher.stopWatching();
+        fileWatcher = null;
+        isMonitoring = false;
+        ILog.debug(TAG, "Monitoring stopped");
+      }
     }
-
-    private Notification buildNotification() {
-        return new NotificationCompat.Builder(this, Constants.FILE_WATCHER_NOTIFICATION_CHANNEL_ID)
-            .setContentTitle(getString(R.string.app_name))
-            .setSmallIcon(R.drawable.ic_folder_sync_outline)
-            .setContentText(getString(R.string.file_watcher_desc))
-            .setPriority(NotificationCompat.PRIORITY_LOW).build();
-    }
-    
-    public LocalBinder getBinder() {
-        return (LocalBinder) this.binder;
-    }
-
-    /**
-     * Binder class for clients to interact with the FileWatcherService.
-     *
-     * <p>It provides methods to add or remove file change listeners and to
-     * launchWithLocalHost/stop monitoring a
-     * specified directory.
-     */
-    public class LocalBinder extends Binder {
-        public void addListener(OnFileChangeListener listener) {
-            if (listener != null) {
-               listeners.removeIf(ref -> ref.get() == null);
-               listeners.add(new WeakReference<>(listener));
-            }
-        }
-        
-        public void removeListener(OnFileChangeListener listener) {
-            listeners.removeIf(ref -> ref.get() == listener || ref.get() == null);
-        }
-        
-        public FileWatcherService getService() {
-            return FileWatcherService.this;
-        }
-        
-        public void startMonitoring(File file) {
-            if (!isMonitoring && file != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    fileWatcher = new FileWatcher(file, FileWatcherService.this);
-                } else {
-                    fileWatcher = new FileWatcher(file.getAbsolutePath(), FileWatcherService.this);
-                }
-
-                fileWatcher.startWatching();
-                isMonitoring = true;
-                ILog.debug(TAG, "Monitoring started");
-            }
-        }
-
-        public void stopMonitoring() {
-            if (fileWatcher != null) {
-                fileWatcher.stopWatching();
-                fileWatcher  = null;
-                isMonitoring = false;
-                ILog.debug(TAG, "Monitoring stopped");
-            }
-        }
-    }
+  }
 }

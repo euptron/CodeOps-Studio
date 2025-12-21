@@ -240,7 +240,7 @@ public abstract class Pane {
     private void performOnViewLaidOut(@NonNull View view) {
         //--- since 0.6
         // Check if view is already laid out (can happen in some cases)
-        if (view.getWidth() > 0 && view.getHeight() > 0) {
+        if (view.isLaidOut() && view.getWidth() > 0 && view.getHeight() > 0) {
             onViewLaidOut(view);
             return;
         }

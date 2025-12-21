@@ -29,9 +29,9 @@
     android:id="@+id/log_base"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
+    android:layout_marginStart="4dp"
     android:layout_marginTop="4dp"
-    android:layout_marginEnd="8dp"
+    android:layout_marginEnd="4dp"
     android:animateLayoutChanges="true"
     android:background="?android:attr/selectableItemBackground"
     android:paddingVertical="@dimen/dimen2dp">
@@ -121,7 +121,6 @@
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
-            android:lineSpacingMultiplier="1.2"
             android:textSize="14sp"
             tools:text="A version that&apos;s newer than v0.0.1. That&apos;s it." />
 

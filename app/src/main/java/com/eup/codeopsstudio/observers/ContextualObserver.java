@@ -29,8 +29,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.DocumentsContract;
-import android.widget.Toast;
-
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.ActivityResultRegistry;
@@ -40,17 +38,16 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.eup.codeopsstudio.R;
-import com.eup.codeopsstudio.ui.recents.domain.Recents;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.models.MetaDocument;
 import com.eup.codeopsstudio.common.util.FileUriMediator;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.common.util.UriUtils;
+import com.eup.codeopsstudio.ui.recents.domain.Recents;
+import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -180,7 +177,7 @@ public class ContextualObserver implements DefaultLifecycleObserver {
   }
 
   private void toast(String msg) {
-    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+    BaseUtil.toastShort(msg);
   }
 
   public void requestDirPermission(final Uri uri) {

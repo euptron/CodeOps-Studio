@@ -39,12 +39,14 @@ import com.eup.codeopsstudio.common.SystemArchitecture;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
 import com.eup.codeopsstudio.ui.debug.CrashActivity;
+import com.eup.codeopsstudio.util.BinaryFileChecker;
 import com.eup.codeopsstudio.util.ThrowableUtils;
 import com.eup.codeopsstudio.util.Wizard;
 import com.eup.codeopsstudio.util.manager.ThemeManager;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.CustomKeysAndValues;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.firebase.FirebaseApp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -66,13 +68,13 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     super.onCreate();
     instance = this;
     ContextManager.initialize(getGlobalContext());
-
     fileLogListener = new FileLogListener(this, "freeze_log.txt");
     ILog.addLogListener(fileLogListener);
-
+    BinaryFileChecker.setAggressiveness(0.1);
     themeManager = new ThemeManager(this);
     themeManager.applyTheme();
     themeManager.applyDynamicColors();
+    FirebaseApp.initializeApp(this);
     crashlytics = FirebaseCrashlytics.getInstance();
     crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
     FirebaseAnalytics.getInstance(this)

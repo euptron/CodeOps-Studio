@@ -17,6 +17,100 @@ uses [semantic versioning `2.0.0` spec](https://semver.org/spec/v2.0.0.html) in 
 - `Contributors`: Release contributors
 - `FSC-ID`: Firebase Crashlytics Issue ID
 
+Release 1.1.0 beta
+----------------------
+_21-12-2025_(Sunday, December 21, 2025)
+
+### Added
+
+* Versioning Manager to enforce our Custom SemVer
+* Onboarding fragment – the first thing a user sees must be nice 🙂 
+
+### Changes
+
+* Extensive internal refactoring and restructuring of the codebase
+
+### Improvements
+
+* Optimized push notifications with targeting
+    - Summary: Push notifications are now more efficient and can be targeted more accurately
+      to improve delivery and user engagement.
+* Jump to line dialog to use the Command-Palette
+* Enforced EdgeToEdge across all supported api versions
+* Pane system
+* Overall application stability
+* Performance and memory usage
+* Foundation laid for future features and systems
+* LiveServer to server both files and directories
+* Internet connectivity check via the `IPProvider.java`
+
+### Fixed
+
+* Numerous undocumented bug fixes
+    - Summary: A significant number of issues were resolved during development,
+      most of which were not individually logged due to their volume.
+      
+* Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues/12)
+* Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues/7)
+* Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues/6)
+
+### Security
+
+* Secured CodeOps Studio private and sensitive data
+    - Summary: Strengthened encryption and protection of sensitive assets across the build,
+      deployment, and runtime pipeline. This includes safeguarding secrets used in GitHub Actions,
+      Firebase services, code signing keys, and internal application data to ensure user data
+      remains private and protected.
+
+### Docs
+
+* updated [README](./README.md)
+* updated [CONTRIBUTING](./CONTRIBUTING.md)
+* Introduced custom versioning system
+    - Summary: Implemented a variation of semantic versioning with specific rules for release
+      tracking and consistency across the project.
+
+Release 1.0.5 beta
+----------------------
+_(Date unavailable)_
+
+### Added
+* introduced `PaneWindow` to handle the panes in a decoupled fashion
+* In-app update system and update handling logic
+* Theme export utility
+    - Allows exporting the currently active application theme to an XML file
+* Tap detection and measurement system
+* More `CodeEditorPane` file functions e.g save-as, reload-file, reload-file with-charset, file statistics, next and previous cursor location movement and lite mode
+* `ILog.java` to expose the logs sent by Log.java to enhance debugging.
+* GM3 Color theme exporter to export app theme at runtime
+* Command-Palette to enhance quick actions and workflows
+* Debug overlay
+    - Activated by long-pressing the top layout for ~3–4 seconds and releasing
+
+### Changes
+
+* Major codebase revamp in preparation for future releases
+
+### Improvements
+
+* Migrated all pane functionality to `PaneWindow.java`
+* Storage manager stability and reliability
+* Memory management across the application
+* Overall application stability and performance
+
+### Fixed
+
+* Countless bugs and memory leaks
+    - Summary: A very large number of bugs were fixed during this release cycle.
+      Many of them were not tracked individually due to volume and time constraints.
+
+### Removed
+
+* `PaneUtil.java` in favor of `PaneWindow.java`
+* Template manager
+    - Reason: Will be replaced with a more robust, offline-first template system
+      intended to support a future community-driven workflow.
+
 Release 1.0.4 beta
 ----------------------
 _09-03-2025_(Sunday, Mar 9, 2025)
@@ -27,15 +121,24 @@ _09-03-2025_(Sunday, Mar 9, 2025)
 
 ### Added
 
-*
+* ????
 
 ### Changes
 
 * Crashlytics and Analytics are now automatically sent, user can opt out in the setting
+* Theme system updated to properly support **Dynamic Colors**
 
 ### Improvements
 
+* Tweaked `BinaryFileChecker` to be more sensitive to binary file detection
+
 ### Fixed
+
+* Fix: Undo / Redo synchronization issue
+    - Summary: Redo operations could not be performed instantly due to editor state
+      desynchronization. This has been fixed to ensure immediate and consistent redo behavior.
+
+* A large number of additional bug fixes were made but not fully documented.
 
 ### Removed
 

@@ -46,182 +46,190 @@ import java.io.File;
 import java.io.FileInputStream;
 
 public class UnzipDialogFragment extends DialogFragment implements ZIPArchive.OnArchiveListener {
-    public static final String TAG = "UnzipDialogFragment";
-    private static final String KEY_ARGUMENT_ZIP_FILE_PATH = "zip_file_path";
-    private static final String KEY_ARGUMENT_DESTINATION_DIRECTORY = "destination_directory";
-    private static final String KEY_ARGUMENT_BUFFER_SIZE = "buffer_size";
+  public static final String TAG = "UnzipDialogFragment";
+  private static final String KEY_ARGUMENT_ZIP_FILE_PATH = "zip_file_path";
+  private static final String KEY_ARGUMENT_DESTINATION_DIRECTORY = "destination_directory";
+  private static final String KEY_ARGUMENT_BUFFER_SIZE = "buffer_size";
 
-    private DialogFragmentUnzipBinding binding;
-    private ZIPArchive zipArchive;
-    private String zipFilePath;
-    private String destDirectory;
-    private MainViewModel mainViewModel;
-    private Logger logger;
+  private DialogFragmentUnzipBinding binding;
+  private ZIPArchive zipArchive;
+  private String zipFilePath;
+  private String destDirectory;
+  private MainViewModel mainViewModel;
+  private Logger logger;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        logger        = new Logger(Logger.LogClass.IDE);
-        zipFilePath   = requireArguments().getString(KEY_ARGUMENT_ZIP_FILE_PATH);
-        destDirectory = requireArguments().getString(KEY_ARGUMENT_DESTINATION_DIRECTORY);
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    logger = new Logger(Logger.LogClass.IDE);
+    zipFilePath = requireArguments().getString(KEY_ARGUMENT_ZIP_FILE_PATH);
+    destDirectory = requireArguments().getString(KEY_ARGUMENT_DESTINATION_DIRECTORY);
 
-        mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-        logger.attach(requireActivity());
+    mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+    logger.attach(requireActivity());
 
-        int bufferSize = requireArguments().getInt(KEY_ARGUMENT_BUFFER_SIZE, -1);
-        try {
-            zipArchive = ZIPArchive.fromInputStream(new FileInputStream(zipFilePath),
-                new File(destDirectory), bufferSize, this);
-        } catch (Exception e) {
-            BaseUtil.toastLong(e.getMessage());
-        }
+    int bufferSize = requireArguments().getInt(KEY_ARGUMENT_BUFFER_SIZE, -1);
+    try {
+      zipArchive = ZIPArchive.fromFile(zipFilePath, destDirectory, bufferSize, this);
+    } catch (Exception e) {
+      BaseUtil.toastLong(e.getMessage());
     }
+  }
 
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        binding = DialogFragmentUnzipBinding.inflate(getLayoutInflater());
+  @NonNull
+  @Override
+  public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+    binding = DialogFragmentUnzipBinding.inflate(getLayoutInflater());
 
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
-        builder.setTitle(R.string.unzip_dialog_fragment_title);
-        builder.setPositiveButton(R.string.pause, null);
-        builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
-            if (zipArchive != null) {
-                zipArchive.cancel();
-            }
-            BaseUtil.toastShort(R.string.unzip_canceled);
-            dialog.dismiss();
+    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+    builder.setTitle(R.string.unzip_dialog_fragment_title);
+    builder.setPositiveButton(R.string.pause, null);
+    builder.setNegativeButton(
+        R.string.cancel,
+        (dialog, which) -> {
+          if (zipArchive != null) {
+            zipArchive.cancel();
+          }
+          BaseUtil.toastShort(R.string.unzip_canceled);
+          dialog.dismiss();
         });
-        builder.setView(binding.getRoot());
-        String sb = getString(R.string.from).concat(": ") + zipFilePath + "\n"
-            + getString(R.string.to).concat(": ") + destDirectory;
-        binding.zipFilePathText.setText(sb);
-        AlertDialog dialog = builder.create();
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setOnShowListener(d -> configurePauseButton(dialog));
-        return dialog;
-    }
+    builder.setView(binding.getRoot());
+    String sb =
+        getString(R.string.from).concat(": ")
+            + zipFilePath
+            + "\n"
+            + getString(R.string.to).concat(": ")
+            + destDirectory;
+    binding.zipFilePathText.setText(sb);
+    AlertDialog dialog = builder.create();
+    dialog.setCancelable(false);
+    dialog.setCanceledOnTouchOutside(false);
+    dialog.setOnShowListener(d -> configurePauseButton(dialog));
+    return dialog;
+  }
 
-    @Override
-    public void onDismiss(@NonNull DialogInterface dialog) {
-        if (zipArchive != null && !zipArchive.isCanceled()) {
-            zipArchive.cancelAndShutdown();
-        }
-        super.onDismiss(dialog);
+  @Override
+  public void onDismiss(@NonNull DialogInterface dialog) {
+    if (zipArchive != null && !zipArchive.isCanceled()) {
+      zipArchive.cancelAndShutdown();
     }
+    super.onDismiss(dialog);
+  }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (isDialogVisible()) {
-            zipArchive.unzip();
-        }
+  @Override
+  public void onStart() {
+    super.onStart();
+    if (isDialogVisible()) {
+      zipArchive.unzip();
     }
+  }
 
-    private boolean isDialogVisible() {
-        return getDialog() != null && getDialog().isShowing();
-    }
+  private boolean isDialogVisible() {
+    return getDialog() != null && getDialog().isShowing();
+  }
 
-    private void configurePauseButton(@NonNull AlertDialog dialog) {
-        Button pauseButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        pauseButton.setOnClickListener(v -> {
-            if (zipArchive.isPaused()) {
-                zipArchive.resume();
-                pauseButton.setText(R.string.pause);
-            } else {
-                zipArchive.pause();
-                pauseButton.setText(R.string.resume);
-            }
+  private void configurePauseButton(@NonNull AlertDialog dialog) {
+    Button pauseButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+    pauseButton.setOnClickListener(
+        v -> {
+          if (zipArchive.isPaused()) {
+            zipArchive.resume();
+            pauseButton.setText(R.string.pause);
+          } else {
+            zipArchive.pause();
+            pauseButton.setText(R.string.resume);
+          }
         });
+  }
+
+  @Override
+  public void onInitialize(String message) {
+    if (isDialogVisible()) {
+      binding.progressText.setText(message);
     }
+  }
 
-    @Override
-    public void onInitialize(String message) {
-        if (isDialogVisible()) {
-            binding.progressText.setText(message);
-        }
+  @Override
+  public void onStart(int totalItems) {
+    if (isDialogVisible()) {
+      binding.progressBar.setMax(totalItems);
     }
+  }
 
-    @Override
-    public void onStart(int totalItems) {
-        if (isDialogVisible()) {
-            binding.progressBar.setMax(totalItems);
-        }
+  @Override
+  public void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft) {
+    if (isDialogVisible()) {
+      if (total <= 0) {
+        binding.progressBar.setIndeterminate(true);
+        return;
+      }
+
+      int scaledProgress = (total < 100) ? (int) (1000f * progress / total) : progress;
+      binding.progressBar.setIndeterminate(false);
+      binding.progressBar.setMax(total < 100 ? 1000 : total);
+      binding.progressBar.setProgress(scaledProgress);
+      binding.progressText.setText(getString(R.string.msg_items_progress, progress, total));
+      binding.itemsLeftText.setText(getString(R.string.msg_items_left, itemsLeft));
     }
+  }
 
-    @Override
-    public void onUpdateProgress(int progress, int total, String currentFile, int itemsLeft) {
-        if (isDialogVisible()) {
-            if (total <= 0) {
-                binding.progressBar.setIndeterminate(true);
-                return;
-            }
+  @Override
+  public void onFileProgress(long bytesWritten, long totalBytes, String fileName) {
+    if (isDialogVisible()) {
+      binding.fileNameText.setText(fileName);
 
-            int scaledProgress = (total < 100) ? (int) (1000f * progress / total) : progress;
-            binding.progressBar.setIndeterminate(false);
-            binding.progressBar.setMax(total < 100 ? 1000 : total);
-            binding.progressBar.setProgress(scaledProgress);
-            binding.progressText.setText(getString(R.string.msg_items_progress, progress, total));
-            binding.itemsLeftText.setText(getString(R.string.msg_items_left, itemsLeft));
-        }
+      if (totalBytes <= 0) {
+        binding.currentFileProgressBar.setIndeterminate(true);
+      } else {
+        int scaledProgress =
+            (totalBytes < 100)
+                ? (int) (1000 * bytesWritten / totalBytes)
+                : (int) Math.min(bytesWritten, Integer.MAX_VALUE);
+        binding.currentFileProgressBar.setIndeterminate(false);
+        binding.currentFileProgressBar.setMax(
+            totalBytes < 100 ? 1000 : (int) Math.min(totalBytes, Integer.MAX_VALUE));
+        binding.currentFileProgressBar.setProgress(scaledProgress);
+      }
     }
+  }
 
-    @Override
-    public void onFileProgress(long bytesWritten, long totalBytes, String fileName) {
-        if (isDialogVisible()) {
-            binding.fileNameText.setText(fileName);
-
-            if (totalBytes <= 0) {
-                binding.currentFileProgressBar.setIndeterminate(true);
-            } else {
-                int scaledProgress = (totalBytes < 100) ? (int) (1000 * bytesWritten / totalBytes)
-                    : (int) Math.min(bytesWritten, Integer.MAX_VALUE);
-                binding.currentFileProgressBar.setIndeterminate(false);
-                binding.currentFileProgressBar.setMax(
-                    totalBytes < 100 ? 1000 : (int) Math.min(totalBytes, Integer.MAX_VALUE));
-                binding.currentFileProgressBar.setProgress(scaledProgress);
-            }
-        }
+  @Override
+  public void onComplete(String message) {
+    if (zipArchive != null && !zipArchive.isCanceled()) {
+      BaseUtil.toastShort(message);
+      logger.d(TAG, message);
+      // open imported project in tree
+      mainViewModel.setTreeViewFragmentTreeDir(new File(destDirectory));
     }
-
-    @Override
-    public void onComplete(String message) {
-        if (zipArchive != null && !zipArchive.isCanceled()) {
-            BaseUtil.toastShort(message);
-            logger.d(TAG, message);
-            // open imported project in tree
-            mainViewModel.setTreeViewFragmentTreeDir(new File(destDirectory));
-        }
-        if (isDialogVisible()) {
-            dismiss();
-        }
+    if (isDialogVisible()) {
+      dismiss();
     }
+  }
 
-    @Override
-    public void onError(Exception exception) {
-        if (isDialogVisible()) {
-            BaseUtil.toastLong(exception.getMessage());
-            dismiss();
-        }
+  @Override
+  public void onError(Exception exception) {
+    if (isDialogVisible()) {
+      BaseUtil.toastLong(exception.getMessage());
+      dismiss();
     }
+  }
 
-    @Override
-    public void onSpeedUpdate(String message) {
-        if (isDialogVisible()) {
-            binding.speedText.setText(getString(R.string.msg_speed, message));
-        }
+  @Override
+  public void onSpeedUpdate(String message) {
+    if (isDialogVisible()) {
+      binding.speedText.setText(getString(R.string.msg_speed, message));
     }
+  }
 
-    @NonNull
-    public static UnzipDialogFragment newInstance(String zipFilePath, String destDirectory,
-        int bufferSize) {
-        UnzipDialogFragment fragment = new UnzipDialogFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString(KEY_ARGUMENT_ZIP_FILE_PATH, zipFilePath);
-        arguments.putString(KEY_ARGUMENT_DESTINATION_DIRECTORY, destDirectory);
-        arguments.putInt(KEY_ARGUMENT_BUFFER_SIZE, bufferSize);
-        fragment.setArguments(arguments);
-        return fragment;
-    }
+  @NonNull
+  public static UnzipDialogFragment newInstance(
+      String zipFilePath, String destDirectory, int bufferSize) {
+    UnzipDialogFragment fragment = new UnzipDialogFragment();
+    Bundle arguments = new Bundle();
+    arguments.putString(KEY_ARGUMENT_ZIP_FILE_PATH, zipFilePath);
+    arguments.putString(KEY_ARGUMENT_DESTINATION_DIRECTORY, destDirectory);
+    arguments.putInt(KEY_ARGUMENT_BUFFER_SIZE, bufferSize);
+    fragment.setArguments(arguments);
+    return fragment;
+  }
 }

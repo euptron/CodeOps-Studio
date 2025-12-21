@@ -70,72 +70,39 @@ public class FileProvider implements CommandProvider {
     // Exact copy of your dummy files
     allFiles.add(
         new PaletteItem(
-            "f1",
-            "MainActivity.java",
-            "app/src/main",
-            "File",
-            () -> showToast(context, "Open Main")));
+            "f1", "MainActivity.java", "app/src/main", "File", () -> toast("Open Main")));
     allFiles.add(
-        new PaletteItem(
-            "f2", "colors.xml", "res/values", "File", () -> showToast(context, "Open Colors")));
+        new PaletteItem("f2", "colors.xml", "res/values", "File", () -> toast("Open Colors")));
+
+    allFiles.add(
+        new PaletteItem("f3", "styles.xml", "res/values", "File", () -> toast("Open Styles")));
 
     allFiles.add(
         new PaletteItem(
-            "f3", "styles.xml", "res/values", "File", () -> showToast(context, "Open Styles")));
+            "f4", "AndroidManifest.xml", "app/src/main", "File", () -> toast("Open Manifest")));
+    allFiles.add(
+        new PaletteItem("f5", "build.gradle", "app", "File", () -> toast("Open Build Gradle")));
+
+    allFiles.add(
+        new PaletteItem("f6", "strings.xml", "res/values", "File", () -> toast("Open Strings")));
 
     allFiles.add(
         new PaletteItem(
-            "f4",
-            "AndroidManifest.xml",
-            "app/src/main",
-            "File",
-            () -> showToast(context, "Open Manifest")));
+            "f7", "activity_main.xml", "res/layout", "File", () -> toast("Open Layout")));
     allFiles.add(
         new PaletteItem(
-            "f5", "build.gradle", "app", "File", () -> showToast(context, "Open Build Gradle")));
+            "f8", "MyApplication.java", "app/src/main", "File", () -> toast("Open Application")));
+    allFiles.add(
+        new PaletteItem("f9", "dimens.xml", "res/values", "File", () -> toast("Open Dimens")));
 
     allFiles.add(
         new PaletteItem(
-            "f6", "strings.xml", "res/values", "File", () -> showToast(context, "Open Strings")));
-
+            "f10", "gradle.properties", "project", "File", () -> toast("Open Gradle Properties")));
     allFiles.add(
         new PaletteItem(
-            "f7",
-            "activity_main.xml",
-            "res/layout",
-            "File",
-            () -> showToast(context, "Open Layout")));
+            "f11", "settings.gradle", "project", "File", () -> toast("Open Settings Gradle")));
     allFiles.add(
         new PaletteItem(
-            "f8",
-            "MyApplication.java",
-            "app/src/main",
-            "File",
-            () -> showToast(context, "Open Application")));
-    allFiles.add(
-        new PaletteItem(
-            "f9", "dimens.xml", "res/values", "File", () -> showToast(context, "Open Dimens")));
-
-    allFiles.add(
-        new PaletteItem(
-            "f10",
-            "gradle.properties",
-            "project",
-            "File",
-            () -> showToast(context, "Open Gradle Properties")));
-    allFiles.add(
-        new PaletteItem(
-            "f11",
-            "settings.gradle",
-            "project",
-            "File",
-            () -> showToast(context, "Open Settings Gradle")));
-    allFiles.add(
-        new PaletteItem(
-            "f12",
-            "proguard-rules.pro",
-            "app",
-            "File",
-            () -> showToast(context, "Open Proguard Rules")));
+            "f12", "proguard-rules.pro", "app", "File", () -> toast("Open Proguard Rules")));
   }
 }

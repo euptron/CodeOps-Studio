@@ -613,8 +613,45 @@
     <string name="line_navigation_not_available">Line navigation unavailable</string>
     <string name="invalid_code_editor">Invalid CodeEditor</string>
     <string name="navigation_short">Nav</string>
-    <string name="type_number_within_range">Type a line number between 1 and %d</string>
+    <string name="type_number_within_range">Enter 1 - %d</string>
     <string name="help">Help</string>
     <string name="show_commands">Show Commands</string>
     <string name="goto_symbols_or_plugins">Go to Symbol / Plugins</string>
+    <!-- App Update Strings -->
+    <string name="new_update_available">Update Available</string>
+    <string name="version_format">Version %s</string>
+    <string name="version_ready">Version %s is ready</string>
+    <string name="whats_new">What\'s New:</string>
+    <string name="default_changelog">• Bug fixes and improvements\n• Performance enhancements\n• New features</string>
+    <string name="update_now">Update Now</string>
+    <string name="later">Later</string>
+    <string name="remind_me">Remind me</string>
+    <string name="downloading">Downloading…</string>
+    <string name="install">Install</string>
+    <string name="retry_download">Retry Download</string>
+    <string name="invalid_download_url">Invalid download URL</string>
+    <string name="download_failed">Download failed</string>
+    <string name="install_error">Installation failed</string>
+    <string name="downloading_version">Downloading version %s</string>
+    <string name="fcm_title_fallback">New Message</string>
+    <string name="fcm_body_fallback">You have a new message.</string>
+    <!-- Onboarding -->
+    <string name="onboarding_title_introducing">INTRODUCING</string>
+    <string name="onboarding_subtitle_codeops_studio">CodeOps Studio</string>
+    <string name="onboarding_description_intro">A mobile-based integrated development environment for developers.</string>
+    <string name="onboarding_title_sync_thoughts">SYNC YOUR THOUGHTS</string>
+    <string name="onboarding_subtitle_capture_ideas">Capture ideas instantly</string>
+    <string name="onboarding_description_capture_ideas">That brilliant solution you had on the go? Now build it immediately, before the inspiration fades.</string>
+    <string name="onboarding_title_pro_tools">PRO-GRADE TOOLS</string>
+    <string name="onboarding_subtitle_everything_you_need">Everything You Need</string>
+    <string name="onboarding_description_features">- Edit code in 250+ languages\n- Git repository management\n- Unlimited tabs for workflows\n- And so much more</string>
+    <string name="onboarding_title_dedicated_to">DEDICATED TO</string>
+    <string name="onboarding_subtitle_dr_peter_umoren">Dr. Peter Umoren Asanga</string>
+    <string name="onboarding_description_dedication">My father was my greatest inspiration to continue this work.\n\nPeace upon the fallen. 🕊️</string>
+    <string name="onboarding_title_take_leap">TAKE THE LEAP</string>
+    <string name="onboarding_subtitle_manifest_ideas">Manifest Your Ideas</string>
+    <string name="onboarding_description_start_coding">Start coding anywhere, anytime with your pocket-sized IDE. Build what matters to you.</string>
+    <string name="btn_get_started">Get Started</string>
+    <string name="btn_next">Next</string>
+    <string name="coming_soon">Coming soon</string>
 </resources>

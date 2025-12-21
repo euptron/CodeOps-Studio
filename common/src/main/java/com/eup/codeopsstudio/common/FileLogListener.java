@@ -57,7 +57,6 @@ public class FileLogListener implements ILog.LogListener {
    */
   public FileLogListener(Context context, String fileName) {
     // File storageDir = /* context.getExternalFilesDir(null)*/ new
-    // File("/storage/emulated/0/Documents");
     File storageDir =
         new File(Environment.getExternalStorageDirectory(), Constants.DEBUG_LOGGING_PATH_CUE);
     if (storageDir != null && !storageDir.exists()) {
@@ -77,7 +76,7 @@ public class FileLogListener implements ILog.LogListener {
   }
 
   private void processLogQueue() {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, false))) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFile, /*append=*/ true))) {
       writer.write("--- Log Session Started ---\n\n");
       writer.flush();
 

@@ -22,28 +22,112 @@
  */
 
 /**
- * This file defines various constants used throughout the Gradle build process.
- * For dependency versions, please refer to the version catalog.
+ * Build configuration and versioning utilities for CodeOps Studio.
  *
- * Semantic versioning: X.Y.Z (hash); X = Major, Y = minor, Z = Patch level
+ * <p>
+ * This script centralizes SDK versions, Java compatibility, application
+ * identifiers, and deterministic app versioning derived from the Git repository.
+ * It is intentionally designed to be declarative and predictable across local,
+ * CI, debug, and release builds.
+ * </p>
  *
- * @see /gradle/libs.versions.toml
+ * <h3>Versioning Strategy</h3>
+ * <ul>
+ *   <li>
+ *     {@code baseVersion} is the canonical semantic version and <b>must</b> follow
+ *     {@code MAJOR.MINOR.PATCH} format (e.g. {@code 1.0.5}).
+ *   </li>
+ *   <li>
+ *     Non-release builds append a release-type suffix and the current Git commit
+ *     hash for traceability.
+ *   </li>
+ *   <li>
+ *     Release builds always use {@code baseVersion} only, with no suffixes or hashes.
+ *   </li>
+ *   <li>
+ *     {@code versionCode} is derived from the Git commit count and gracefully
+ *     falls back to a monotonic time-based value when Git metadata is unavailable.
+ *   </li>
+ * </ul>
+ *
+ * <h3>Git Integration</h3>
+ * <p>
+ * The methods {@link #getGitCommitHash(Project)} and
+ * {@link #getGitCommitCount(Project)} are deliberately defensive and
+ * must not be simplified or refactored. They are written to:
+ * </p>
+ * <ul>
+ *   <li>Work in local, CI, and detached source environments</li>
+ *   <li>Fail safely when Git is unavailable</li>
+ *   <li>Never block or break the build pipeline</li>
+ * </ul>
+ *
+ * <h3>Allowed Modifications</h3>
+ * <p>
+ * Only the following values are expected to be modified when required:
+ * </p>
+ * <ul>
+ *   <li>{@code compileSdkVersion}</li>
+ *   <li>{@code buildToolsVersion}</li>
+ *   <li>{@code targetSdkVersion}</li>
+ *   <li>{@code minSdkVersion}</li>
+ *   <li>{@code javaSourceVersion} / {@code javaTargetVersion}</li>
+ *   <li>{@code baseVersion} (semantic version only)</li>
+ *   <li>{@code suffix} (release type only, without punctuation)</li>
+ * </ul>
+ *
+ * <h3>Restrictions</h3>
+ * <ul>
+ *   <li>Do not add punctuation, separators, or symbols to {@code suffix}</li>
+ *   <li>Do not insert extra spaces or formatting into {@code baseVersion}</li>
+ *   <li>Do not manually construct {@code versionName} or {@code versionCode}</li>
+ * </ul>
+ *
+ * <p>
+ * For detailed semantic versioning rules and release conventions, see
+ * {@code CONTRIBUTING.md}.
+ * </p>
+ *
+ * @author Etido Peter
+ * @since 2024
  */
-static def getGitCommitHashSafe() {
+static def getGitCommitHash(proj) {
     try {
-        return 'git rev-parse --short HEAD'.execute().text.trim()
+        def process = ["git", "rev-parse", "--short", "HEAD"].execute(null, proj.rootDir)
+        process.waitFor()
+        def output = process.text.trim()
+        
+        if (process.exitValue() == 0 && output) {
+            return "(${output})"
+        } else {
+            return ""
+        }
     } catch (Exception ignored) {
-        return "unknown"
+        return ""
     }
 }
 
-static def getGitCommitCountSafe() {
-    try {
-        return 'git rev-list --count HEAD'.execute().text.trim().toInteger()
-    } catch (Exception ignored) {
-        return (System.currentTimeMillis() / 1000).intValue()
-    }
-}
+ static def getGitCommitCount(proj) {
+     def pseudoVersionCode = (System.currentTimeMillis() / 1000).intValue()
+     
+     try {
+         def process = ["git", "rev-list", "--count", "HEAD"].execute(null, proj.rootDir)
+         process.waitFor()
+         def output = process.text.trim()
+        
+         if (process.exitValue() == 0) {
+           try {
+               return Math.max(1, output.toInteger())
+            } catch (NumberFormatException e) {
+               return pseudoVersionCode
+            }
+         } else {
+             return pseudoVersionCode
+         }
+     } catch (Exception ignored) {
+         return pseudoVersionCode
+     }
+ }
 
 project.ext {
     // Versions
@@ -58,9 +142,24 @@ project.ext {
     appNameSpace = "com.eup.codeopsstudio"
     applicationId = "com.eup.codeopsstudio"
 
-    def gitHash = getGitCommitHashSafe()
-    def gitCommitCount = getGitCommitCountSafe()
-
-    appVersionName = "1.0.5 beta (${gitHash})"
+    def gitHash = getGitCommitHash(project)
+    def gitCommitCount = getGitCommitCount(project)
+    def isReleaseBuild = gradle.startParameter.taskNames.any {
+        it.toLowerCase().contains('release')
+    }
+    
+    def baseVersion = "1.0.5"
+    def suffix = "beta"
+    
+    if (isReleaseBuild) {
+        appVersionName = baseVersion
+    } else {
+        if (gitHash) {
+            appVersionName = "${baseVersion} ${suffix} ${gitHash}"
+        } else {
+            appVersionName = "${baseVersion} ${suffix}"
+        }
+    }
+    
     appVersionCode = gitCommitCount
 }

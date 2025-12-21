@@ -29,9 +29,8 @@
     android:baselineAligned="false"
     android:clipToPadding="false"
     android:gravity="center_vertical"
-    android:minHeight="?android:attr/listPreferredItemHeightSmall"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingVertical="@dimen/dimen8dp"
+    android:minHeight="@dimen/dimen40dp">
 
     <LinearLayout
         android:id="@+id/icon_frame"
@@ -40,16 +39,14 @@
         android:gravity="start|center_vertical"
         android:orientation="horizontal"
         android:paddingStart="8dp"
-        android:paddingLeft="8dp"
-        android:paddingTop="4dp"
         android:paddingEnd="8dp"
-        android:paddingRight="8dp"
+        android:paddingTop="4dp"
         android:paddingBottom="4dp">
 
         <ImageView
             android:id="@android:id/icon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/dimen40dp"
+            android:layout_height="@dimen/dimen40dp"
             android:duplicateParentState="true"
             android:importantForAccessibility="no"
             android:scaleType="center" />
@@ -59,8 +56,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp">
+        android:paddingTop="@dimen/dimen8dp"
+        android:paddingBottom="@dimen/dimen8dp"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@android:id/title"
@@ -90,7 +88,7 @@
         style="?attr/materialButtonOutlinedStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="2dp"
+        android:layout_marginStart="@dimen/dimen4dp"
         android:visibility="gone" />
 
 </LinearLayout>

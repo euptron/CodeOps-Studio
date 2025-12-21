@@ -42,7 +42,7 @@ import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 public class EmptyPaneWindow extends Pane {
 
-    private final LifecycleOwner lifecycleOwner;
+    private LifecycleOwner lifecycleOwner;
     private MainViewModel mainViewModel;
     private EmptyPaneWindowBinding binding;
     private SpannableString styledString;
@@ -117,5 +117,7 @@ public class EmptyPaneWindow extends Pane {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        lifecycleOwner = null;
+        mainViewModel = null;
     }
 }

@@ -24,7 +24,6 @@
 package com.eup.codeopsstudio.util;
 
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -33,10 +32,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Rect;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
@@ -47,16 +43,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.Window;
-import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
-import android.view.animation.Transformation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -64,18 +57,17 @@ import androidx.core.app.ShareCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-
-import com.eup.codeopsstudio.BuildConfig;
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.models.Event;
+import com.eup.codeopsstudio.server.provider.IPProvider;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
-
 import java.util.Objects;
 
 public class BaseUtil {
@@ -85,33 +77,6 @@ public class BaseUtil {
   public static final int LARGE_SCREEN_WIDTH_SIZE = 1240;
   private static final int TAG_ON_GLOBAL_LAYOUT_LISTENER = -8;
   private static int sDecorViewDelta = 0;
-
-  public static void collapse(final View v) {
-    final int initialHeight = v.getMeasuredHeight();
-
-    Animation a =
-        new Animation() {
-          @Override
-          public boolean willChangeBounds() {
-            return true;
-          }
-
-          @Override
-          protected void applyTransformation(float interpolatedTime, Transformation t) {
-            if (interpolatedTime == 1) {
-              v.setVisibility(View.GONE);
-            } else {
-              v.getLayoutParams().height = initialHeight - (int) (initialHeight * interpolatedTime);
-              v.requestLayout();
-            }
-          }
-        };
-
-    // Collapse speed of 1dp/ms
-    a.setDuration(
-        (int) (initialHeight / v.getContext().getResources().getDisplayMetrics().density) / 2);
-    v.startAnimation(a);
-  }
 
   public static void copyToClipBoard(String text, boolean withToast) {
     copyToClipBoard(text);
@@ -132,64 +97,21 @@ public class BaseUtil {
                 .show());
   }
 
-  public static int dpToPx(float dp) {
-    return Math.round(
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dp,
-            IdeApplication.getGlobalResources().getDisplayMetrics()));
+  public static void toastShort(final String message) {
+    AsyncTask.runOnUiThread(
+        () ->
+            Toast.makeText(IdeApplication.getGlobalContext(), message, Toast.LENGTH_SHORT).show());
   }
 
-  public static int pxToDp(float px) {
-    return Math.round(px / IdeApplication.getGlobalResources().getDisplayMetrics().density);
+  public static void toastLong(final String message) {
+    AsyncTask.runOnUiThread(
+        () -> Toast.makeText(IdeApplication.getGlobalContext(), message, Toast.LENGTH_LONG).show());
   }
 
-  public static void expand(final View v) {
-    int matchParentMeasureSpec =
-        View.MeasureSpec.makeMeasureSpec(
-            ((View) v.getParent()).getWidth(), View.MeasureSpec.EXACTLY);
-    int wrapContentMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-    v.measure(matchParentMeasureSpec, wrapContentMeasureSpec);
-    final int targetHeight = v.getMeasuredHeight();
-
-    // Older versions of android (pre API 21) cancel animations for views with a height of 0.
-    v.getLayoutParams().height = 1;
-    v.setVisibility(View.VISIBLE);
-    Animation a =
-        new Animation() {
-          @Override
-          public boolean willChangeBounds() {
-            return true;
-          }
-
-          @Override
-          protected void applyTransformation(float interpolatedTime, Transformation t) {
-            v.getLayoutParams().height =
-                interpolatedTime == 1
-                    ? ViewGroup.LayoutParams.WRAP_CONTENT
-                    : (int) (targetHeight * interpolatedTime);
-            v.requestLayout();
-          }
-        };
-
-    // Expansion speed of 1dp/ms
-    a.setDuration(
-        (int) (targetHeight / v.getContext().getResources().getDisplayMetrics().density) / 2);
-    v.startAnimation(a);
-  }
-
-  public static String getMemoryUsage(Runtime runtime) {
-    long maxMemoryInBytes = runtime.maxMemory();
-    long availableMemInBytes = maxMemoryInBytes - (runtime.totalMemory() - runtime.freeMemory());
-    long usedMemInBytes = maxMemoryInBytes - availableMemInBytes;
-    long usedMemInPercentage = usedMemInBytes * 100 / maxMemoryInBytes;
-
-    return IdeApplication.getGlobalContext()
-        .getString(
-            R.string.app_memory_usage,
-            Formatter.formatShortFileSize(IdeApplication.getGlobalContext(), usedMemInBytes),
-            Formatter.formatShortFileSize(IdeApplication.getGlobalContext(), maxMemoryInBytes),
-            usedMemInPercentage);
+  public static void toastLong(final @StringRes int stringRes) {
+    AsyncTask.runOnUiThread(
+        () ->
+            Toast.makeText(IdeApplication.getGlobalContext(), stringRes, Toast.LENGTH_LONG).show());
   }
 
   public static int getRowCount(int itemWidth) {
@@ -201,23 +123,12 @@ public class BaseUtil {
     return v.getVisibility() == View.GONE;
   }
 
-  public static boolean isConnected() {
-    ConnectivityManager connectivityManager = IdeApplication.getConnectivityManager();
-    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-    return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-  }
-
   public static boolean isExpanded(View v) {
     return v.getVisibility() == View.VISIBLE;
   }
 
   public static boolean isLargeScreenSize() {
     return getScreenSize() >= LARGE_SCREEN_WIDTH_SIZE;
-  }
-
-  public static int getScreenSize() {
-    Configuration configuration = IdeApplication.getGlobalConfiguration();
-    return configuration.screenWidthDp;
   }
 
   public static boolean isMediumScreenSize() {
@@ -227,6 +138,15 @@ public class BaseUtil {
 
   public static boolean isSmallScreenSize() {
     return getScreenSize() < MEDIUM_SCREEN_WIDTH_SIZE;
+  }
+
+  public static int getScreenSize() {
+    Configuration configuration = IdeApplication.getGlobalConfiguration();
+    return configuration.screenWidthDp;
+  }
+
+  public interface OnSoftInputChangedListener {
+    void onSoftInputChanged(int height);
   }
 
   /**
@@ -244,9 +164,6 @@ public class BaseUtil {
     final View decorView = window.getDecorView();
     final Rect outRect = new Rect();
     decorView.getWindowVisibleDisplayFrame(outRect);
-    // TODO: Use logger or add log filter support
-    //      Log.debug("KeyboardUtils",
-    //      "getDecorViewInvisibleHeight: " + (decorView.getBottom() - outRect.bottom));
     int delta = Math.abs(decorView.getBottom() - outRect.bottom);
     if (delta <= getNavBarHeight() + getStatusBarHeight()) {
       sDecorViewDelta = delta;
@@ -281,10 +198,6 @@ public class BaseUtil {
     return resources.getDimensionPixelSize(resourceId);
   }
 
-  public static SnackBarBuilder newSnackBarBuilder() {
-    return new SnackBarBuilder();
-  }
-
   public static void openUrl(String url) {
     // FIX: Revamp to openUrl(FragmentActivity activity, String url)
     try {
@@ -297,12 +210,6 @@ public class BaseUtil {
     }
   }
 
-  public static void toastShort(final String message) {
-    AsyncTask.runOnUiThread(
-        () ->
-            Toast.makeText(IdeApplication.getGlobalContext(), message, Toast.LENGTH_SHORT).show());
-  }
-
   public static void openUrlOutsideActivity(String url) {
     try {
       var mIntent = new Intent(Intent.ACTION_VIEW);
@@ -313,11 +220,6 @@ public class BaseUtil {
       toastLong(throwable.getMessage());
       ILog.error(TAG, "Failed to open url", throwable);
     }
-  }
-
-  public static void toastLong(final String message) {
-    AsyncTask.runOnUiThread(
-        () -> Toast.makeText(IdeApplication.getGlobalContext(), message, Toast.LENGTH_LONG).show());
   }
 
   /**
@@ -376,23 +278,6 @@ public class BaseUtil {
       contentView.getViewTreeObserver().removeOnGlobalLayoutListener((OnGlobalLayoutListener) tag);
       contentView.setTag(TAG_ON_GLOBAL_LAYOUT_LISTENER, null);
     }
-  }
-
-  public static void rotateChevron(boolean isOpen, ImageView chevronView) {
-    float startRotation = isOpen ? -90f : 0f;
-    float endRotation = isOpen ? 0f : -90f;
-
-    RotateAnimation rotateAnimation =
-        new RotateAnimation(
-            startRotation,
-            endRotation,
-            Animation.RELATIVE_TO_SELF,
-            0.5f,
-            Animation.RELATIVE_TO_SELF,
-            0.5f);
-    rotateAnimation.setDuration(200);
-    rotateAnimation.setFillAfter(true);
-    chevronView.startAnimation(rotateAnimation);
   }
 
   /** Method to share application link. Sharing the app as a file is not recommended */
@@ -488,10 +373,21 @@ public class BaseUtil {
     anim.start();
   }
 
-  public static void toastLong(final @StringRes int stringRes) {
-    AsyncTask.runOnUiThread(
-        () ->
-            Toast.makeText(IdeApplication.getGlobalContext(), stringRes, Toast.LENGTH_LONG).show());
+  public static void rotateChevron(boolean isOpen, ImageView chevronView) {
+    float startRotation = isOpen ? -90f : 0f;
+    float endRotation = isOpen ? 0f : -90f;
+
+    RotateAnimation rotateAnimation =
+        new RotateAnimation(
+            startRotation,
+            endRotation,
+            Animation.RELATIVE_TO_SELF,
+            0.5f,
+            Animation.RELATIVE_TO_SELF,
+            0.5f);
+    rotateAnimation.setDuration(200);
+    rotateAnimation.setFillAfter(true);
+    chevronView.startAnimation(rotateAnimation);
   }
 
   private void showExitDialog(
@@ -514,21 +410,133 @@ public class BaseUtil {
     }
   }
 
-  public interface OnSoftInputChangedListener {
-    void onSoftInputChanged(int height);
+  public static void applyWindowInsetToMargin(
+      View view, boolean left, boolean top, boolean right, boolean bottom, int insetFlag) {
+    ViewCompat.setOnApplyWindowInsetsListener(
+        view,
+        (v, windowInsets) -> {
+          Insets insets = windowInsets.getInsets(insetFlag);
+
+          ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+          lp.topMargin = (top ? insets.top : 0);
+          lp.bottomMargin = (bottom ? insets.bottom : 0);
+          lp.leftMargin = left ? insets.left : 0;
+          lp.rightMargin = (right ? insets.right : 0);
+
+          v.setLayoutParams(lp);
+          return windowInsets;
+        });
+  }
+
+  public static void applyWindowInsetToPadding(
+      View view, boolean left, boolean top, boolean right, boolean bottom, int insetFlag) {
+    applyWindowInsetToPadding(view, left, top, right, bottom, insetFlag, true);
+  }
+
+  public static void applyWindowInsetToPadding(
+      View view,
+      boolean left,
+      boolean top,
+      boolean right,
+      boolean bottom,
+      int insetFlag,
+      boolean traverse) {
+    final int initialLeft = view.getPaddingLeft();
+    final int initialTop = view.getPaddingTop();
+    final int initialRight = view.getPaddingRight();
+    final int initialBottom = view.getPaddingBottom();
+
+    ViewCompat.setOnApplyWindowInsetsListener(
+        view,
+        (v, windowInsets) -> {
+          Insets insets = windowInsets.getInsets(insetFlag);
+          v.setPadding(
+              initialLeft + (left ? insets.left : 0),
+              initialTop + (top ? insets.top : 0),
+              initialRight + (right ? insets.right : 0),
+              initialBottom + (bottom ? insets.bottom : 0));
+
+          if (traverse) {
+            return windowInsets;
+          } else {
+            return WindowInsetsCompat.CONSUMED;
+          }
+        });
+  }
+
+  /**
+   * Applies dynamic bottom padding or margin adjustment so that the given view stays above the soft
+   * keyboard when it appears.
+   *
+   * @param target The view that should remain visible (e.g., bottom sheet, header, etc.)
+   */
+  public static void applyImeInsets(@NonNull final View target, boolean animate) {
+    ViewCompat.setOnApplyWindowInsetsListener(
+        target,
+        (v, insets) -> {
+          Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
+          Insets navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+
+          int bottomInset = Math.max(imeInsets.bottom, navInsets.bottom);
+
+          v.setPaddingRelative(
+              v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bottomInset);
+
+          if (animate) {
+            v.animate().setDuration(200).translationY(-imeInsets.bottom).start();
+          }
+          return insets;
+        });
+  }
+
+  public static void displayDialog(@NonNull Context context, int message) {
+    new MaterialAlertDialogBuilder(context)
+        .setMessage(message)
+        .setPositiveButton(R.string.ok, null)
+        .show();
+  }
+
+  public static void enforceEdgeToEdge(Window window, boolean edgeToEdgeEnabled) {
+    WindowCompat.setDecorFitsSystemWindows(window, !edgeToEdgeEnabled);
+  }
+
+  public static int dpToPx(float dp) {
+    return Math.round(
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp,
+            IdeApplication.getGlobalResources().getDisplayMetrics()));
+  }
+
+  public static int pxToDp(float px) {
+    return Math.round(px / IdeApplication.getGlobalResources().getDisplayMetrics().density);
+  }
+
+  public static boolean isConnected() {
+    var provider = new IPProvider(IdeApplication.getGlobalContext());
+    return provider.isConnected();
+  }
+
+  public static String getMemoryUsage(Runtime runtime) {
+    long maxMemoryInBytes = runtime.maxMemory();
+    long availableMemInBytes = maxMemoryInBytes - (runtime.totalMemory() - runtime.freeMemory());
+    long usedMemInBytes = maxMemoryInBytes - availableMemInBytes;
+    long usedMemInPercentage = usedMemInBytes * 100 / maxMemoryInBytes;
+
+    return IdeApplication.getGlobalContext()
+        .getString(
+            R.string.app_memory_usage,
+            Formatter.formatShortFileSize(IdeApplication.getGlobalContext(), usedMemInBytes),
+            Formatter.formatShortFileSize(IdeApplication.getGlobalContext(), maxMemoryInBytes),
+            usedMemInPercentage);
+  }
+
+  public static SnackBarBuilder newSnackBarBuilder() {
+    return new SnackBarBuilder();
   }
 
   public static class SnackBarBuilder {
-    private static final MorphMap<String, Integer> colors =
-        MorphMap.of(
-            "background_light",
-            android.R.color.background_light,
-            "background_dark",
-            android.R.color.background_dark,
-            "white",
-            android.R.color.white,
-            "black",
-            android.R.color.black);
     private Context context;
     private String message;
     private View view;
@@ -645,110 +653,5 @@ public class BaseUtil {
         return this.duration;
       }
     }
-  }
-
-  public static void applySystemWindowInsetToPadding(
-      View view, boolean left, boolean top, boolean right, boolean bottom) {
-    final int initialLeft = view.getPaddingLeft();
-    final int initialTop = view.getPaddingTop();
-    final int initialRight = view.getPaddingRight();
-    final int initialBottom = view.getPaddingBottom();
-
-    ViewCompat.setOnApplyWindowInsetsListener(
-        view,
-        (v, windowInsets) -> {
-          Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-          v.setPaddingRelative(
-              initialLeft + (left ? insets.left : 0),
-              initialTop + (top ? insets.top : 0),
-              initialRight + (right ? insets.right : 0),
-              initialBottom + (bottom ? insets.bottom : 0));
-          return windowInsets;
-        });
-  }
-
-  public static void applySystemWindowInsetToMargin(
-      View view, int start, int top, int end, int bottom, boolean fitWindows) {
-    ViewCompat.setOnApplyWindowInsetsListener(
-        view,
-        (v, insets) -> {
-          ViewGroup.MarginLayoutParams layoutParams =
-              (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-          layoutParams.leftMargin = insets.getInsets(start).left;
-          layoutParams.topMargin = insets.getInsets(top).top;
-          layoutParams.rightMargin = insets.getInsets(end).right;
-          layoutParams.bottomMargin = insets.getInsets(bottom).bottom;
-          v.setLayoutParams(layoutParams);
-          v.setFitsSystemWindows(fitWindows);
-          return WindowInsetsCompat.CONSUMED;
-        });
-    ViewCompat.requestApplyInsets(view);
-  }
-
-  public static void applySystemWindowInsetToPadding(
-      View view, int start, int top, int end, int bottom, boolean fitWindows) {
-    ViewCompat.setOnApplyWindowInsetsListener(
-        view,
-        (v, insets) -> {
-          v.setPadding(
-              insets.getInsets(start).left,
-              insets.getInsets(top).top,
-              insets.getInsets(end).right,
-              insets.getInsets(bottom).bottom);
-          v.setFitsSystemWindows(fitWindows);
-          return WindowInsetsCompat.CONSUMED;
-        });
-    ViewCompat.requestApplyInsets(view);
-  }
-
-  public static void applySystemWindowInsetToPadding(View view) {
-    applySystemWindowInsetToPadding(view, false, false, false, false);
-  }
-
-  public static void applySystemWindowInsetToPadding(View view, boolean left) {
-    applySystemWindowInsetToPadding(view, left, false, false, false);
-  }
-
-  public static void applySystemWindowInsetToPadding(View view, boolean left, boolean top) {
-    applySystemWindowInsetToPadding(view, left, top, false, false);
-  }
-
-  public static void applySystemWindowInsetToPadding(
-      View view, boolean left, boolean top, boolean right) {
-    applySystemWindowInsetToPadding(view, left, top, right, false);
-  }
-
-  /**
-   * Applies dynamic bottom padding or margin adjustment so that the given view stays above the soft
-   * keyboard when it appears.
-   *
-   * @param target The view that should remain visible (e.g., bottom sheet, header, etc.)
-   */
-  public static void applyImeInsets(@NonNull final View target, boolean animate) {
-    ViewCompat.setOnApplyWindowInsetsListener(
-        target,
-        (v, insets) -> {
-          Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
-          Insets navInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
-
-          int bottomInset = Math.max(imeInsets.bottom, navInsets.bottom);
-
-          v.setPaddingRelative(
-              v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bottomInset);
-
-          if (animate) {
-            v.animate().setDuration(200).translationY(-imeInsets.bottom).start();
-          }
-          return insets;
-        });
-
-    ViewCompat.requestApplyInsets(target);
-  }
-
-  public static void displayDialog(@NonNull Context context, int message) {
-    new MaterialAlertDialogBuilder(context)
-        .setMessage(message)
-        .setPositiveButton(R.string.ok, null)
-        .show();
   }
 }

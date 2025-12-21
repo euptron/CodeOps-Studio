@@ -23,7 +23,10 @@
 
 package com.eup.codeopsstudio.viewmodel;
 
+import android.content.Intent;
+import android.os.Bundle;
 import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -33,7 +36,10 @@ import androidx.lifecycle.ViewModel;
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.models.Event;
+import com.eup.codeopsstudio.domain.events.PermissionEvent;
 import com.eup.codeopsstudio.logger.model.Log;
+import com.eup.codeopsstudio.models.ProgressModel;
+import com.eup.codeopsstudio.util.Wizard;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import java.io.File;
@@ -46,170 +52,213 @@ import java.util.ArrayList;
  */
 public class MainViewModel extends ViewModel {
 
-    private final MutableLiveData<String> mToolbarTitle = new MutableLiveData<>();
-    private final MutableLiveData<String> mToolbarSubTitle = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> mDrawerInstance = new MutableLiveData<>(false);
-    private final MutableLiveData<Boolean> bottomSheetExpanded = new MutableLiveData<>(false);
-    private final MutableLiveData<Integer> mBottomSheetState =
-        new MutableLiveData<>(BottomSheetBehavior.STATE_COLLAPSED);
-    private final MutableLiveData<Boolean> shouldUpdateMenu = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> addSettingsPane = new MutableLiveData<>(false);
-    private final MutableLiveData<File> mWebViewPaneFile = new MutableLiveData<>();
-    private final MutableLiveData<File> mTreeFragmentViewFile = new MutableLiveData<>();
-    private final MutableLiveData<File> mOpenEditorFile = new MutableLiveData<>();
-    private final MutableLiveData<File> pickZipFile = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> addPane = new MutableLiveData<>(false);
-    private final MutableLiveData<Event<Boolean>> exitRequest = new MutableLiveData<>();
-    private final MutableLiveData<Event<Boolean>> mDrawerState = new MutableLiveData<>();
-    private MutableLiveData<ArrayList<Log>> mIDELogs;
-    private MutableLiveData<ArrayList<Log>> mBUILDLogs;
+  private final MutableLiveData<String> mToolbarTitle = new MutableLiveData<>();
+  private final MutableLiveData<String> mToolbarSubTitle = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> mDrawerInstance = new MutableLiveData<>(false);
+  private final MutableLiveData<Boolean> bottomSheetExpanded = new MutableLiveData<>(false);
+  private final MutableLiveData<Integer> mBottomSheetState =
+      new MutableLiveData<>(BottomSheetBehavior.STATE_COLLAPSED);
+  private final MutableLiveData<Boolean> shouldUpdateMenu = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> addSettingsPane = new MutableLiveData<>(false);
+  private final MutableLiveData<File> mWebViewPaneFile = new MutableLiveData<>();
+  private final MutableLiveData<File> mTreeFragmentViewFile = new MutableLiveData<>();
+  private final MutableLiveData<File> mOpenEditorFile = new MutableLiveData<>();
+  private final MutableLiveData<File> pickZipFile = new MutableLiveData<>();
+  private final MutableLiveData<Boolean> addPane = new MutableLiveData<>(false);
+  private final MutableLiveData<Event<Boolean>> exitRequest = new MutableLiveData<>();
+  private final MutableLiveData<Event<Boolean>> mDrawerState = new MutableLiveData<>();
+  private MutableLiveData<ArrayList<Log>> mIDELogs;
+  private MutableLiveData<ArrayList<Log>> mBUILDLogs;
+  private MutableLiveData<ProgressModel> main_progress_model = new MutableLiveData<>();
+  private final MutableLiveData<Event<Bundle>> intentBundle = new MutableLiveData<>();
+  private final MutableLiveData<PermissionEvent> permissionEvent = new MutableLiveData<>();
 
-    public MainViewModel() {
-        setToolbarTitle(IdeApplication.getGlobalContext().getString(R.string.app_name));
-    }
+  public MainViewModel() {
+    setToolbarTitle(IdeApplication.getGlobalContext().getString(R.string.app_name));
+  }
 
-    public boolean addPane() {
-        this.addPane.postValue(true);
-        return true;
-    }
+  public boolean addPane() {
+    this.addPane.postValue(true);
+    return true;
+  }
 
-    public LiveData<Boolean> addSettingsPane() {
-        return this.addSettingsPane;
-    }
+  public LiveData<Boolean> addSettingsPane() {
+    return this.addSettingsPane;
+  }
 
-    public void addSettingsPane(boolean enabled) {
-        this.addSettingsPane.setValue(enabled);
-    }
+  public void addSettingsPane(boolean enabled) {
+    this.addSettingsPane.setValue(enabled);
+  }
 
-    public void clearExitRequest() {
-        exitRequest.setValue(new Event<>(false));
-    }
+  public void clearExitRequest() {
+    exitRequest.setValue(new Event<>(false));
+  }
 
-    public void closeDrawer() {
-        mDrawerState.postValue(new Event<>(false));
-    }
+  public void closeDrawer() {
+    mDrawerState.postValue(new Event<>(false));
+  }
 
-    public LiveData<Boolean> getAddPane() {
-        return this.addPane;
-    }
+  public LiveData<Boolean> getAddPane() {
+    return this.addPane;
+  }
 
-    public MutableLiveData<ArrayList<Log>> getBUILDLogs() {
-        if (mBUILDLogs == null) {
-            mBUILDLogs = new MutableLiveData<>();
-        }
-        return mBUILDLogs;
+  public MutableLiveData<ArrayList<Log>> getBUILDLogs() {
+    if (mBUILDLogs == null) {
+      mBUILDLogs = new MutableLiveData<>();
     }
+    return mBUILDLogs;
+  }
 
-    public LiveData<Boolean> getBottomSheetExpanded() {
-        return bottomSheetExpanded;
-    }
+  public LiveData<Boolean> getBottomSheetExpanded() {
+    return bottomSheetExpanded;
+  }
 
-    public void setBottomSheetExpanded(boolean expand) {
-        bottomSheetExpanded.setValue(expand);
-    }
+  public void setBottomSheetExpanded(boolean expand) {
+    bottomSheetExpanded.setValue(expand);
+  }
 
-    public LiveData<Integer> getBottomSheetState() {
-        return mBottomSheetState;
-    }
+  public LiveData<Integer> getBottomSheetState() {
+    return mBottomSheetState;
+  }
 
-    public void setBottomSheetState(@BottomSheetBehavior.State int bottomSheetState) {
-        mBottomSheetState.setValue(bottomSheetState);
-    }
+  public void setBottomSheetState(@BottomSheetBehavior.State int bottomSheetState) {
+    mBottomSheetState.setValue(bottomSheetState);
+  }
 
-    public LiveData<Boolean> getDrawerInstance() {
-        return mDrawerInstance;
-    }
+  public LiveData<Boolean> getDrawerInstance() {
+    return mDrawerInstance;
+  }
 
-    public void setDrawerInstance(boolean isDrawerLayout) {
-        mDrawerInstance.setValue(isDrawerLayout);
-    }
+  public void setDrawerInstance(boolean isDrawerLayout) {
+    mDrawerInstance.setValue(isDrawerLayout);
+  }
 
-    public LiveData<Event<Boolean>> getDrawerState() {
-        return mDrawerState;
-    }
-    
-    public boolean isDrawerOpen() {
-        Boolean state = mDrawerState.getValue().getContentIfNotHandled();
-        return state != null && state;
-    }
-    
-    public void requestOpenDrawer() {
-        mDrawerState.postValue(new Event<>(true));
-    }
-    
-    public void requestCloseDrawer() {
-        mDrawerState.postValue(new Event<>(false));
-    }
+  public LiveData<Event<Boolean>> getDrawerState() {
+    return mDrawerState;
+  }
 
-    public LiveData<Event<Boolean>> getExitRequest() {
-        return exitRequest;
-    }
+  public boolean isDrawerOpen() {
+    Boolean state = mDrawerState.getValue().getContentIfNotHandled();
+    return state != null && state;
+  }
 
-    public MutableLiveData<ArrayList<Log>> getIDELogs() {
-        if (mIDELogs == null) {
-            mIDELogs = new MutableLiveData<>();
-        }
-        return mIDELogs;
-    }
+  public void requestOpenDrawer() {
+    mDrawerState.postValue(new Event<>(true));
+  }
 
-    public LiveData<Boolean> getShouldUpdateMenu() {
-        return shouldUpdateMenu;
-    }
+  public void requestCloseDrawer() {
+    mDrawerState.postValue(new Event<>(false));
+  }
 
-    public void setShouldUpdateMenu(boolean update) {
-        shouldUpdateMenu.setValue(update);
-    }
+  public LiveData<Event<Boolean>> getExitRequest() {
+    return exitRequest;
+  }
 
-    public LiveData<String> getToolbarSubTitle() {
-        return mToolbarSubTitle;
+  public MutableLiveData<ArrayList<Log>> getIDELogs() {
+    if (mIDELogs == null) {
+      mIDELogs = new MutableLiveData<>();
     }
+    return mIDELogs;
+  }
 
-    public void setToolbarSubTitle(@Nullable String title) {
-        mToolbarSubTitle.setValue(title);
-    }
+  public LiveData<Boolean> getShouldUpdateMenu() {
+    return shouldUpdateMenu;
+  }
 
-    public LiveData<String> getToolbarTitle() {
-        return mToolbarTitle;
-    }
+  public void setShouldUpdateMenu(boolean update) {
+    shouldUpdateMenu.setValue(update);
+  }
 
-    public void setToolbarTitle(@Nullable String title) {
-        mToolbarTitle.setValue(title);
-    }
+  public LiveData<String> getToolbarSubTitle() {
+    return mToolbarSubTitle;
+  }
 
-    public MutableLiveData<File> getWebViewPaneFile() {
-        return mWebViewPaneFile;
-    }
+  public void setToolbarSubTitle(@Nullable String title) {
+    mToolbarSubTitle.setValue(title);
+  }
 
-    public void setWebViewPaneFile(File file) {
-        mWebViewPaneFile.setValue(file);
-    }
+  public LiveData<String> getToolbarTitle() {
+    return mToolbarTitle;
+  }
 
-    public LiveData<File> getZipFile() {
-        return this.pickZipFile;
-    }
+  public void setToolbarTitle(@Nullable String title) {
+    mToolbarTitle.setValue(title);
+  }
 
-    public void setZipFile(File file) {
-        this.pickZipFile.setValue(file);
-    }
-    
-    public void observeEditorFileOpening(LifecycleOwner lifecycleOwner, Observer<File> observer) {
-        mOpenEditorFile.observe(lifecycleOwner, observer);
-    }
+  public MutableLiveData<File> getWebViewPaneFile() {
+    return mWebViewPaneFile;
+  }
 
-    public void observeSetTreeViewFragmentFile(LifecycleOwner lifecycleOwner,
-        Observer<File> observer) {
-        this.mTreeFragmentViewFile.observe(lifecycleOwner, observer);
-    }
+  public void setWebViewPaneFile(File file) {
+    mWebViewPaneFile.setValue(file);
+  }
 
-    public void openEditorFile(File file) {
-        mOpenEditorFile.setValue(file);
-    }
+  public LiveData<File> getZipFile() {
+    return this.pickZipFile;
+  }
 
-    public void requestExit() {
-        exitRequest.setValue(new Event<>(true));
-    }
+  public void setZipFile(File file) {
+    this.pickZipFile.setValue(file);
+  }
 
-    public void setTreeViewFragmentTreeDir(File file) {
-        mTreeFragmentViewFile.setValue(file);
-    }
+  public void observeEditorFileOpening(LifecycleOwner lifecycleOwner, Observer<File> observer) {
+    mOpenEditorFile.observe(lifecycleOwner, observer);
+  }
+
+  public void observeSetTreeViewFragmentFile(
+      LifecycleOwner lifecycleOwner, Observer<File> observer) {
+    this.mTreeFragmentViewFile.observe(lifecycleOwner, observer);
+  }
+
+  public void openEditorFile(File file) {
+    mOpenEditorFile.setValue(file);
+  }
+
+  public void requestExit() {
+    exitRequest.setValue(new Event<>(true));
+  }
+
+  public void setTreeViewFragmentTreeDir(File file) {
+    mTreeFragmentViewFile.setValue(file);
+  }
+
+  public LiveData<ProgressModel> getMainProgress() {
+    return this.main_progress_model;
+  }
+
+  public void updateMainProgress(boolean isInDeterminate, int progressValue, boolean isComplete) {
+    this.main_progress_model.setValue(
+        new ProgressModel(isInDeterminate, progressValue, isComplete));
+  }
+
+  public void observeMainProgress(LifecycleOwner lifecycleOwner, Observer<ProgressModel> observer) {
+    this.main_progress_model.observe(lifecycleOwner, observer);
+  }
+
+  public void setIntentBundle(Intent intent) {
+    intentBundle.setValue(new Event<>(Wizard.toBundle(intent)));
+  }
+
+  public void observeIntentBundle(LifecycleOwner lifecycleOwner, Observer<Event<Bundle>> observer) {
+    intentBundle.observe(lifecycleOwner, observer);
+  }
+
+  public LiveData<Event<Bundle>> getIntentBundle() {
+    return intentBundle;
+  }
+
+  public void observePermissionEvents(
+      LifecycleOwner lifecycleOwner, Observer<PermissionEvent> observer) {
+    permissionEvent.observe(lifecycleOwner, observer);
+  }
+
+  public void requestStoragePermission() {
+    permissionEvent.setValue(
+        new PermissionEvent(PermissionEvent.Type.STORAGE, PermissionEvent.Action.REQUEST));
+  }
+
+  public void requestNotificationPermission() {
+    permissionEvent.setValue(
+        new PermissionEvent(PermissionEvent.Type.NOTIFICATION, PermissionEvent.Action.REQUEST));
+  }
 }

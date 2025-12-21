@@ -37,7 +37,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 /**
- * A class to show the runtime memory usage.
+ * A class to display the runtime memory usage.
  *
  * @author Etido Peter
  */

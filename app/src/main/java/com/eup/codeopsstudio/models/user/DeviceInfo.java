@@ -45,7 +45,7 @@ public class DeviceInfo {
     private final String appPackageName;
     @NonNull
     private final String appVersionCode;
-    private final int appVersionCodeInt;
+    private final long appVersionCodeLong;
     @NonNull
     private final String model;
     @NonNull
@@ -80,7 +80,7 @@ public class DeviceInfo {
 
         this.appPackageName    = definite(context.getPackageName());
         this.appVersionCode    = definite(Wizard.getAppVersionCode(context));
-        this.appVersionCodeInt = Wizard.getAppVersionCodeInteger(context);
+        this.appVersionCodeLong = Wizard.getAppVersionCodeLong(context);
         this.appVersionName    = definite(Wizard.getAppVersionName(context));
         this.model             = definite(Wizard.getDeviceBuildModel());
         this.sdkVersion        = definite(Wizard.getDeviceSDKVersion());
@@ -110,8 +110,8 @@ public class DeviceInfo {
         return this.appVersionCode;
     }
 
-    public int getAppVersionCodeInt() {
-        return this.appVersionCodeInt;
+    public long getAppVersionCodeLong() {
+        return this.appVersionCodeLong;
     }
 
     @NonNull

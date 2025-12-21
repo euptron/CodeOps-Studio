@@ -35,6 +35,7 @@ import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 
+import androidx.lifecycle.ViewModelProvider;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
@@ -46,6 +47,7 @@ import com.eup.codeopsstudio.server.LiveServer;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 
+import com.eup.codeopsstudio.viewmodel.MainViewModel;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -67,10 +69,12 @@ public class WebViewPane extends Pane {
 
   private Logger logger;
   private File fileToPreview;
+  private int lastProgress = 0;
   private LiveServer liveServer;
   private LiveServer consoleServer;
   private boolean isZoomable = true;
   private boolean showConsole = true;
+  private MainViewModel mainViewModel;
   private boolean isDesktopMode = false;
   private LayoutPaneWebviewBinding binding;
 
@@ -85,6 +89,7 @@ public class WebViewPane extends Pane {
   @Override
   public View onCreateView() {
     binding = LayoutPaneWebviewBinding.inflate(LayoutInflater.from(getContext()));
+    mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
     logger = new Logger(Logger.LogClass.IDE);
     liveServer = new LiveServer(requireContext());
     consoleServer = new LiveServer(requireContext());
@@ -124,16 +129,14 @@ public class WebViewPane extends Pane {
     binding.webview.setFocusable(true);
     binding.webview.setFocusableInTouchMode(true);
 
-    binding.progressbar.setMax(100);
-    binding.progressbar.setProgress(1);
-    binding.progressbar.setVisibility(View.GONE);
-
     binding.webview.setWebChromeClient(
         new WebChromeClient() {
           @Override
           public void onProgressChanged(WebView view, int progress) {
-            binding.progressbar.setProgressCompat(progress, true);
-
+            if (progress > lastProgress) {
+              mainViewModel.updateMainProgress(false, progress, false);
+              lastProgress = progress;
+            }
             if (view.getTitle() != null && Objects.equals(view.getTitle(), "about:blank")) {
               setTitle(view.getTitle());
             }
@@ -160,13 +163,15 @@ public class WebViewPane extends Pane {
           @Override
           public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
-            binding.progressbar.setVisibility(View.VISIBLE);
+            lastProgress = 0; // reset
+            mainViewModel.updateMainProgress(false, 0, false);
           }
 
           @Override
           public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            binding.progressbar.setVisibility(View.GONE);
+            lastProgress = 100;
+            mainViewModel.updateMainProgress(false, 100, true);
 
             if (showConsole && consoleServer.getUrl() != null) {
               String msg = getString(R.string.msg_console_welcome, getString(R.string.app_name));

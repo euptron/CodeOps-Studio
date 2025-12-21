@@ -42,47 +42,54 @@ import com.google.android.material.color.HarmonizedColorsOptions;
  */
 public class ThemeManager {
 
-    public static final String KEY_THEME = Constants.SharedPreferenceKeys.KEY_APP_THEME;
-    public static final String KEY_DYNAMIC_COLORS =
-        Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS;
+  public static final String KEY_THEME = Constants.SharedPreferenceKeys.KEY_APP_THEME;
+  public static final String KEY_DYNAMIC_COLORS =
+      Constants.SharedPreferenceKeys.KEY_DYNAMIC_COLOURS;
 
-    private final Application application;
+  private final Application application;
 
-    public ThemeManager(Application application) {
-        this.application = application;
-    }
+  public ThemeManager(Application application) {
+    this.application = application;
+  }
 
-    public void applyDynamicColors() {
-        applyDynamicColors(false);
-    }
+  public void applyDynamicColors() {
+    applyDynamicColors(false);
+  }
 
-    public void applyDynamicColors(boolean harmonizeColours) {
-        final DynamicColors.Precondition precondition =
-            (activity, theme) -> isDynamicColorEnabled();
-        DynamicColorsOptions dynamicColorsOptions = new DynamicColorsOptions.Builder()
-            .setPrecondition(precondition).setOnAppliedCallback(activity -> {
-                if (harmonizeColours) {
+  public void applyDynamicColors(boolean harmonizeColours) {
+    applyDynamicColors(isDynamicColorEnabled(), harmonizeColours);
+  }
+
+  public void applyDynamicColors(boolean applyCondition, boolean harmonizeColours) {
+    final DynamicColors.Precondition precondition = (activity, theme) -> applyCondition;
+    DynamicColorsOptions dynamicColorsOptions =
+        new DynamicColorsOptions.Builder()
+            .setPrecondition(precondition)
+            .setOnAppliedCallback(
+                activity -> {
+                  if (harmonizeColours) {
                     applyColorHarmonization(activity);
-                }
-            }).build();
-        DynamicColors.applyToActivitiesIfAvailable(application, dynamicColorsOptions);
-    }
+                  }
+                })
+            .build();
+    DynamicColors.applyToActivitiesIfAvailable(application, dynamicColorsOptions);
+  }
 
-    private void applyColorHarmonization(Activity activity) {
-        HarmonizedColorsOptions options = HarmonizedColorsOptions.createMaterialDefaults();
-        HarmonizedColors.applyToContextIfAvailable(activity, options);
-    }
+  private void applyColorHarmonization(Activity activity) {
+    HarmonizedColorsOptions options = HarmonizedColorsOptions.createMaterialDefaults();
+    HarmonizedColors.applyToContextIfAvailable(activity, options);
+  }
 
-    public boolean isDynamicColorEnabled() {
-        return PreferencesUtils.useDynamicColors();
-    }
+  public boolean isDynamicColorEnabled() {
+    return PreferencesUtils.useDynamicColors();
+  }
 
-    public void applyTheme() {
-        int themeMode = getCurrentTheme();
-        AppCompatDelegate.setDefaultNightMode(themeMode);
-    }
+  public void applyTheme() {
+    int themeMode = getCurrentTheme();
+    AppCompatDelegate.setDefaultNightMode(themeMode);
+  }
 
-    public int getCurrentTheme() {
-        return PreferencesUtils.getCurrentTheme();
-    }
+  public int getCurrentTheme() {
+    return PreferencesUtils.getCurrentTheme();
+  }
 }

@@ -23,25 +23,42 @@
 
 package com.eup.codeopsstudio;
 
+import android.content.Context;
+import androidx.annotation.NonNull;
+import com.bumptech.glide.GlideBuilder;
 import com.bumptech.glide.annotation.GlideModule;
+import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.module.AppGlideModule;
+import com.bumptech.glide.request.RequestOptions;
 
 /**
  * Glide Configuration Entry Point.
  *
- * <p>This module configures Glide for the application. It is required to resolve a startup
- * warning from {@code com.google.firebase:firebase-inappmessaging-display}, which uses Glide.
+ * <p>This module configures Glide for the application. It is required to resolve a startup warning
+ * from {@code com.google.firebase:firebase-inappmessaging-display}, which uses Glide.
  *
  * <p>The {@code @GlideModule} annotation triggers the generation of {@code
- * GeneratedAppGlideModule},
- * which Glide uses for initialization, preventing the warning.
+ * GeneratedAppGlideModule}, which Glide uses for initialization, preventing the warning.
  *
- * <p><b>IMPORTANT:</b> Do not delete this class. It is crucial for Glide's initialization.
- * Deleting it will lead to warnings and potential performance issues with Firebase features.
+ * <p><b>IMPORTANT:</b> Do not delete this class. It is crucial for Glide's initialization. Deleting
+ * it will lead to warnings and potential performance issues with Firebase features.
  *
  * @author Etido Peter
  */
 @GlideModule
 public final class CodeOpsGlideModule extends AppGlideModule {
-    // Intentionally empty to use Glide defaults.
+  @Override
+  public void applyOptions(@NonNull Context context, @NonNull GlideBuilder builder) {
+    builder.setDefaultRequestOptions(
+        new RequestOptions()
+            .timeout(5000) // 5 second timeout
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .format(DecodeFormat.PREFER_RGB_565));
+  }
+
+  @Override
+  public boolean isManifestParsingEnabled() {
+    return false;
+  }
 }

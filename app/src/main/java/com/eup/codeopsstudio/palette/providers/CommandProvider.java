@@ -23,16 +23,15 @@
 
 package com.eup.codeopsstudio.palette.providers;
 
-import android.content.Context;
-import android.widget.Toast;
 import com.eup.codeopsstudio.palette.PaletteItem;
+import com.eup.codeopsstudio.util.BaseUtil;
 import java.util.List;
 
 /**
  * Defines the contract for a logic module that provides items to the command palette.
  *
- * <p>Implementations of this interface are responsible for handling specific prefixes
- * (triggers) and filtering their internal data sets based on user queries.
+ * <p>Implementations of this interface are responsible for handling specific prefixes (triggers)
+ * and filtering their internal data sets based on user queries.
  *
  * @author Etido Peter
  */
@@ -51,7 +50,7 @@ public interface CommandProvider {
    */
   List<PaletteItem> getItems(String rawQuery, String contentQuery);
 
-  default void showToast(Context context, String msg) {
-    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+  default void toast(String msg) {
+    BaseUtil.toastShort(msg);
   }
 }

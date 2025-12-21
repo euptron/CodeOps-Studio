@@ -25,12 +25,13 @@ package com.eup.codeopsstudio.ui.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
+import android.view.View;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentActivity;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
-
 import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
@@ -38,91 +39,97 @@ import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.util.manager.ThemeManager;
 import com.google.android.material.color.DynamicColors;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.transition.MaterialSharedAxis;
 
 /**
  * @author Etido Peter
  */
-public class GeneralConfigurationFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class GeneralConfigurationFragment extends PreferenceFragmentCompat
+    implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    public static final String TAG = GeneralConfigurationFragment.class.getSimpleName();
+  public static final String TAG = GeneralConfigurationFragment.class.getSimpleName();
+  private static final long SWITCH_ANIMATION_DURATION = 250; // milsec
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
-        setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
+    setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
+  }
+
+  @Override
+  public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
+    setPreferencesFromResource(R.xml.general_configuration_preferences, rootKey);
+    SwitchPreferenceCompat switchPreference = findPreference(ThemeManager.KEY_DYNAMIC_COLORS);
+
+    if (switchPreference == null) {
+      ILog.debug(TAG, "Dynamic switch preference is null");
+    } else {
+      if (!DynamicColors.isDynamicColorAvailable()) {
+        switchPreference.setEnabled(false);
+        switchPreference.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
+      } else {
+        switchPreference.setOnPreferenceChangeListener(
+            (preference, newValue) -> {
+              AsyncTask.runLaterOnUiThread(
+                  () -> applyDynamicColors((boolean) newValue), SWITCH_ANIMATION_DURATION);
+              return true;
+            });
+      }
     }
+  }
 
-    @Override
-    public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
-        setPreferencesFromResource(R.xml.general_configuration_preferences, rootKey);
-        SwitchPreferenceCompat switchPreference = findPreference(ThemeManager.KEY_DYNAMIC_COLORS);
-
-        if (switchPreference == null) {
-            ILog.debug(TAG, "Dynamic switch preference is null");
-        } else {
-            if (!DynamicColors.isDynamicColorAvailable()) {
-                switchPreference.setEnabled(false);
-                switchPreference.setSummary(R.string.msg_unsupported_sdk_dynamic_colors);
-            }
-        }
+  @Override
+  public void onResume() {
+    super.onResume();
+    SharedPreferences pref = getPreferenceManager().getSharedPreferences();
+    if (pref != null) {
+      pref.registerOnSharedPreferenceChangeListener(this);
     }
+  }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        SharedPreferences pref = getPreferenceManager().getSharedPreferences();
-
-        if (pref != null) {
-            pref.registerOnSharedPreferenceChangeListener(this);
-        }
+  @Override
+  public void onPause() {
+    super.onPause();
+    SharedPreferences pref = getPreferenceManager().getSharedPreferences();
+    if (pref != null) {
+      pref.unregisterOnSharedPreferenceChangeListener(this);
     }
+  }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        SharedPreferences pref = getPreferenceManager().getSharedPreferences();
-
-        if (pref != null) {
-            pref.unregisterOnSharedPreferenceChangeListener(this);
-        }
+  @Override
+  public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, @Nullable String key) {
+    if (key != null) {
+      switch (key) {
+        case ThemeManager.KEY_THEME:
+          applyTheme();
+          break;
+        case Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE:
+          boolean checked = sharedPreferences.getBoolean(key, true);
+          syncSwitch(findPreference(key), checked);
+          break;
+      }
     }
+  }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-        @Nullable String key) {
-        if (key != null) {
-            switch (key) {
-                case ThemeManager.KEY_THEME:
-                    applyTheme();
-                    break;
-                case ThemeManager.KEY_DYNAMIC_COLORS:
-                    applyDynamicColors();
-                    AsyncTask.runLaterOnUiThread(() -> ActivityCompat.recreate(requireActivity())
-                        , 400/*milli-sec*/);
-                    break;
-                case Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE:
-                    boolean checked = sharedPreferences.getBoolean(key, true);
-                    syncSwitch(findPreference(Constants.SharedPreferenceKeys.KEY_SHOW_WELCOME_PANE), checked);
-                    break;
-            }
-        }
-    }
+  private void applyTheme() {
+    IdeApplication.getInstance().getThemeManager().applyTheme();
+  }
 
-    private void applyTheme() {
-        IdeApplication.getInstance().getThemeManager().applyTheme();
-    }
+  private void applyDynamicColors(boolean isChecked) {
+    FragmentActivity activity = getActivity();
+    if (activity == null || activity.isFinishing()) return;
 
-    private void applyDynamicColors() {
-        IdeApplication.getInstance().getThemeManager().applyDynamicColors();
-    }
+    IdeApplication.getInstance().getThemeManager().applyDynamicColors(isChecked, false);
+    ActivityCompat.recreate(activity);
+  }
 
-    private void syncSwitch(SwitchPreferenceCompat switchPreference, boolean checked) {
-        if (switchPreference == null) {
-            ILog.debug(TAG, "Switch preference is null");
-        } else {
-            switchPreference.setChecked(checked);
-        }
+  private void syncSwitch(SwitchPreferenceCompat switchPreference, boolean checked) {
+    if (switchPreference == null) {
+      ILog.debug(TAG, "Switch preference is null");
+    } else {
+      switchPreference.setChecked(checked);
     }
+  }
 }

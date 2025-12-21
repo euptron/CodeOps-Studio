@@ -124,7 +124,6 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/tree_view_desc"
         android:fillViewport="true"
-        android:padding="5dp"
         android:visibility="visible" />
 
 </LinearLayout>

@@ -48,6 +48,7 @@
         tools:ignore="ForegroundServicesPolicy" />
     <!-- Required on Android 14+ to post foreground services with explicit type (foregroundServiceType = dataSync) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
 
     <application
         android:name=".IdeApplication"
@@ -75,7 +76,6 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

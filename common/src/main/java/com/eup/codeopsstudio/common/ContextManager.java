@@ -30,7 +30,7 @@ import androidx.annotation.DimenRes;
 import androidx.annotation.NonNull;
 
 /**
- * Utility to retrieve the application context from anywhere
+ * Utility to expose the application context within the codebase
  *
  * @author Etido Peter
  */
@@ -41,17 +41,6 @@ public class ContextManager {
 
   private ContextManager() {
     // Hide
-  }
-
-  public static Context getApplicationContext() {
-    if (mContext == null) {
-      throw new IllegalStateException("initialize() hasn't been called.");
-    }
-    return mContext;
-  }
-
-  public static String getPackageName() {
-    return mContext.getPackageName();
   }
 
   public static void initialize(@NonNull Context context) {
@@ -66,5 +55,16 @@ public class ContextManager {
     return (int)
         (context.getResources().getDimension(resId)
             / context.getResources().getDisplayMetrics().density);
+  }
+
+  public static String getPackageName() {
+    return getApplicationContext().getPackageName();
+  }
+
+  public static Context getApplicationContext() {
+    if (mContext == null) {
+      throw new IllegalStateException("initialize() hasn't been called.");
+    }
+    return mContext;
   }
 }

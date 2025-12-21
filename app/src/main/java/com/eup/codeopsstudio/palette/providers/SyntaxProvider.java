@@ -36,9 +36,9 @@ import java.util.*;
 /**
  * A command provider specialized in listing and filtering syntax highlighting languages.
  *
- * <p>Triggered by the {@code @syntax} prefix, this provider bridges the UI with the
- * {@link com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider}
- * to dynamically populate available language modes (e.g., Java, Kotlin, Python).
+ * <p>Triggered by the {@code @syntax} prefix, this provider bridges the UI with the {@link
+ * com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProvider} to dynamically
+ * populate available language modes (e.g., Java, Kotlin, Python).
  *
  * @author Etido Peter
  */
@@ -106,18 +106,15 @@ public class SyntaxProvider implements CommandProvider {
                 if (codeEditorPane != null) {
                   final boolean autoComplete = PreferencesUtils.enableAutoComplete();
                   final boolean autoCloseBrackets = PreferencesUtils.enableBracketAutoClosing();
-                    
-                  codeEditorPane.setEditorLanguage(autoComplete, autoCloseBrackets, false, ext, scope);
+
+                  codeEditorPane.setEditorLanguage(
+                      autoComplete, autoCloseBrackets, false, ext, scope);
                 } else {
-                  showToast("Invalid CodeEditorPane");
+                  toast("Invalid CodeEditorPane");
                 }
               }));
     }
 
     syntaxItems.sort((item1, item2) -> item1.getTitle().compareToIgnoreCase(item2.getTitle()));
-  }
-
-  public void showToast(String msg) {
-    showToast(context, msg);
   }
 }

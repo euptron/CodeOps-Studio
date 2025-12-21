@@ -24,13 +24,11 @@
 package com.eup.codeopsstudio.util;
 
 import androidx.annotation.NonNull;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -38,18 +36,18 @@ import java.io.IOException;
  * @author Etido Peter
  */
 public class FileTypeAdapter extends TypeAdapter<File> {
-    @Override
-    public void write(@NonNull JsonWriter out, File value) throws IOException {
-        out.value(value == null ? null : value.getPath());
-    }
+  @Override
+  public void write(@NonNull JsonWriter out, File value) throws IOException {
+    out.value(value == null ? null : value.getPath());
+  }
 
-    @Override
-    public File read(@NonNull JsonReader in) throws IOException {
-        String path = in.nextString();
-        return (path == null || path.isEmpty()) ? null : new File(path);
-    }
+  @Override
+  public File read(@NonNull JsonReader in) throws IOException {
+    String path = in.nextString();
+    return (path == null || path.isEmpty()) ? null : new File(path);
+  }
 
-    public static Gson createFileAwareGson() {
-        return new GsonBuilder().registerTypeAdapter(File.class, new FileTypeAdapter()).create();
-    }
+  public static Gson createFileAwareGson() {
+    return new GsonBuilder().registerTypeAdapter(File.class, new FileTypeAdapter()).create();
+  }
 }

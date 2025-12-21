@@ -23,9 +23,14 @@
 
 package com.eup.codeopsstudio;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,9 +39,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
@@ -44,6 +52,8 @@ import androidx.core.util.Pair;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import com.eup.codeopsstudio.common.Constants;
@@ -60,16 +70,17 @@ import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.observers.ContextualObserver;
 import com.eup.codeopsstudio.pane.Pane;
-import com.eup.codeopsstudio.ui.AllowChildInterceptDrawerLayout;
+import com.eup.codeopsstudio.ui.PrimaryDrawerLayout;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.ui.editor.panes.WebViewPane;
+import com.eup.codeopsstudio.ui.fcm.UpdateBottomSheet;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
+import com.eup.codeopsstudio.util.versioning.VersionManager;
 import com.eup.codeopsstudio.viewmodel.FileViewModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.j2objc.annotations.UsedByReflection;
 import java.io.File;
 import java.io.IOException;
@@ -133,10 +144,12 @@ public class MainFragment extends Fragment
   private FileViewModel fileViewModel;
   private MainViewModel mainViewModel;
   private ILog.LogListener logListener;
-  private ActionBarDrawerToggle actionBarDrawerToggle;
-  private OnBackPressedCallback onBackPressedCallback;
   private ContextualObserver lifeCycleObserver;
+  private OnBackPressedCallback onBackPressedCallback;
   private Pair<Integer, Pane> currentPanePair = Pair.create(-1, null);
+  private ActivityResultLauncher<Intent> requestStoragePermissionLauncherApi30;
+  private ActivityResultLauncher<String[]> requestStoragePermissionLauncherApi19;
+  private ActivityResultLauncher<String> requestNotificationPermissionLauncherApi33;
 
   public static MainFragment newInstance() {
     return new MainFragment();
@@ -156,6 +169,55 @@ public class MainFragment extends Fragment
     mainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
     fileViewModel = new ViewModelProvider(requireActivity()).get(FileViewModel.class);
     lifeCycleObserver = new ContextualObserver(requireContext(), resultRegistry, requireActivity());
+
+    requestStoragePermissionLauncherApi30 =
+        registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+              if (result != null) {
+                FragmentActivity activity = requireActivity();
+                if (!Wizard.isStoragePermissionGranted(activity)) {
+                  showStoragePermissionDeniedDialog(
+                      this::requestStoragePermission,
+                      () -> {
+                        activity.finishAffinity();
+                        System.exit(0);
+                      });
+                }
+              }
+            });
+
+    requestStoragePermissionLauncherApi19 =
+        registerForActivityResult(
+            new ActivityResultContracts.RequestMultiplePermissions(),
+            isGranted -> {
+              if (isGranted.containsValue(false)) {
+                showStoragePermissionDeniedDialog(
+                    this::requestStoragePermission,
+                    () -> {
+                      requireActivity().finishAffinity();
+                      System.exit(0);
+                    });
+              }
+            });
+
+    requestNotificationPermissionLauncherApi33 =
+        registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (Boolean.TRUE.equals(isGranted)) {
+                  BaseUtil.toastLong(R.string.msg_notification_permission_granted);
+                } else {
+                  if (shouldShowRequestPermissionRationale(
+                      Manifest.permission.POST_NOTIFICATIONS)) {
+                    showNotificationPermissionRationale();
+                  } else {
+                    showNotificationSettingsRationale();
+                  }
+                }
+              }
+            });
   }
 
   @Nullable
@@ -165,7 +227,7 @@ public class MainFragment extends Fragment
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
     binding = FragmentMainBinding.inflate(inflater, container, false);
-    getViewLifecycleOwner().getLifecycle().addObserver(lifeCycleObserver);
+    getLifecycle().addObserver(lifeCycleObserver);
     rootView = binding.getRoot();
     ((AppCompatActivity) requireActivity())
         .setSupportActionBar(binding.fragmentMainContent.toolbar);
@@ -178,22 +240,21 @@ public class MainFragment extends Fragment
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     AppCompatActivity activity = (AppCompatActivity) requireActivity();
-    logger.attach(requireActivity());
-
+    logger.attach(activity);
     logListener =
-        formattedMessage -> {
-          requireActivity()
-              .runOnUiThread(
-                  () -> {
-                    logger.postLog(formattedMessage);
-                  });
+        logs -> {
+          activity.runOnUiThread(() -> logger.postLog(logs));
         };
 
-    requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+    activity.addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-    ((MainActivity) requireActivity()).ensureStoragePermissionGranted();
-    if (((MainActivity) requireActivity()).isStoragePermissionGranted()) checkPlugins();
-    ((MainActivity) requireActivity()).ensureNotificationPermissionGranted();
+    if (Wizard.isStoragePermissionGranted(requireContext())) {
+      checkPlugins();
+    } else {
+      requestStoragePermission();
+    }
+
+    ensureNotificationPermissionGranted();
 
     mainViewModel
         .getToolbarTitle()
@@ -203,27 +264,6 @@ public class MainFragment extends Fragment
         .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setSubtitle);
     mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(), file -> invalidateMenu());
     mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
-
-    FirebaseApp.initializeApp(requireContext());
-
-    FirebaseMessaging.getInstance()
-        .getToken()
-        .addOnCompleteListener(
-            task -> {
-              if (!task.isSuccessful()) {
-                ILog.warning(TAG, "Fetching FCM registration token failed", task.getException());
-                return;
-              }
-
-              // Get new FCM registration token
-              String token = task.getResult();
-
-              // Log and toast
-              String msg = "Instance ID: " + token;
-              ILog.debug(TAG, msg);
-              logger.i(TAG, msg);
-              BaseUtil.toastShort(msg);
-            });
 
     setUpDrawer();
 
@@ -237,7 +277,7 @@ public class MainFragment extends Fragment
               return;
             }
 
-            if (rootView instanceof AllowChildInterceptDrawerLayout) {
+            if (rootView instanceof PrimaryDrawerLayout) {
               if (mainViewModel.isDrawerOpen()) {
                 mainViewModel.requestCloseDrawer();
               } else {
@@ -246,11 +286,12 @@ public class MainFragment extends Fragment
             }
           }
         };
-    requireActivity()
+
+    activity
         .getOnBackPressedDispatcher()
         .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
 
-    BaseUtil.registerSoftInputChangedListener(getActivity(), __ -> invalidateMenu());
+    BaseUtil.registerSoftInputChangedListener(activity, __ -> invalidateMenu());
 
     if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
 
@@ -267,35 +308,61 @@ public class MainFragment extends Fragment
               }
             });
 
+    mainViewModel.observeMainProgress(
+        getViewLifecycleOwner(),
+        model -> {
+          final boolean isIndeterminate = model.isInDeterminate();
+          final int progress = model.getProgressValue();
+          final boolean isComplete = model.isComplete();
+
+          if (isIndeterminate) {
+            binding.fragmentMainContent.progress.setIndeterminate(true);
+          } else {
+            binding.fragmentMainContent.progress.setIndeterminate(false);
+            binding.fragmentMainContent.progress.setProgressCompat(progress, true);
+          }
+
+          binding.fragmentMainContent.progress.setVisibility(isComplete ? View.GONE : View.VISIBLE);
+        });
+
+    mainViewModel.observeIntentBundle(
+        getViewLifecycleOwner(),
+        eventBundle -> {
+          if (eventBundle == null) return;
+          Bundle bundle = eventBundle.getContentIfNotHandled();
+          if (bundle != null) {
+            handleIntentBundle(bundle);
+          }
+        });
+
     fileViewModel.monitorMessages(
         getViewLifecycleOwner(),
         observer -> {
-          if (observer != null) {
-            logger.e(TAG, observer.second);
-          }
+          if (observer == null) return;
+          logger.e(TAG, observer.second);
         });
 
     fileViewModel.observePickedFiles(
         getViewLifecycleOwner(),
         file -> {
-          if (file != null) {
-            if (Wizard.getMimeType(requireContext(), file)
-                    .equals(MetaDocument.MimeType.ZIP.toString())
-                || file.getName().endsWith(".zip")) {
-              mainViewModel.setZipFile(file);
-            } else {
-              openFileInPane(file);
-            }
+          if (file == null) return;
+          if (Wizard.getMimeType(requireContext(), file)
+                  .equals(MetaDocument.MimeType.ZIP.toString())
+              || file.getName().endsWith(".zip")) {
+            mainViewModel.setZipFile(file);
+          } else {
+            openFileInPane(file);
           }
         });
 
     fileViewModel.observePickedFolders(
         getViewLifecycleOwner(),
         file -> {
-          if (file != null) {
-            mainViewModel.setTreeViewFragmentTreeDir(file);
-          }
+          if (file == null) return;
+          mainViewModel.setTreeViewFragmentTreeDir(file);
         });
+
+    checkForStoredAppUpdates();
   }
 
   @Override
@@ -308,10 +375,9 @@ public class MainFragment extends Fragment
 
   @Override
   public void onSaveInstanceState(@NonNull Bundle outState) {
-    if (rootView instanceof AllowChildInterceptDrawerLayout) {
+    if (rootView instanceof PrimaryDrawerLayout) {
       outState.putBoolean(
-          "start_drawer_state",
-          ((AllowChildInterceptDrawerLayout) rootView).isDrawerOpen(GravityCompat.START));
+          "start_drawer_state", ((PrimaryDrawerLayout) rootView).isDrawerOpen(GravityCompat.START));
     }
     super.onSaveInstanceState(outState);
   }
@@ -350,6 +416,7 @@ public class MainFragment extends Fragment
     super.onDestroyView();
     BaseUtil.unregisterSoftInputChangedListener(requireActivity().getWindow());
     // mainViewModel.getDrawerState().removeObservers(getViewLifecycleOwner());
+    mainViewModel.getMainProgress().removeObservers(getViewLifecycleOwner());
     mainViewModel.getToolbarTitle().removeObservers(getViewLifecycleOwner());
     mainViewModel.getToolbarSubTitle().removeObservers(getViewLifecycleOwner());
     ILog.removeLogListener(logListener);
@@ -406,10 +473,8 @@ public class MainFragment extends Fragment
   }
 
   private void setUpDrawer() {
-    if (rootView instanceof AllowChildInterceptDrawerLayout drawerLayout) {
-      BaseUtil.applySystemWindowInsetToPadding(rootView, false, true);
+    if (rootView instanceof PrimaryDrawerLayout drawerLayout) {
       mainViewModel.setDrawerInstance(true);
-
       mainViewModel
           .getDrawerState()
           .observe(
@@ -418,23 +483,23 @@ public class MainFragment extends Fragment
                 Boolean shouldOpenDrawer = event.getContentIfNotHandled();
 
                 if (Boolean.TRUE.equals(shouldOpenDrawer)) {
-                  drawerLayout.openDrawer(binding.navView);
+                  drawerLayout.openDrawer(binding.navPrimarySideBar);
                 } else {
-                  drawerLayout.closeDrawer(binding.navView);
+                  drawerLayout.closeDrawer(binding.navPrimarySideBar);
                 }
               });
 
       binding.fragmentMainContent.toolbar.setNavigationOnClickListener(
           v -> {
-            if (drawerLayout.isDrawerOpen(binding.navView)) {
+            if (drawerLayout.isDrawerOpen(binding.navPrimarySideBar)) {
               mainViewModel.requestCloseDrawer();
-            } else if (!drawerLayout.isDrawerOpen(binding.navView)) {
+            } else if (!drawerLayout.isDrawerOpen(binding.navPrimarySideBar)) {
               mainViewModel.requestOpenDrawer();
             }
           });
 
       drawerLayout.addDrawerListener(
-          new AllowChildInterceptDrawerLayout.SimpleDrawerListener() {
+          new PrimaryDrawerLayout.SimpleDrawerListener() {
             @Override
             public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
               // float translationX = drawerView.getWidth() * slideOffset * 0.3f;
@@ -453,14 +518,14 @@ public class MainFragment extends Fragment
             }
           });
     } else {
-      // Device with large screens do not use the AllowChildInterceptDrawerLayout
+      // Device with large screens do not use the PrimaryDrawerLayout
       mainViewModel.setDrawerInstance(false);
       binding.fragmentMainContent.toolbar.setNavigationIcon(null);
     }
   }
 
   private void restoreViewState(@NonNull Bundle state) {
-    if (rootView instanceof AllowChildInterceptDrawerLayout) {
+    if (rootView instanceof PrimaryDrawerLayout) {
       boolean shouldOpenDrawer = state.getBoolean("start_drawer_state", false);
 
       if (shouldOpenDrawer) {
@@ -837,5 +902,169 @@ public class MainFragment extends Fragment
   @UsedByReflection
   public void openZipFileFromManager() {
     lifeCycleObserver.pickZipFile();
+  }
+
+  private void handleIntentBundle(@NonNull Bundle bundle) {
+    if (!isAdded() || isRemoving() || isDetached()) return;
+
+    String type = bundle.getString(Constants.FCM_NOTIFICATION_TYPE);
+
+    if (type != null) {
+      if (type.equals(Constants.NOTIFICATION_TYPE_APP_UPDATE)) {
+        handleAppUpdateNotification(bundle);
+      } else {
+        ILog.debug(TAG, "Cannot handle notififaction, type is not update");
+      }
+    } else {
+      ILog.debug(TAG, "Notification type is null");
+    }
+  }
+
+  private void handleAppUpdateNotification(@NonNull Bundle bundle) {
+    ILog.debug(TAG, "#handleAppUpdateNotification");
+
+    String changeLog = bundle.getString(Constants.KEY_CHANGELOG);
+    String minVersion = bundle.getString(Constants.KEY_MIN_VERSION);
+    String downloadUrl = bundle.getString(Constants.KEY_DOWNLOAD_URL);
+    String latestVersion = bundle.getString(Constants.KEY_UPDATE_VERSION);
+    String downloadSize = bundle.getString(Constants.KEY_UPDATE_DOWNLOAD_SIZE);
+    boolean forceUpdate = Wizard.toBoolean(bundle.getString(Constants.KEY_FORCE_UPDATE));
+
+    ILog.debug(TAG, "Update Check: Version=" + latestVersion + ", URL=" + downloadUrl);
+    if (Wizard.isEmpty(latestVersion) || Wizard.isEmpty(downloadUrl)) return;
+
+    if (VersionManager.isForceUpdateRequired(minVersion)) {
+      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, true, downloadSize);
+    } else if (VersionManager.isUpdateAvailable(latestVersion)) {
+      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, forceUpdate, downloadSize);
+    }
+  }
+
+  private void checkForStoredAppUpdates() {
+    SharedPreferences prefs = PreferencesUtils.getAppUpdatePreferences();
+    ILog.debug(TAG, "#checkForStoredAppUpdates");
+
+    String minVersion = prefs.getString(Constants.KEY_MIN_VERSION, "");
+    String latestVersion = prefs.getString(Constants.PREF_UPDATE_VERSION, "");
+    String changeLog = prefs.getString(Constants.PREF_UPDATE_CHANGELOG, "");
+    String downloadUrl = prefs.getString(Constants.PREF_UPDATE_DOWNLOAD_URL, "");
+    String downloadSize = prefs.getString(Constants.PREF_UPDATE_DOWNLOAD_SIZE, "");
+    boolean forceUpdate = Wizard.toBoolean(prefs.getString(Constants.PREF_UPDATE_FORCED, "false"));
+
+    ILog.debug(TAG, "Update Check: Version=" + latestVersion + ", URL=" + downloadUrl);
+
+    if (Wizard.isEmpty(latestVersion) || Wizard.isEmpty(downloadUrl)) return;
+
+    if (VersionManager.isForceUpdateRequired(minVersion)) {
+      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, true, downloadSize);
+    } else if (VersionManager.isUpdateAvailable(latestVersion)) {
+      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, forceUpdate, downloadSize);
+    }
+  }
+
+  private void showUpdateBottomSheet(
+      String downloadUrl,
+      String changeLog,
+      String version,
+      boolean forceUpdate,
+      String downloadSize) {
+    FragmentManager fragmentManager = getChildFragmentManager();
+    var fragment =
+        (BottomSheetDialogFragment) fragmentManager.findFragmentByTag(UpdateBottomSheet.TAG);
+
+    if (fragment != null && fragment.isVisible()) {
+      ILog.debug(TAG, "Fragment is null is already visible");
+      return; // already showing
+    }
+
+    var bottomSheet =
+        UpdateBottomSheet.newInstance(version, changeLog, downloadUrl, forceUpdate, downloadSize);
+    bottomSheet.show(fragmentManager, UpdateBottomSheet.TAG);
+  }
+
+  /// -- Storage Permission
+  private void showStoragePermissionDeniedDialog(Runnable positiveAction, Runnable negativeAction) {
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.storage_permission_denied)
+        .setMessage(
+            getString(R.string.storage_permission_denial_prompt, getString(R.string.app_name)))
+        .setPositiveButton(
+            R.string.storage_permission_request_again,
+            (d, which) -> {
+              if (positiveAction != null) {
+                positiveAction.run();
+              }
+            })
+        .setNegativeButton(
+            R.string.exit,
+            (d, which) -> {
+              if (negativeAction != null) {
+                negativeAction.run();
+              }
+            })
+        .setCancelable(false)
+        .show();
+  }
+
+  private void requestStoragePermission() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      Wizard.requestStoragePermissionApi30(requireContext(), requestStoragePermissionLauncherApi30);
+    } else {
+      Wizard.requestStoragePermissionApi19(requestStoragePermissionLauncherApi19);
+    }
+  }
+
+  /// -- Notification Permission
+
+  public void ensureNotificationPermissionGranted() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+
+    if (Wizard.isNotificationPermissionGranted(requireActivity())) {
+      showNotificationSettingsRationaleIfAllowed();
+    } else {
+      requestNotificationPermission();
+    }
+  }
+
+  private void showNotificationSettingsRationaleIfAllowed() {
+    if (Wizard.areNotificationsAllowed(requireActivity())) {
+      ILog.debug(TAG, "Notifications allowed");
+    } else {
+      showNotificationSettingsRationale();
+    }
+  }
+
+  private void showNotificationSettingsRationale() {
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.msg_grant_notification_permission)
+        .setMessage(R.string.msg_request_notification_rationale)
+        .setPositiveButton(
+            R.string.ok_turn_on,
+            (d, which) ->
+                Wizard.launchDeviceSettingsActivity(
+                    requireActivity(), Settings.ACTION_APP_NOTIFICATION_SETTINGS))
+        .setNegativeButton(R.string.cancel, null)
+        .setCancelable(false)
+        .show();
+  }
+
+  private void showNotificationPermissionRationale() {
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.msg_grant_notification_permission)
+        .setMessage(R.string.msg_request_notification_rationale)
+        .setPositiveButton(R.string.ok, (d, which) -> requestNotificationPermission())
+        .setNegativeButton(R.string.cancel, null)
+        .setCancelable(false)
+        .show();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+  private void requestNotificationPermission() {
+    try {
+      requestNotificationPermissionLauncherApi33.launch(Manifest.permission.POST_NOTIFICATIONS);
+    } catch (ActivityNotFoundException e) {
+      ILog.error(TAG, "requestNotificationPermission failed", e);
+      BaseUtil.toastLong(R.string.msg_no_handle_activity_found);
+    }
   }
 }

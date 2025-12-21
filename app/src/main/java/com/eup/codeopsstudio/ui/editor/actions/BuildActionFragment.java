@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.eup.codeopsstudio.R;
@@ -115,7 +116,7 @@ public class BuildActionFragment extends Fragment
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     BaseUtil.applyImeInsets(binding.getRoot(), true);
-
+    
     var llm = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
     binding.recyclerviewShortcuts.setLayoutManager(llm);
     binding.recyclerviewShortcuts.setHasFixedSize(true);

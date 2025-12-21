@@ -22,7 +22,8 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -38,14 +39,19 @@
         android:layout_width="1px"
         android:layout_height="match_parent"
         android:alpha="0.8" />
-
-    <fragment
-        android:id="@+id/nav_host_primary_side_bar_fragment"
-        android:name="androidx.navigation.fragment.NavHostFragment"
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/primary_sidebar_navigation"
-        tools:ignore="FragmentTagUsage" />
-
+        android:fitsSystemWindows="false">
+        <fragment
+            android:id="@+id/nav_host_primary_side_bar_fragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/primary_sidebar_navigation"
+            tools:ignore="FragmentTagUsage" />
+    </FrameLayout>
+    
 </LinearLayout>

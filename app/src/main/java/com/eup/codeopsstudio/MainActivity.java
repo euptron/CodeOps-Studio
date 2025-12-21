@@ -23,348 +23,95 @@
 
 package com.eup.codeopsstudio;
 
-import android.Manifest;
-import android.app.NotificationManager;
-import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
-
-import android.view.View;
-import android.view.Window;
-import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.RequiresApi;
+import android.view.KeyEvent;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import androidx.core.view.WindowCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 import com.eup.codeopsstudio.common.ILog;
+import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.ActivityMainBinding;
 import com.eup.codeopsstudio.observers.ContextualObserver;
+import com.eup.codeopsstudio.ui.onboarding.LandingFragment;
 import com.eup.codeopsstudio.util.BaseUtil;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.eup.codeopsstudio.viewmodel.MainViewModel;
 
 /**
- * Main UI host
+ * Primary container activity hosting either {@link MainFragment} for regular use or {@link
+ * LandingFragment} for first-time onboarding.
  *
  * @author Etido Peter
  */
 public class MainActivity extends AppCompatActivity {
 
-  public static final String MANAGE_EXTERNAL_STORAGE_PERMISSION =
-      "android" + ":manage_external_storage";
   public static final String TAG = MainActivity.class.getSimpleName();
-  private static final String KEY_REQUEST_STORAGE_PERMISSION_API_30 = "0xf2ee";
-  private static final String KEY_REQUEST_STORAGE_PERMISSION_API_19 = "0xf11e";
-  private static final String KEY_REQUEST_NOTIFICATION_PERMISSION_API_33 = "0xf23e";
 
+  private MainViewModel mainViewModel;
   private ContextualObserver lifecycleObserver;
-  private ActivityResultLauncher<Intent> requestStoragePermissionLauncherApi30;
-  private ActivityResultLauncher<String[]> requestStoragePermissionLauncherApi19;
-
-  @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-  private ActivityResultLauncher<String> requestNotificationPermissionLauncherApi33;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+    BaseUtil.enforceEdgeToEdge(getWindow(), true);
     setContentView(binding.getRoot());
-    initialize(savedInstanceState);
-    initializeLogic();
-  }
 
-  private void initialize(Bundle savedInstanceState) {
-    if (Build.VERSION.SDK_INT >= 35) {
-      getWindow().setNavigationBarContrastEnforced(true);
-    }
-  }
-
-  private void initializeLogic() {
+    mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
     lifecycleObserver = new ContextualObserver(this, getActivityResultRegistry(), this);
     getLifecycle().addObserver(lifecycleObserver);
 
-    requestStoragePermissionLauncherApi30 =
-        getActivityResultRegistry()
-            .register(
-                KEY_REQUEST_STORAGE_PERMISSION_API_30,
-                this,
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                  if (result != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                      if (!isStoragePermissionGrantedApi30()) {
-                        showStoragePermissionDeniedDialog(
-                            this::requestStoragePermissionApi30,
-                            () -> {
-                              finishAffinity();
-                              System.exit(0);
-                            });
-                      }
-                    }
-                  }
-                });
-
-    requestStoragePermissionLauncherApi19 =
-        getActivityResultRegistry()
-            .register(
-                KEY_REQUEST_STORAGE_PERMISSION_API_19,
-                this,
-                new ActivityResultContracts.RequestMultiplePermissions(),
-                isGranted -> {
-                  if (isGranted.containsValue(false)) {
-                    showStoragePermissionDeniedDialog(
-                        this::requestStoragePermissionApi19,
-                        () -> {
-                          finishAffinity();
-                          System.exit(0);
-                        });
-                  }
-                });
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      requestNotificationPermissionLauncherApi33 =
-          getActivityResultRegistry()
-              .register(
-                  KEY_REQUEST_NOTIFICATION_PERMISSION_API_33,
-                  this,
-                  new ActivityResultContracts.RequestPermission(),
-                  isGranted -> {
-                    if (Boolean.TRUE.equals(isGranted)) {
-                      BaseUtil.toastLong(R.string.msg_notification_permission_granted);
-                    } else {
-                      if (shouldShowRequestPermissionRationale(
-                          Manifest.permission.POST_NOTIFICATIONS)) {
-                        showNotificationPermissionRationale();
-                      } else {
-                        showNotificationSettingsRationale();
-                      }
-                    }
-                  });
-    }
-
-    showMainFragment();
-  }
-
-  public void ensureNotificationPermissionGranted() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      if (isNotificationPermissionGranted()) {
-        showNotificationSettingsRationaleIfAllowed();
-      } else {
-        requestNotificationPermission();
-      }
-    }
-  }
-
-  public void ensureStoragePermissionGranted() {
-    if (!isStoragePermissionGranted()) {
-      requestStoragePermission();
-    }
-  }
-
-  public boolean isStoragePermissionGranted() {
-    return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-        ? isStoragePermissionGrantedApi30()
-        : isStoragePermissionGrantedApi19();
-  }
-
-  @RequiresApi(30)
-  private boolean isStoragePermissionGrantedApi30() {
-    return (ActivityCompat.checkSelfPermission(
-                this, Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-            == PackageManager.PERMISSION_GRANTED)
-        || (ActivityCompat.checkSelfPermission(
-                this, Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-            == PackageManager.PERMISSION_GRANTED)
-        || Environment.isExternalStorageManager();
-  }
-
-  private boolean isStoragePermissionGrantedApi19() {
-    int readStatus =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-    int writeStatus =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-    return readStatus == PackageManager.PERMISSION_GRANTED
-        && writeStatus == PackageManager.PERMISSION_GRANTED;
-  }
-
-  public void requestStoragePermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      requestStoragePermissionApi30();
+    if (PreferencesUtils.isAppFirstLaunch()) {
+      loadFragment(LandingFragment.newInstance(), LandingFragment.TAG);
     } else {
-      requestStoragePermissionApi19();
+      handleNotificationIntent(getIntent());
+      loadFragment(MainFragment.newInstance(), MainFragment.TAG);
     }
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.R)
-  private void requestStoragePermissionApi30() {
-    try {
-      Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-      Uri uri = Uri.fromParts("package", getPackageName(), null);
-      intent.setData(uri);
-      requestStoragePermissionLauncherApi30.launch(intent);
-    } catch (ActivityNotFoundException ignored) {
-      try {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-        Uri uri = Uri.fromParts("package", getPackageName(), null);
-        intent.setData(uri);
-        requestStoragePermissionLauncherApi30.launch(intent);
-      } catch (Exception e) {
-        BaseUtil.toastLong(R.string.storage_permission_denied);
+  @Override
+  protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    setIntent(intent);
+    handleNotificationIntent(intent);
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
+    if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
+      mainViewModel.requestCloseDrawer();
+      return true;
+    }
+    return super.onKeyDown(keyCode, keyEvent);
+  }
+
+  private void handleNotificationIntent(Intent intent) {
+    if (intent == null) {
+      ILog.info(TAG, "NotificationIntent is null");
+      return;
+    }
+    mainViewModel.setIntentBundle(intent);
+  }
+
+  public void loadFragment(Fragment fragment, String tag) {
+    loadFragment(fragment, tag, false);
+  }
+
+  public void loadFragment(Fragment fragment, String tag, boolean animate) {
+    FragmentManager fm = getSupportFragmentManager();
+    if (fm.findFragmentByTag(tag) == null) {
+      FragmentTransaction transaction = fm.beginTransaction();
+      transaction.replace(R.id.fragment_container, fragment, tag);
+      if (animate) {
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
       }
-    } catch (Exception e) {
-      ILog.error(TAG, "Failed to request permission to grant access to all files", e);
-      BaseUtil.toastLong(R.string.storage_permission_denied);
+      transaction.commit();
     }
-  }
-
-  private void requestStoragePermissionApi19() {
-    final String[] permissions =
-        new String[] {
-          Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
-        };
-    requestStoragePermissionLauncherApi19.launch(permissions);
   }
 
   public ContextualObserver getLifecycleObserver() {
     return this.lifecycleObserver;
-  }
-
-  public static String getStoragePermissionName() {
-    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-        ? MANAGE_EXTERNAL_STORAGE_PERMISSION
-        : Manifest.permission.READ_EXTERNAL_STORAGE.concat(", ")
-            + Manifest.permission.WRITE_EXTERNAL_STORAGE;
-  }
-
-  public void openStoragePermissionSettings() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      requestStoragePermissionApi30();
-    } else {
-      launchDeviceSettingsActivity();
-    }
-  }
-
-  private boolean areNotificationsAllowed() {
-    NotificationManager notificationManager =
-        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    return notificationManager.areNotificationsEnabled();
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-  private boolean isNotificationPermissionGranted() {
-    int grantStatus =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS);
-    return grantStatus == PackageManager.PERMISSION_GRANTED;
-  }
-
-  private void launchDeviceSettingsActivity(String section) {
-    String packageName = getPackageName();
-    ILog.debug(TAG, "Package Name for settings: " + packageName);
-    if (packageName == null || packageName.isEmpty()) {
-      ILog.error(TAG, "Package name is null or empty. Cannot launch settings.");
-      BaseUtil.toastLong("Error: Could not determine package name.");
-      return;
-    }
-
-    try {
-      startActivity(new Intent(section, Uri.fromParts("package", getPackageName(), null)));
-    } catch (ActivityNotFoundException e) {
-      var msg = "Could not open " + section;
-      ILog.error(TAG, msg);
-      BaseUtil.toastLong("Error: " + msg);
-
-      if (!section.equals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)) {
-        launchDeviceSettingsActivity();
-      }
-    }
-  }
-
-  private void launchDeviceSettingsActivity() {
-    launchDeviceSettingsActivity(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-  private void requestNotificationPermission() {
-    try {
-      requestNotificationPermissionLauncherApi33.launch(Manifest.permission.POST_NOTIFICATIONS);
-    } catch (ActivityNotFoundException e) {
-      BaseUtil.toastLong(R.string.msg_no_handle_activity_found);
-    }
-  }
-
-  private void showMainFragment() {
-    if (getSupportFragmentManager().findFragmentByTag(MainFragment.TAG) == null) {
-      getSupportFragmentManager()
-          .beginTransaction()
-          .add(
-              com.eup.codeopsstudio.R.id.fragment_container,
-              MainFragment.newInstance(),
-              MainFragment.TAG)
-          .commit();
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-  private void showNotificationPermissionRationale() {
-    new MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.msg_grant_notification_permission)
-        .setMessage(R.string.msg_request_notification_rationale)
-        .setPositiveButton(R.string.ok, (d, which) -> requestNotificationPermission())
-        .setNegativeButton(R.string.cancel, null)
-        .setCancelable(false)
-        .show();
-  }
-
-  private void showNotificationSettingsRationale() {
-    new MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.msg_grant_notification_permission)
-        .setMessage(R.string.msg_request_notification_rationale)
-        .setPositiveButton(
-            R.string.ok_turn_on,
-            (d, which) -> launchDeviceSettingsActivity(Settings.ACTION_APP_NOTIFICATION_SETTINGS))
-        .setNegativeButton(R.string.cancel, null)
-        .setCancelable(false)
-        .show();
-  }
-
-  private void showNotificationSettingsRationaleIfAllowed() {
-    if (areNotificationsAllowed()) {
-      ILog.debug(TAG, "Notifications allowed");
-    } else {
-      showNotificationSettingsRationale();
-    }
-  }
-
-  private void showStoragePermissionDeniedDialog(Runnable positiveAction, Runnable negativeAction) {
-    new MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.storage_permission_denied)
-        .setMessage(
-            getString(R.string.storage_permission_denial_prompt, getString(R.string.app_name)))
-        .setPositiveButton(
-            R.string.storage_permission_request_again,
-            (d, which) -> {
-              if (positiveAction != null) {
-                positiveAction.run();
-              }
-            })
-        .setNegativeButton(
-            R.string.exit,
-            (d, which) -> {
-              if (negativeAction != null) {
-                negativeAction.run();
-              }
-            })
-        .setCancelable(false)
-        .show();
   }
 }

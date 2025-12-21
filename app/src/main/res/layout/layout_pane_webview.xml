@@ -28,17 +28,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/progressbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:indeterminate="false"
-        android:visibility="gone"
-        app:indicatorDirectionLinear="startToEnd"
-        app:indicatorSize="2dp"
-        app:minHideDelay="@integer/material_motion_duration_long_2"
-        app:trackThickness="2.5dp" />
-
     <WebView
         android:id="@+id/webview"
         android:layout_width="match_parent"

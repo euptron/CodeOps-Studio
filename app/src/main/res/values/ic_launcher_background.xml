@@ -23,6 +23,6 @@
   -->
 
 <resources>
-    <color name="ic_launcher_background">#1A1B1F</color>
-    <color name="ic_launcher_background_light">#F8FAFF</color>
+    <color name="ic_launcher_background">#FF1B1B1B</color>
+    <color name="ic_launcher_background_light">#FFF9F9F9</color>
 </resources>
