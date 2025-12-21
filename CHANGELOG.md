@@ -23,58 +23,12 @@ _21-12-2025_(Sunday, December 21, 2025)
 
 ### Added
 
+* Buffer size selection for dynamic IO operations
+* Facebook page link to `Socials`
+* Projects created from templates are now added to the recent project list
+* File system monitoring
 * Versioning Manager to enforce our Custom SemVer
 * Onboarding fragment – the first thing a user sees must be nice 🙂 
-
-### Changes
-
-* Extensive internal refactoring and restructuring of the codebase
-
-### Improvements
-
-* Optimized push notifications with targeting
-    - Summary: Push notifications are now more efficient and can be targeted more accurately
-      to improve delivery and user engagement.
-* Jump to line dialog to use the Command-Palette
-* Enforced EdgeToEdge across all supported api versions
-* Pane system
-* Overall application stability
-* Performance and memory usage
-* Foundation laid for future features and systems
-* LiveServer to server both files and directories
-* Internet connectivity check via the `IPProvider.java`
-
-### Fixed
-
-* Numerous undocumented bug fixes
-    - Summary: A significant number of issues were resolved during development,
-      most of which were not individually logged due to their volume.
-      
-* Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues/12)
-* Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues/7)
-* Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues/6)
-
-### Security
-
-* Secured CodeOps Studio private and sensitive data
-    - Summary: Strengthened encryption and protection of sensitive assets across the build,
-      deployment, and runtime pipeline. This includes safeguarding secrets used in GitHub Actions,
-      Firebase services, code signing keys, and internal application data to ensure user data
-      remains private and protected.
-
-### Docs
-
-* updated [README](./README.md)
-* updated [CONTRIBUTING](./CONTRIBUTING.md)
-* Introduced custom versioning system
-    - Summary: Implemented a variation of semantic versioning with specific rules for release
-      tracking and consistency across the project.
-
-Release 1.0.5 beta
-----------------------
-_(Date unavailable)_
-
-### Added
 * introduced `PaneWindow` to handle the panes in a decoupled fashion
 * In-app update system and update handling logic
 * Theme export utility
@@ -89,86 +43,27 @@ _(Date unavailable)_
 
 ### Changes
 
-* Major codebase revamp in preparation for future releases
-
-### Improvements
-
-* Migrated all pane functionality to `PaneWindow.java`
-* Storage manager stability and reliability
-* Memory management across the application
-* Overall application stability and performance
-
-### Fixed
-
-* Countless bugs and memory leaks
-    - Summary: A very large number of bugs were fixed during this release cycle.
-      Many of them were not tracked individually due to volume and time constraints.
-
-### Removed
-
-* `PaneUtil.java` in favor of `PaneWindow.java`
-* Template manager
-    - Reason: Will be replaced with a more robust, offline-first template system
-      intended to support a future community-driven workflow.
-
-Release 1.0.4 beta
-----------------------
-_09-03-2025_(Sunday, Mar 9, 2025)
-
-> Unfortunately I am unable to publish **1.1.0** because I lost the source code which is painful.
-> The goal currently is to make sure this project works properly across the supported Android APIs
-> Until I can recover the lost codes I would not implement certain feats, fixes and improvements
-
-### Added
-
-* ????
-
-### Changes
-
+* Extensive internal refactoring and restructuring of the codebase
 * Crashlytics and Analytics are now automatically sent, user can opt out in the setting
 * Theme system updated to properly support **Dynamic Colors**
 
 ### Improvements
 
-* Tweaked `BinaryFileChecker` to be more sensitive to binary file detection
-
-### Fixed
-
-* Fix: Undo / Redo synchronization issue
-    - Summary: Redo operations could not be performed instantly due to editor state
-      desynchronization. This has been fixed to ensure immediate and consistent redo behavior.
-
-* A large number of additional bug fixes were made but not fully documented.
-
-### Removed
-
-* The `ast-core` library until further notice.
-
-Release 1.0.3 beta
-----------------------
-_09-03-2025_(Sunday, Mar 9, 2025)
-
-### Added
-
-* Buffer size selection for dynamic IO operations
-* Facebook page link to `Socials`
-* Projects created from templates are now added to the recent project list
-* File system monitoring
-
-### Changes
-
-* Moved some pane window functionality from `BaseFragment.java` to `PaneUtil.java`
-* Removed support for editing removable storage volume:
-    - I'm working on a dual state file system API `MetaDocument.java` that uses both `File` and
-      `Document` `API`'
-* Updated inline copyright within all supported file type, ps: it's a new year
-* Disable auto-rotate until i figure out how to stop code editor pane duplication
-
-### Improvements
-
-* Optimised `BinaryFileChecker.java` to use weight instead of a majority rule system
-* Optimised `CodeEditor Pane` to use resources optimally.
-* Optimised `BaseFragment.java` to handle resources optimally.
+* Optimized push notifications with targeting
+    - Summary: Push notifications are now more efficient and can be targeted more accurately
+      to improve delivery and user engagement.
+* Jump to line dialog to use the Command-Palette
+* Enforced EdgeToEdge across all supported api versions
+* Pane system
+* Overall application stability
+* Performance and memory usage
+* Fine tuned`BinaryFileChecker.java` detection aggressiveness
+* Foundation laid for future features and systems
+* LiveServer to server both files and directories
+* Internet connectivity check via the `IPProvider.java`
+* Optimized `BinaryFileChecker.java` to use weight instead of a majority rule system
+* Optimized `CodeEditor Pane` to use resources optimally.
+* Optimized `BaseFragment.java` to handle resources optimally.
 * File rename logic
 * Code editor settings `Pin line number` sync; in terms which works
 * `Relative close depth` sync; New configuration is synced in realtime with the **Code Editor** so
@@ -179,9 +74,20 @@ _09-03-2025_(Sunday, Mar 9, 2025)
   the app to apply the changes.
 * Generally i've made a lot of improvements i still failed to track.
 * Release notes support either plane text or html text.
+* Migrated all pane functionality to `PaneWindow.java`
+* Storage manager stability and reliability
+* Memory management across the application
+* Overall application stability and performance
 
 ### Fixed
 
+* Fix: Undo / Redo synchronization issue
+    - Summary: Redo operations could not be performed instantly due to editor state
+      desynchronization. This has been fixed to ensure immediate and consistent redo behavior.
+
+* Numerous undocumented bug fixes
+    - Summary: A significant number of issues were resolved during development,
+      most of which were not individually logged due to their volume.
 * Fix: [Opened Issues](https://github.com/euptron/CodeOps-Studio/issues)
 
 * Fix: False positives within the `BinaryFileChecker`
@@ -204,11 +110,35 @@ _09-03-2025_(Sunday, Mar 9, 2025)
 * Fix: Failure to enable or disable `Font ligatures` when the preference is selected
     - Summary: Logic to sync this feature with the **Code Editor** was not implemented
 
-* A lot of bug fixes were made, i only added those which were worth taking note of.
+* A lot of bug fixes were made, i only added those which were worth taking note of.      
+* Fix: [Opened Issues 12](https://github.com/euptron/CodeOps-Studio/issues/12)
+* Fix: [Opened Issues 7](https://github.com/euptron/CodeOps-Studio/issues/7)
+* Fix: [Opened Issues 6](https://github.com/euptron/CodeOps-Studio/issues/6)
+
+### Security
+
+* Secured CodeOps Studio private and sensitive data
+    - Summary: Strengthened encryption and protection of sensitive assets across the build,
+      deployment, and runtime pipeline. This includes safeguarding secrets used in GitHub Actions,
+      Firebase services, code signing keys, and internal application data to ensure user data
+      remains private and protected.
 
 ### Removed
-
 * Opening and editing files from a removable storage
+* The `ast-core` library until further notice.
+* `PaneUtil.java` in favor of `PaneWindow.java`
+* Template manager
+    - Reason: Will be replaced with a more robust, offline-first template system
+      intended to support a future community-driven workflow.
+
+### Docs
+
+* updated [README](./README.md)
+* updated [CONTRIBUTING](./CONTRIBUTING.md)
+* Introduced custom versioning system
+    - Summary: Implemented a variation of semantic versioning with specific rules for release
+      tracking and consistency across the project.
+      
 
 Release 1.0.2 beta
 ----------------------
