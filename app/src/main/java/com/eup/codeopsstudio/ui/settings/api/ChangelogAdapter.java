@@ -92,8 +92,8 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
 
   private static void addCorners(@NonNull View view) {
     GradientDrawable gd = new GradientDrawable();
-    int primaryColor =
-        MaterialColors.getColor(view, com.google.android.material.R.attr.colorPrimary);
+    int primaryColor = MaterialColors.getColor(view, android.R.attr.colorPrimary);
+
     gd.setColor(primaryColor);
     gd.setCornerRadii(new float[] {0, 0, 30, 30, 30, 30, 0, 0});
     view.setBackground(gd);
