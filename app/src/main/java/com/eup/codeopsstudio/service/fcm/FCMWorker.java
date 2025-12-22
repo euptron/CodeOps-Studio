@@ -94,7 +94,7 @@ public class FCMWorker extends Worker {
       }
 
       if (!currentVersion.equals(latestVersion)) {
-        saveUpdateInfo(latestVersion, data);
+        saveUpdateCheckTime();
         ILog.debug(TAG, "New version available: " + latestVersion);
         return Result.success();
       } else {
@@ -157,25 +157,8 @@ public class FCMWorker extends Worker {
     return Wizard.getAppVersionName(getApplicationContext()); // fallback
   }
 
-  private void saveUpdateInfo(String latestVersion, Map<String, Object> originalData) {
+  private void saveUpdateCheckTime() {
     SharedPreferences prefs = PreferencesUtils.getAppUpdatePreferences();
-    SharedPreferences.Editor editor =
-        prefs
-            .edit()
-            .putString(Constants.PREF_UPDATE_VERSION, latestVersion)
-            .putLong(Constants.PREF_UPDATE_CHECK_TIME, System.currentTimeMillis());
-
-    if (originalData.containsKey(Constants.KEY_DOWNLOAD_URL)) {
-      editor.putString(
-          Constants.PREF_UPDATE_DOWNLOAD_URL,
-          (String) originalData.get(Constants.KEY_DOWNLOAD_URL));
-    }
-
-    if (originalData.containsKey(Constants.KEY_CHANGELOG)) {
-      editor.putString(
-          Constants.PREF_UPDATE_CHANGELOG, (String) originalData.get(Constants.KEY_CHANGELOG));
-    }
-
-    editor.apply();
+    prefs.edit().putLong(Constants.PREF_UPDATE_CHECK_TIME, System.currentTimeMillis()).apply();
   }
 }

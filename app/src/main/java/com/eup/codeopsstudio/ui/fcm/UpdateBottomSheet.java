@@ -62,9 +62,12 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
 
   public static final String TAG = "UpdateBottomSheet";
 
+  private boolean installedApp = false;
+
   private String version;
   private long downloadId;
   private String changelog;
+  private String minVersion;
   private String downloadUrl;
   private boolean forceUpdate;
   private String downloadSize;
@@ -74,6 +77,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
   private ActivityResultLauncher<Intent> installPermissionLauncher;
 
   public static UpdateBottomSheet newInstance(
+      String minVersion,
       String version,
       String changelog,
       String downloadUrl,
@@ -83,6 +87,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
     Bundle args = new Bundle();
     args.putString("version", version);
     args.putString("changelog", changelog);
+    args.putString("min_version", minVersion);
     args.putString("download_url", downloadUrl);
     args.putBoolean("force_update", forceUpdate);
     args.putString("download_size", downloadSize);
@@ -96,6 +101,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
 
     if (getArguments() != null) {
       version = getArguments().getString("version");
+      minVersion = getArguments().getString("min_version");
       downloadUrl = getArguments().getString("download_url");
       downloadSize = getArguments().getString("download_size");
       forceUpdate = getArguments().getBoolean("force_update", false);
@@ -156,8 +162,12 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
   @Override
   public void onDismiss(@NonNull DialogInterface dialog) {
     super.onDismiss(dialog);
+    if (!installedApp) {
+      remindMe();
+    }
+
     if (!forceUpdate && downloadId == 0) {
-      clearAllUpdateData();
+      clearAllUpdateData(false);
     }
   }
 
@@ -180,24 +190,29 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
 
   private void setupListeners() {
     binding.updateBtn.setOnClickListener(v -> startDownload());
-    binding.laterBtn.setOnClickListener(v -> remindMe());
+    binding.laterBtn.setOnClickListener(v -> dismiss());
   }
 
   private void remindMe() {
     SharedPreferences prefs = PreferencesUtils.getAppUpdatePreferences();
-
     if (!Wizard.allNotNullAndEmpty(downloadUrl, version)) {
       return;
     }
 
-    prefs
-        .edit()
-        .putString(Constants.PREF_UPDATE_VERSION, version)
-        .putString(Constants.PREF_UPDATE_DOWNLOAD_URL, downloadUrl)
-        .putString(Constants.PREF_UPDATE_CHANGELOG, changelog)
-        .putString(Constants.PREF_UPDATE_FORCED, String.valueOf(forceUpdate))
-        .putString(Constants.PREF_UPDATE_DOWNLOAD_SIZE, downloadSize)
-        .apply();
+    SharedPreferences.Editor editor =
+        prefs
+            .edit()
+            .putString(Constants.PREF_UPDATE_VERSION, version)
+            .putString(Constants.PREF_UPDATE_DOWNLOAD_URL, downloadUrl)
+            .putString(Constants.PREF_UPDATE_CHANGELOG, changelog)
+            .putString(Constants.PREF_UPDATE_FORCED, String.valueOf(forceUpdate))
+            .putString(Constants.PREF_UPDATE_DOWNLOAD_SIZE, downloadSize);
+
+    if (!Wizard.isEmpty(minVersion)) {
+      editor.putString(Constants.PREF_UPDATE_MIN_VERSION, minVersion);
+    }
+
+    editor.apply();
   }
 
   private void startDownload() {
@@ -365,37 +380,41 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
         requireContext(),
         uri,
         () -> {
-          clearAllUpdateData();
+          installedApp = true;
+          clearAllUpdateData(true);
           dismiss();
         });
   }
 
-  private void clearAllUpdateData() {
+  private void clearAllUpdateData(boolean andPref) {
     Context context = requireContext();
-    SharedPreferences prefs = PreferencesUtils.getAppUpdatePreferences();
 
-    prefs
-        .edit()
-        .remove(Constants.PREF_UPDATE_VERSION)
-        .remove(Constants.PREF_UPDATE_DOWNLOAD_URL)
-        .remove(Constants.PREF_UPDATE_DOWNLOAD_SIZE)
-        .remove(Constants.PREF_UPDATE_CHANGELOG)
-        .remove(Constants.PREF_UPDATE_FORCED)
-        .remove(Constants.PREF_UPDATE_CHECK_TIME)
-        .remove(Constants.PREF_UPDATE_MIN_VERSION)
-        .apply();
+    if (andPref) {
+      SharedPreferences prefs = PreferencesUtils.getAppUpdatePreferences();
+
+      prefs
+          .edit()
+          .remove(Constants.PREF_UPDATE_VERSION)
+          .remove(Constants.PREF_UPDATE_DOWNLOAD_URL)
+          .remove(Constants.PREF_UPDATE_DOWNLOAD_SIZE)
+          .remove(Constants.PREF_UPDATE_CHANGELOG)
+          .remove(Constants.PREF_UPDATE_FORCED)
+          .remove(Constants.PREF_UPDATE_CHECK_TIME)
+          .remove(Constants.PREF_UPDATE_MIN_VERSION)
+          .apply();
+    }
 
     Intent intent = requireActivity().getIntent();
     if (intent != null) {
       Wizard.removeIntentExtras(
           intent,
           Constants.FCM_NOTIFICATION_TYPE,
-          Constants.PREF_UPDATE_VERSION,
-          Constants.PREF_UPDATE_DOWNLOAD_URL,
-          Constants.PREF_UPDATE_FORCED,
-          Constants.PREF_UPDATE_CHANGELOG,
-          Constants.PREF_UPDATE_DOWNLOAD_SIZE,
-          Constants.PREF_UPDATE_MIN_VERSION);
+          Constants.KEY_UPDATE_VERSION,
+          Constants.KEY_DOWNLOAD_URL,
+          Constants.KEY_FORCE_UPDATE,
+          Constants.KEY_CHANGELOG,
+          Constants.KEY_UPDATE_DOWNLOAD_SIZE,
+          Constants.KEY_MIN_VERSION);
     }
 
     clearDownloadedUpdateFiles();

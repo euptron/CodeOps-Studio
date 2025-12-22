@@ -126,7 +126,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="@string/remind_me" />
+            android:text="@string/later" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/update_btn"

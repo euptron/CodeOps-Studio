@@ -220,14 +220,6 @@ public class Wizard {
     return validate(null);
   }
 
-  public static boolean isEmpty(String str) {
-    return isEmpty(str, false);
-  }
-
-  public static boolean isEmpty(String str, boolean trim) {
-    return str == null || (trim ? str.trim().isEmpty() : str.isEmpty()) || str.equalsIgnoreCase("");
-  }
-
   @NonNull
   public static String getDeviceLocaleLanguage() {
     var param = Locale.getDefault().getLanguage();
@@ -433,8 +425,7 @@ public class Wizard {
     try {
       return resultFuture.get();
     } catch (Exception e) {
-      ILog.error(
-          LOG_TAG, "Error occurred during pretty printing: " + e.getMessage());
+      ILog.error(LOG_TAG, "Error occurred during pretty printing: " + e.getMessage());
       return jsonString;
     }
   }
@@ -449,9 +440,7 @@ public class Wizard {
                 .create()
                 .toJson(JsonParser.parseString(jsonString));
           } catch (Exception e) {
-            ILog.error(
-                LOG_TAG,
-                "Error occurred when pretty printing json:" + e.getMessage());
+            ILog.error(LOG_TAG, "Error occurred when pretty printing json:" + e.getMessage());
             return null;
           }
         },
@@ -516,9 +505,17 @@ public class Wizard {
 
   public static boolean allNotNullAndEmpty(String... strings) {
     for (String str : strings) {
-      if (!isEmpty(str, true)) return false;
+      if (isEmpty(str, true)) return false;
     }
     return true;
+  }
+
+  public static boolean isEmpty(String str) {
+    return isEmpty(str, false);
+  }
+
+  public static boolean isEmpty(String str, boolean trim) {
+    return str == null || (trim ? str.trim().isEmpty() : str.isEmpty()) || str.equalsIgnoreCase("");
   }
 
   public static String formatToBulletList(String delimiter, String text) {

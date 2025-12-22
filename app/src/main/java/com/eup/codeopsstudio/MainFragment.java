@@ -934,9 +934,10 @@ public class MainFragment extends Fragment
     if (Wizard.isEmpty(latestVersion) || Wizard.isEmpty(downloadUrl)) return;
 
     if (VersionManager.isForceUpdateRequired(minVersion)) {
-      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, true, downloadSize);
+      showUpdateBottomSheet(minVersion, downloadUrl, changeLog, latestVersion, true, downloadSize);
     } else if (VersionManager.isUpdateAvailable(latestVersion)) {
-      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, forceUpdate, downloadSize);
+      showUpdateBottomSheet(
+          minVersion, downloadUrl, changeLog, latestVersion, forceUpdate, downloadSize);
     }
   }
 
@@ -944,7 +945,7 @@ public class MainFragment extends Fragment
     SharedPreferences prefs = PreferencesUtils.getAppUpdatePreferences();
     ILog.debug(TAG, "#checkForStoredAppUpdates");
 
-    String minVersion = prefs.getString(Constants.KEY_MIN_VERSION, "");
+    String minVersion = prefs.getString(Constants.PREF_UPDATE_MIN_VERSION, "");
     String latestVersion = prefs.getString(Constants.PREF_UPDATE_VERSION, "");
     String changeLog = prefs.getString(Constants.PREF_UPDATE_CHANGELOG, "");
     String downloadUrl = prefs.getString(Constants.PREF_UPDATE_DOWNLOAD_URL, "");
@@ -956,13 +957,15 @@ public class MainFragment extends Fragment
     if (Wizard.isEmpty(latestVersion) || Wizard.isEmpty(downloadUrl)) return;
 
     if (VersionManager.isForceUpdateRequired(minVersion)) {
-      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, true, downloadSize);
+      showUpdateBottomSheet(minVersion, downloadUrl, changeLog, latestVersion, true, downloadSize);
     } else if (VersionManager.isUpdateAvailable(latestVersion)) {
-      showUpdateBottomSheet(downloadUrl, changeLog, latestVersion, forceUpdate, downloadSize);
+      showUpdateBottomSheet(
+          minVersion, downloadUrl, changeLog, latestVersion, forceUpdate, downloadSize);
     }
   }
 
   private void showUpdateBottomSheet(
+      String minVersion,
       String downloadUrl,
       String changeLog,
       String version,
@@ -978,7 +981,8 @@ public class MainFragment extends Fragment
     }
 
     var bottomSheet =
-        UpdateBottomSheet.newInstance(version, changeLog, downloadUrl, forceUpdate, downloadSize);
+        UpdateBottomSheet.newInstance(
+            minVersion, version, changeLog, downloadUrl, forceUpdate, downloadSize);
     bottomSheet.show(fragmentManager, UpdateBottomSheet.TAG);
   }
 

@@ -148,11 +148,15 @@ project.ext {
         it.toLowerCase().contains('release')
     }
     
-    def baseVersion = "1.0.5"
-    def suffix = "beta"
+    def baseVersion = "1.1.0"
+    def suffix = "rc"
     
     if (isReleaseBuild) {
-        appVersionName = baseVersion
+        if (suffix) {
+          appVersionName = baseVersion ${suffix}
+        } else {
+          appVersionName = baseVersion
+        }
     } else {
         if (gitHash) {
             appVersionName = "${baseVersion} ${suffix} ${gitHash}"
