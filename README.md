@@ -7,24 +7,37 @@
 </h1>
 
 <p align="center">
-   <small>✨Code anywhere, anytime✨</small>
-</p>
-
-<p align="center">
-  A mobile-based integrated development environment for developers
+  Code anywhere, anytime 
 </p>
 
 <p align="center" style="line-height: 1;">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="GPLv3 License"></a>
-  <br>
   <img src="https://img.shields.io/github/repo-size/euptron/CodeOps-Studio?color=%2393000A" alt="Repo Size">
-  <img src="https://img.shields.io/badge/Platform-Android%208%2B-brightgreen" alt="Android">
-  <a href="https://x.com/codeopsstudio"><img alt="X Follow"
-    src="https://img.shields.io/badge/Twitter-codeopsstudio-white?logo=x&logoColor=white"/></a>
+  <img src="https://img.shields.io/badge/Active%20Users-250%2B-blue" alt="Users">
+  <img src="https://img.shields.io/badge/Api-Android%208%2B-brightgreen" alt="Android">
 </p>
 
-> [!NOTE]
-> - Pull requests should target: `dev` branch
+## Repository
+
+This repository contains the open-source code for **CodeOps Studio** — a mobile-based integrated development environment and code editor for building and managing projects directly on Android devices.
+
+## User Interface
+
+<div align="center">
+  <img src="./docs/assets/intro.png" style="max-width: 100%; height: auto; width: 32%;" alt="Intro Screen"/>
+  <img src="./docs/assets/editor.png" style="max-width: 100%; height: auto; width: 32%;" alt="Code Editor"/>
+  <img src="./docs/assets/breadcrumbs.png" style="max-width: 100%; height: auto; width: 32%;" alt="Breadcrumb Navigation"/>
+</div>
+<div align="center">
+  <img src="./docs/assets/filetree.png" style="max-width: 100%; height: auto; width: 32%;" alt="File Tree Explorer"/>
+  <img src="./docs/assets/jsconsole.png" style="max-width: 100%; height: auto; width: 32%;" alt="JS Console"/>
+  <img src="./docs/assets/site_preview.png" style="max-width: 100%; height: auto; width: 32%;" alt="Web Preview"/>
+</div>
+<div align="center">
+  <img src="./docs/assets/bin_dect.png" style="max-width: 100%; height: auto; width: 32%;" alt="Binary Detection"/>
+  <img src="./docs/assets/edit_ops.png" style="max-width: 100%; height: auto; width: 32%;" alt="Edit Ops"/>
+  <img src="./docs/assets/syntax_var.png" style="max-width: 100%; height: auto; width: 32%;" alt="Syntax"/>
+</div>
 
 ## Features
 
@@ -71,31 +84,16 @@
 - AI Assistant Integration
 - Intelligent Code Completion
 
-
-## Preview
-
-Check out screenshots of CodeOps Studio's interface before installing
-<div style="text-align: center;">
-  <img src="./docs/assets/intro.png" style="max-width: 100%; height: auto; width: 40%;" alt="Intro Screen"/>
-  <img src="./docs/assets/editor.png" style="max-width: 100%; height: auto; width: 40%;" alt="Code Editor"/>
-  <img src="./docs/assets/breadcrumbs.png" style="max-width: 100%; height: auto; width: 40%;" alt="Breadcrumb Navigation"/>
-  <img src="./docs/assets/filetree.png" style="max-width: 100%; height: auto; width: 40%;" alt="File Tree Explorer"/>
-  <img src="./docs/assets/jsconsole.png" style="max-width: 100%; height: auto; width: 40%;" alt="JS Console"/>
-  <img src="./docs/assets/site_preview.png" style="max-width: 100%; height: auto; width: 40%;" alt="Web Preview"/>
-  <img src="./docs/assets/bin_dect.png" style="max-width: 100%; height: auto; width: 40%;" alt="Binary Detection"/>
-  <img src="./docs/assets/edit_ops.png" style="max-width: 100%; height: auto; width: 40%;" alt="Edit Ops"/>
-</div>
-
 ## Getting Started
 
-Current Software version is  `v1.1.0 RC`
+Current Software version is  `v1.1.0`
 
 > [!IMPORTANT]
 > - Before installing, ensure you have enabled **Install from Unknown Sources** in your device
     settings.
 > - Please always install CodeOps Studio from trusted sources only.
 
-[<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg" alt="Get on GitHub" height="60">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.1.0-rc/CodeOps-Studio.v1.1.0-rc.apk)
+[<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg" alt="Get on GitHub" height="60">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.1.0/CodeOps-Studio.v1.1.0.apk)
 
 ### Steps to Install
 
@@ -128,6 +126,9 @@ Support CodeOps Studio's growth by becoming a sponsor! Your contributions help u
 -->
 
 ## Contribution Guidelines
+
+> [!NOTE]
+> - Pull requests should target: `dev` branch
 
 See the [Contribution Guidelines](./CONTRIBUTING.md) for detailed instructions on how to contribute.
 
