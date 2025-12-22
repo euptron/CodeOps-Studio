@@ -130,12 +130,11 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
 
             if (releaseDate > 0) {
                 var user = User.newInstance(Constants.API_RESPONSE_DATE_FORMAT);
-                var formatter = new FormatDateUseCase(user);
+                var formatter = new FormatDateUseCase(user, Constants.API_RESPONSE_DATE_FORMAT);
                 String date = formatter.format(releaseDate);
 
                 var summary =
-                    itemView.getContext().getString(R.string.released_on) + ": " + date + " "
-                        + "UTC";
+                    itemView.getContext().getString(R.string.released_on) + ": " + date;
                 binding.summary.setText(summary);
                 binding.summary.setVisibility(View.VISIBLE);
             } else {
@@ -148,7 +147,7 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
 
             var currentVersionName = Wizard.getAppVersionName(IdeApplication.getGlobalContext());
 
-            if (item.getVersionName().equalsIgnoreCase(currentVersionName)) {
+            if (versionName.equalsIgnoreCase(currentVersionName)) {
                 // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal), FFB0F0C0
                 // (prime)
                 addCorners(binding.versionIndicator);

@@ -44,7 +44,6 @@ import java.util.List;
  */
 public class SymbolProvider implements CommandProvider {
   private final Context context;
-  // We need the EditText to append text when user clicks suggestions like "plugins -git"
   private final EditText searchInput;
 
   public SymbolProvider(Context context, EditText searchInput) {
@@ -61,21 +60,13 @@ public class SymbolProvider implements CommandProvider {
   public List<PaletteItem> getItems(String rawQuery, String contentQuery) {
     List<PaletteItem> results = new ArrayList<>();
 
-    // 1. Check for Git Plugin Logic
     if (rawQuery.contains("-git")) {
       handleGitPlugin(results, rawQuery);
-    }
-    // 2. Check for Java Plugin Logic
-    else if (rawQuery.contains("-java")) {
+    } else if (rawQuery.contains("-java")) {
       handleJavaPlugin(results);
-    }
-    // 3. Default Symbol Logic
-    else {
+    } else {
       results.add(new PaletteItem("Go to Symbol / Plugins"));
       String search = contentQuery.toLowerCase();
-
-      // Dummy matches for symbols (if you had any)
-      // ...
 
       // Suggestions to enter plugin modes
       if ("plugins -git".contains(search)) {
@@ -121,10 +112,10 @@ public class SymbolProvider implements CommandProvider {
               null,
               () -> {
                 toast("Executing JGit: " + gitCmd);
-                // In a real app, call your GitManager here
+                // TODO: call GitManager here
               }));
     } else {
-      // Show available Git options
+      // TODO:  Show available Git options
       list.add(
           new PaletteItem(
               "g_commit",

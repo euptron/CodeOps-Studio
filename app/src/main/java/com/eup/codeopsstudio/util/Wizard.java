@@ -527,7 +527,7 @@ public class Wizard {
 
     for (int i = 0; i < items.length; i++) {
       String item = items[i].trim();
-      if (!item.isEmpty()) {
+      if (!isEmpty(item)) {
         bulletList.append("- ").append(item);
         if (i < items.length - 1) {
           bulletList.append("\n");

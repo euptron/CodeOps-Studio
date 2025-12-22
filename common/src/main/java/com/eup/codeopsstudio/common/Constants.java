@@ -45,7 +45,7 @@ public final class Constants {
 
   public static final String MANAGE_EXTERNAL_STORAGE_PERMISSION = "android:manage_external_storage";
 
-  // SharedPreferences keys
+  // FCM SharedPreferences keys
   public static final String PREF_APP_UPDATES = "app_updates";
   public static final String PREF_UPDATE_VERSION = "update_version";
   public static final String PREF_UPDATE_DOWNLOAD_URL = "update_download_url";
@@ -53,6 +53,8 @@ public final class Constants {
   public static final String PREF_UPDATE_CHANGELOG = "update_changelog";
   public static final String PREF_UPDATE_FORCED = "update_forced";
   public static final String PREF_UPDATE_CHECK_TIME = "update_check_time";
+  public static final String PREF_LAST_REMIND_TIME ="last_remind_time";
+  public static final long REMIND_INTERVAL_MS = 2 * 24 * 60 * 60 * 1000L; // 3 days
   public static final String PREF_UPDATE_MIN_VERSION = "update_min_version";
 
   // Notification data keys
@@ -120,7 +122,7 @@ public final class Constants {
   public static final Set<String> WEB_SCRIPT_EXTENSIONS = Set.of(".js", ".mjs");
 
   public static final String TEXTMATE_ASSET_SCOPE_PATH = "editor/textmate/language_scopes.json";
-  public static final int EXPIRATION_YEAR = 2026;
+  public static final int EXPIRATION_YEAR = 2027;
   public static final int EXPIRATION_MONTH = Calendar.MARCH;
   public static final int EXPIRATION_DAY = 4;
   public static final Charset DEFAULT_CHAR_SET = StandardCharsets.UTF_8;

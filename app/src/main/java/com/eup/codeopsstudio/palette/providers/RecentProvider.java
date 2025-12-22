@@ -53,7 +53,7 @@ public class RecentProvider implements CommandProvider {
     List<PaletteItem> results = new ArrayList<>();
     results.add(new PaletteItem("Recently Used"));
 
-    // Replicating your original mock data
+    // mock data
     results.add(
         new PaletteItem(
             "recent_1",

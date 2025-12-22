@@ -22,6 +22,7 @@
  */
 
 package com.eup.codeopsstudio.ui.settings.api;
+import com.eup.codeopsstudio.util.Wizard;
 
 /**
  * A data class that defines a change log item
@@ -150,14 +151,14 @@ public class ChangelogItem {
         }
 
         public static ReleaseType get(String name) {
-            if (name == null) return ALPHA;
+            if (Wizard.isEmpty(name)) return STABLE;
 
             for (ReleaseType value : values()) {
                 if (value.releaseName.equalsIgnoreCase(name)) {
                     return value;
                 }
             }
-            return ALPHA;
+            return STABLE;
         }
     }
 }

@@ -47,14 +47,18 @@ public class FormatDateUseCase {
 
     private final SimpleDateFormat formatter;
 
-    public FormatDateUseCase(@NonNull User user) {
-        formatter = new SimpleDateFormat(user.getPreferredDateFormat(), user.getPreferredLocale());
-        formatter.setTimeZone(TimeZone.getTimeZone(Constants.PREFERRED_TIME_ZONE));
-    }
+  public FormatDateUseCase(@NonNull User user) {
+    formatter = new SimpleDateFormat(user.getPreferredDateFormat(), user.getPreferredLocale());
+    String tz =
+        Wizard.isEmpty(user.getPreferredDateFormat())
+            ? Constants.PREFERRED_TIME_ZONE
+            : user.getPreferredDateFormat();
+    formatter.setTimeZone(TimeZone.getTimeZone(tz));
+  }
 
-    public FormatDateUseCase(@NonNull User user, @Nullable String timeZone) {
-        formatter = new SimpleDateFormat(user.getPreferredDateFormat(), user.getPreferredLocale());
-        formatter.setTimeZone(TimeZone.getTimeZone(timeZone));
+  public FormatDateUseCase(@NonNull User user, @Nullable String timeZone) {
+    formatter = new SimpleDateFormat(user.getPreferredDateFormat(), user.getPreferredLocale());
+    formatter.setTimeZone(TimeZone.getTimeZone(timeZone));
     }
 
     public FormatDateUseCase(@NonNull String datePattern) {

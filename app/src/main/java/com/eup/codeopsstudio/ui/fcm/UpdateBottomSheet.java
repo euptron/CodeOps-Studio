@@ -105,9 +105,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
       downloadUrl = getArguments().getString("download_url");
       downloadSize = getArguments().getString("download_size");
       forceUpdate = getArguments().getBoolean("force_update", false);
-      var changelogArgs =
-          getArguments().getString("changelog", getString(R.string.default_changelog));
-      changelog = Wizard.formatToBulletList(",", changelogArgs);
+      changelog = getArguments().getString("changelog", getString(R.string.default_changelog));
     }
 
     ILog.debug(TAG, "Update Check: Version=" + version + ", URL=" + downloadUrl);
@@ -173,6 +171,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
 
   private void setupContent() {
     if (Wizard.allNotNull(version, changelog)) {
+      String displayLog = Wizard.formatToBulletList(",", changelog);
       String versionText = String.format(getString(R.string.version_format), version);
 
       if (!Wizard.isEmpty(downloadSize)) {
@@ -180,7 +179,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
       }
 
       binding.versionText.setText(versionText);
-      binding.changelogText.setText(changelog);
+      binding.changelogText.setText(displayLog);
     }
 
     if (forceUpdate) {
@@ -199,12 +198,20 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
       return;
     }
 
+    long lastRemindTime = prefs.getLong(Constants.PREF_LAST_REMIND_TIME, 0);
+    long currentTime = System.currentTimeMillis();
+
+    if (currentTime - lastRemindTime < Constants.REMIND_INTERVAL_MS) {
+      return; // Too soon, don't remind
+    }
+
     SharedPreferences.Editor editor =
         prefs
             .edit()
             .putString(Constants.PREF_UPDATE_VERSION, version)
             .putString(Constants.PREF_UPDATE_DOWNLOAD_URL, downloadUrl)
             .putString(Constants.PREF_UPDATE_CHANGELOG, changelog)
+            .putLong(Constants.PREF_LAST_REMIND_TIME, currentTime)
             .putString(Constants.PREF_UPDATE_FORCED, String.valueOf(forceUpdate))
             .putString(Constants.PREF_UPDATE_DOWNLOAD_SIZE, downloadSize);
 
@@ -401,6 +408,7 @@ public class UpdateBottomSheet extends BottomSheetDialogFragment {
           .remove(Constants.PREF_UPDATE_FORCED)
           .remove(Constants.PREF_UPDATE_CHECK_TIME)
           .remove(Constants.PREF_UPDATE_MIN_VERSION)
+          .remove(Constants.PREF_LAST_REMIND_TIME)
           .apply();
     }
 

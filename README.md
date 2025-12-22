@@ -76,12 +76,14 @@
 
 Check out screenshots of CodeOps Studio's interface before installing
 <div style="text-align: center;">
-  <img src="./docs/assets/intro.jpeg" style="max-width: 100%; height: auto; width: 40%;" alt="Intro Screen"/>
-  <img src="./docs/assets/editor.jpeg" style="max-width: 100%; height: auto; width: 40%;" alt="Code Editor"/>
-  <img src="./docs/assets/breadcrumbs.jpeg" style="max-width: 100%; height: auto; width: 40%;" alt="Breadcrumb Navigation"/>
-  <img src="./docs/assets/filetree.jpeg" style="max-width: 100%; height: auto; width: 40%;" alt="File Tree Explorer"/>
-  <img src="./docs/assets/jsconsole.jpeg" style="max-width: 100%; height: auto; width: 40%;" alt="JS Console"/>
-  <img src="./docs/assets/site_preview.jpeg" style="max-width: 100%; height: auto; width: 40%;" alt="Web Preview"/>
+  <img src="./docs/assets/intro.png" style="max-width: 100%; height: auto; width: 40%;" alt="Intro Screen"/>
+  <img src="./docs/assets/editor.png" style="max-width: 100%; height: auto; width: 40%;" alt="Code Editor"/>
+  <img src="./docs/assets/breadcrumbs.png" style="max-width: 100%; height: auto; width: 40%;" alt="Breadcrumb Navigation"/>
+  <img src="./docs/assets/filetree.png" style="max-width: 100%; height: auto; width: 40%;" alt="File Tree Explorer"/>
+  <img src="./docs/assets/jsconsole.png" style="max-width: 100%; height: auto; width: 40%;" alt="JS Console"/>
+  <img src="./docs/assets/site_preview.png" style="max-width: 100%; height: auto; width: 40%;" alt="Web Preview"/>
+  <img src="./docs/assets/bin_dect.png" style="max-width: 100%; height: auto; width: 40%;" alt="Binary Detection"/>
+  <img src="./docs/assets/edit_ops.png" style="max-width: 100%; height: auto; width: 40%;" alt="Edit Ops"/>
 </div>
 
 ## Getting Started

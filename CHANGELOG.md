@@ -17,9 +17,9 @@ uses [semantic versioning `2.0.0` spec](https://semver.org/spec/v2.0.0.html) in 
 - `Contributors`: Release contributors
 - `FSC-ID`: Firebase Crashlytics Issue ID
 
-Release 1.1.0 beta
+Release 1.1.0
 ----------------------
-_21-12-2025_(Sunday, December 21, 2025)
+_22-12-2025_(Monday, December 22, 2025)
 
 ### Added
 

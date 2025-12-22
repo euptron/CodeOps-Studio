@@ -951,7 +951,14 @@ public class MainFragment extends Fragment
     String downloadUrl = prefs.getString(Constants.PREF_UPDATE_DOWNLOAD_URL, "");
     String downloadSize = prefs.getString(Constants.PREF_UPDATE_DOWNLOAD_SIZE, "");
     boolean forceUpdate = Wizard.toBoolean(prefs.getString(Constants.PREF_UPDATE_FORCED, "false"));
-
+    
+    long lastRemindTime = prefs.getLong(Constants.PREF_LAST_REMIND_TIME, 0L);
+    long currentTime = System.currentTimeMillis();
+    
+    if (lastRemindTime > 0 && (currentTime - lastRemindTime < Constants.REMIND_INTERVAL_MS)) {
+        return; // Too soon, don't show
+    }
+    
     ILog.debug(TAG, "Update Check: Version=" + latestVersion + ", URL=" + downloadUrl);
 
     if (Wizard.isEmpty(latestVersion) || Wizard.isEmpty(downloadUrl)) return;
