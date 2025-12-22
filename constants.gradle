@@ -149,11 +149,11 @@ project.ext {
     }
     
     def baseVersion = "1.1.0"
-    def suffix = "rc"
+    def suffix = ""
     
     if (isReleaseBuild) {
         if (suffix) {
-          appVersionName = baseVersion ${suffix}
+          appVersionName = suffix ? "${baseVersion} ${suffix}" : baseVersion
         } else {
           appVersionName = baseVersion
         }
