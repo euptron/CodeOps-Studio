@@ -132,7 +132,7 @@ static def getGitCommitHash(proj) {
 project.ext {
     // Versions
     compileSdkVersion = 35
-    buildToolsVersion = '34.0.0'
+    buildToolsVersion = '35.0.0'
     targetSdkVersion = 35
     minSdkVersion = 26
     javaSourceVersion = JavaVersion.VERSION_17
@@ -144,25 +144,46 @@ project.ext {
 
     def gitHash = getGitCommitHash(project)
     def gitCommitCount = getGitCommitCount(project)
-    def isReleaseBuild = gradle.startParameter.taskNames.any {
-        it.toLowerCase().contains('release')
+    
+    def isReleaseBuild = false
+
+    gradle.startParameter.taskNames.each { taskName ->
+        def lowerTask = taskName.toLowerCase()
+        
+        if (lowerTask.contains('release')) {
+            isReleaseBuild = true
+            return
+        }
+        
+        if (lowerTask == 'assemble' || lowerTask.endsWith(':assemble')) {
+            def anyTaskHasDebug = false
+            gradle.startParameter.taskNames.each { t -> 
+                if (t.toLowerCase().contains('debug')) {
+                    anyTaskHasDebug = true
+                    return
+                }
+            }
+            if (!anyTaskHasDebug) {
+                isReleaseBuild = true
+                return
+            }
+        }
     }
     
     def baseVersion = "1.1.0"
     def suffix = ""
     
     if (isReleaseBuild) {
-        if (suffix) {
-          appVersionName = suffix ? "${baseVersion} ${suffix}" : baseVersion
-        } else {
-          appVersionName = baseVersion
-        }
+        appVersionName = suffix ? "${baseVersion} ${suffix}" : baseVersion
     } else {
-        if (gitHash) {
-            appVersionName = "${baseVersion} ${suffix} ${gitHash}"
-        } else {
-            appVersionName = "${baseVersion} ${suffix}"
+        def parts = [baseVersion]
+        if (suffix && !suffix.isEmpty()) {
+            parts << suffix
         }
+        if (gitHash && !gitHash.isEmpty()) {
+            parts << gitHash
+        }
+        appVersionName = parts.join(' ').trim()
     }
     
     appVersionCode = gitCommitCount
