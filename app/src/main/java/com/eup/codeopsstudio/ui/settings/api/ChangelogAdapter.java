@@ -23,7 +23,6 @@
 
 package com.eup.codeopsstudio.ui.settings.api;
 
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Html;
 import android.transition.AutoTransition;
@@ -46,128 +45,132 @@ import com.eup.codeopsstudio.models.user.User;
 import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.Wizard;
 
+import com.google.android.material.color.MaterialColors;
 import java.util.List;
 
 public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.ViewHolder> {
 
-    public static final DiffUtil.ItemCallback<ChangelogItem> DIFF_CALLBACK =
-        new DiffUtil.ItemCallback<>() {
+  public static final DiffUtil.ItemCallback<ChangelogItem> DIFF_CALLBACK =
+      new DiffUtil.ItemCallback<>() {
         @Override
-        public boolean areItemsTheSame(@NonNull ChangelogItem oldLog,
-            @NonNull ChangelogItem newLog) {
-            return oldLog.getReleaseType().equals(newLog.getReleaseType());
+        public boolean areItemsTheSame(
+            @NonNull ChangelogItem oldLog, @NonNull ChangelogItem newLog) {
+          return oldLog.getReleaseType().equals(newLog.getReleaseType());
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull ChangelogItem oldLog,
-            @NonNull ChangelogItem newLog) {
-            return oldLog.getReleaseType().equals(newLog.getReleaseType());
+        public boolean areContentsTheSame(
+            @NonNull ChangelogItem oldLog, @NonNull ChangelogItem newLog) {
+          return oldLog.getReleaseType().equals(newLog.getReleaseType());
         }
-    };
+      };
 
-    private final AsyncListDiffer<ChangelogItem> mDiffer = new AsyncListDiffer<>(this,
-        DIFF_CALLBACK);
+  private final AsyncListDiffer<ChangelogItem> mDiffer = new AsyncListDiffer<>(this, DIFF_CALLBACK);
 
-    public ChangelogAdapter(List<ChangelogItem> newData) {
-        mDiffer.submitList(newData);
+  public ChangelogAdapter(List<ChangelogItem> newData) {
+    mDiffer.submitList(newData);
+  }
+
+  @NonNull
+  @Override
+  public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    return new ViewHolder(
+        LayoutChangeLogItemBinding.inflate(
+            LayoutInflater.from(parent.getContext()), parent, false));
+  }
+
+  @Override
+  public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    ChangelogItem item = mDiffer.getCurrentList().get(position);
+    holder.bind(item, position);
+  }
+
+  @Override
+  public int getItemCount() {
+    return mDiffer.getCurrentList().size();
+  }
+
+  private static void addCorners(@NonNull View view) {
+    GradientDrawable gd = new GradientDrawable();
+    int primaryColor =
+        MaterialColors.getColor(view, com.google.android.material.R.attr.colorPrimary);
+    gd.setColor(primaryColor);
+    gd.setCornerRadii(new float[] {0, 0, 30, 30, 30, 30, 0, 0});
+    view.setBackground(gd);
+  }
+
+  private static void animateLayoutChanges(ViewGroup view) {
+    AutoTransition autoTransition = new AutoTransition();
+    autoTransition.setDuration((short) 300);
+    TransitionManager.beginDelayedTransition(view, autoTransition);
+  }
+
+  public class ViewHolder extends RecyclerView.ViewHolder {
+    private final LayoutChangeLogItemBinding binding;
+
+    public ViewHolder(@NonNull LayoutChangeLogItemBinding binding) {
+      super(binding.getRoot());
+      this.binding = binding;
     }
 
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutChangeLogItemBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
-    }
+    public void bind(ChangelogItem item, int position) {
+      if (item == null) return;
 
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ChangelogItem item = mDiffer.getCurrentList().get(position);
-        holder.bind(item, position);
-    }
+      String release = item.getReleaseType().releaseName;
+      String versionName = item.getVersionName();
+      String description = item.getDescription();
+      long releaseDate = item.getReleaseDate();
 
-    @Override
-    public int getItemCount() {
-        return mDiffer.getCurrentList().size();
-    }
+      String title = itemView.getContext().getString(R.string.release);
+      title += Constants.SPACE + versionName + ((release != null) ? "-" + release : "");
+      binding.title.setText(title);
 
-    private static void addCorners(@NonNull View view) {
-        GradientDrawable gd = new GradientDrawable();
-        gd.setColor(Color.parseColor("#FFB0F0C0"));
-        gd.setCornerRadii(new float[]{0, 0, 30, 30, 30, 30, 0, 0});
-        view.setBackground(gd);
-    }
+      if (item.getSupportsHtml()) {
+        binding.log.setText(Html.fromHtml(description, Html.FROM_HTML_MODE_LEGACY));
+      } else {
+        binding.log.setText(description);
+      }
 
-    private static void animateLayoutChanges(ViewGroup view) {
-        AutoTransition autoTransition = new AutoTransition();
-        autoTransition.setDuration((short) 300);
-        TransitionManager.beginDelayedTransition(view, autoTransition);
-    }
+      if (releaseDate > 0) {
+        var user = User.newInstance(Constants.API_RESPONSE_DATE_FORMAT);
+        var formatter = new FormatDateUseCase(user, Constants.API_RESPONSE_DATE_FORMAT);
+        String date = formatter.format(releaseDate);
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        private final LayoutChangeLogItemBinding binding;
+        var summary = itemView.getContext().getString(R.string.released_on) + ": " + date;
+        binding.summary.setText(summary);
+        binding.summary.setVisibility(View.VISIBLE);
+      } else {
+        binding.summary.setVisibility(View.GONE);
+      }
 
-        public ViewHolder(@NonNull LayoutChangeLogItemBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
+      int visibility = item.getIsExpanded() ? View.VISIBLE : View.GONE;
+      binding.expandablePane.setVisibility(visibility);
+      binding.chevron.setRotation(item.getIsExpanded() ? 0 : -180);
 
-        public void bind(ChangelogItem item, int position) {
-            if (item == null) return;
+      var currentVersionName = Wizard.getAppVersionName(IdeApplication.getGlobalContext());
 
-            String release = item.getReleaseType().releaseName;
-            String versionName = item.getVersionName();
-            String description = item.getDescription();
-            long releaseDate = item.getReleaseDate();
+      if (versionName.equalsIgnoreCase(currentVersionName)) {
+        // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal), FFB0F0C0
+        // (prime)
+        addCorners(binding.versionIndicator);
+      } else {
+        binding.versionIndicator.setBackground(null);
+      }
 
-            String title = itemView.getContext().getString(R.string.release);
-            title += Constants.SPACE + versionName + ((release != null) ? "-" + release : "");
-            binding.title.setText(title);
-
-            if (item.getSupportsHtml()) {
-                binding.log.setText(Html.fromHtml(description, Html.FROM_HTML_MODE_LEGACY));
+      itemView.setOnClickListener(
+          v -> {
+            if (BaseUtil.isExpanded(binding.expandablePane)) {
+              BaseUtil.startObjectAnimation(binding.chevron, "rotation", 180, 220);
+              binding.expandablePane.setVisibility(View.GONE);
+              item.setIsExpanded(false);
             } else {
-                binding.log.setText(description);
+              BaseUtil.startObjectAnimation(binding.chevron, "rotation", 0, 220);
+              binding.expandablePane.setVisibility(View.VISIBLE);
+              item.setIsExpanded(true);
             }
-
-            if (releaseDate > 0) {
-                var user = User.newInstance(Constants.API_RESPONSE_DATE_FORMAT);
-                var formatter = new FormatDateUseCase(user, Constants.API_RESPONSE_DATE_FORMAT);
-                String date = formatter.format(releaseDate);
-
-                var summary =
-                    itemView.getContext().getString(R.string.released_on) + ": " + date;
-                binding.summary.setText(summary);
-                binding.summary.setVisibility(View.VISIBLE);
-            } else {
-                binding.summary.setVisibility(View.GONE);
-            }
-
-            int visibility = item.getIsExpanded() ? View.VISIBLE : View.GONE;
-            binding.expandablePane.setVisibility(visibility);
-            binding.chevron.setRotation(item.getIsExpanded() ? 0 : -180);
-
-            var currentVersionName = Wizard.getAppVersionName(IdeApplication.getGlobalContext());
-
-            if (versionName.equalsIgnoreCase(currentVersionName)) {
-                // light blue:FFAAC7FF , light green (aelo-green): FFA6DABD (normal), FFB0F0C0
-                // (prime)
-                addCorners(binding.versionIndicator);
-            } else {
-                binding.versionIndicator.setBackground(null);
-            }
-
-            itemView.setOnClickListener(v -> {
-                if (BaseUtil.isExpanded(binding.expandablePane)) {
-                    BaseUtil.startObjectAnimation(binding.chevron, "rotation", 180, 220);
-                    binding.expandablePane.setVisibility(View.GONE);
-                    item.setIsExpanded(false);
-                } else {
-                    BaseUtil.startObjectAnimation(binding.chevron, "rotation", 0, 220);
-                    binding.expandablePane.setVisibility(View.VISIBLE);
-                    item.setIsExpanded(true);
-                }
-                animateLayoutChanges(binding.logBase);
-                notifyItemChanged(position);
-            });
-        }
+            animateLayoutChanges(binding.logBase);
+            notifyItemChanged(position);
+          });
     }
+  }
 }
