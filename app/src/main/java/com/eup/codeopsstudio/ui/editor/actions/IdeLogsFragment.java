@@ -2,7 +2,7 @@
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
  * https://github.com/euptron/CodeOps-Studio
- * Copyright (C) 2024-2025 Etido Peter
+ * Copyright (C) 2024-2026 Etido Peter
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,107 +27,113 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.eup.codeopsstudio.logger.adapter.LogAdapter;
+import com.eup.codeops.bidirectionalllm.BidirectionalLayoutManager;
 import com.eup.codeopsstudio.common.util.RecyclerViewOnScrollListener;
 import com.eup.codeopsstudio.databinding.FragmentIdeLogsBinding;
-import com.eup.codeopsstudio.logger.model.Log;
 import com.eup.codeopsstudio.logger.Logger;
+import com.eup.codeopsstudio.logger.adapter.LogAdapter;
+import com.eup.codeopsstudio.logger.model.LogModel;
 import com.eup.codeopsstudio.viewmodel.MainViewModel;
-
 import java.util.ArrayList;
 
+/**
+ * Fragment for displaying IDE logs.
+ * 
+ * @author Etido Peter
+ */
 public class IdeLogsFragment extends Fragment {
 
-    public static final String TAG = IdeLogsFragment.class.getSimpleName();
-    public static final String LOG_TAG = "IDE Logs Fragment";
-    private FragmentIdeLogsBinding binding;
-    private Logger logger;
-    private LogAdapter logAdapter;
-    private MainViewModel model;
-    private RecyclerViewOnScrollListener listener;
+  public static final String TAG = IdeLogsFragment.class.getSimpleName();
+  public static final String LOG_TAG = "IDE Logs Fragment";
+  private FragmentIdeLogsBinding binding;
+  private Logger logger;
+  private LogAdapter logAdapter;
+  private MainViewModel model;
+  private RecyclerViewOnScrollListener listener;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        logAdapter = new LogAdapter();
-        logger     = new Logger(Logger.LogClass.IDE);
-    }
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    logAdapter = new LogAdapter();
+    logger = new Logger(Logger.LogClass.IDE);
+  }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-        Bundle savedInstanceState) {
-        binding = FragmentIdeLogsBinding.inflate(inflater, viewgroup, false);
-        binding.ideLogsViewFlipper.setDisplayedChild(1);
-        binding.clearIdeLogsFab.setVisibility(View.GONE);
-        return binding.getRoot();
-    }
+  @Override
+  public View onCreateView(
+      @NonNull LayoutInflater inflater, ViewGroup viewgroup, Bundle savedInstanceState) {
+    binding = FragmentIdeLogsBinding.inflate(inflater, viewgroup, false);
+    binding.ideLogsViewFlipper.setDisplayedChild(1);
+    binding.clearIdeLogsFab.setVisibility(View.GONE);
+    return binding.getRoot();
+  }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        model =
-            new ViewModelProvider(requireActivity() /*shared activity scope*/).get(MainViewModel.class);
-        logger.attach(requireActivity() /*shared activity scope*/);
-        binding.ideLogRecyclerview.setLayoutManager(new LinearLayoutManager(requireContext()));
-        binding.ideLogRecyclerview.setAdapter(logAdapter);
-        binding.ideLogRecyclerview.setHasFixedSize(true);
-        listener = new RecyclerViewOnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                if (dy < 0) {
-                    binding.clearIdeLogsFab.extend();
-                } else if (dy > 0) {
-                    binding.clearIdeLogsFab.shrink();
-                }
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    model = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+    logger.attach(requireActivity());
+
+    binding.ideLogRecyclerview.setLayoutManager(new BidirectionalLayoutManager(requireContext()));
+    binding.ideLogRecyclerview.setAdapter(logAdapter);
+    binding.ideLogRecyclerview.setHasFixedSize(false);
+    // work around for BIDI-LLM since smooth scroller isn't used
+    binding.ideLogRecyclerview.setItemAnimator(null);
+
+    listener =
+        new RecyclerViewOnScrollListener() {
+          @Override
+          public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+            if (dy < 0) {
+              binding.clearIdeLogsFab.extend();
+            } else if (dy > 0) {
+              binding.clearIdeLogsFab.shrink();
             }
+          }
         };
-        binding.ideLogRecyclerview.addOnScrollListener(listener);
+    binding.ideLogRecyclerview.addOnScrollListener(listener);
 
-        model.getIDELogs().observe(getViewLifecycleOwner(), this::updateLayout);
-        binding.clearIdeLogsFab.setOnClickListener(v -> clearLogs());
+    model.getIDELogs().observe(getViewLifecycleOwner(), this::updateLayout);
+    binding.clearIdeLogsFab.setOnClickListener(v -> clearLogs());
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    this.binding = null;
+  }
+
+  private void updateLayout(ArrayList<LogModel> logs) {
+    if (logs == null) return;
+
+    if (logs.isEmpty()) {
+      binding.ideLogsViewFlipper.setDisplayedChild(1);
+      binding.clearIdeLogsFab.setVisibility(View.GONE);
+    } else {
+      binding.ideLogsViewFlipper.setDisplayedChild(0);
+      binding.clearIdeLogsFab.setVisibility(View.VISIBLE);
+      logAdapter.submitList(logs);
+      scrollToLastItem();
     }
+  }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        this.binding = null;
+  private void scrollToLastItem() {
+    int position = logAdapter.getItemCount();
+    if (position > 0) {
+      binding.ideLogRecyclerview.scrollToPosition(position - 1);
     }
+  }
 
-    private void updateLayout(ArrayList<Log> logs) {
-        if (logs == null) return;
+  private void clearLogs() {
+    logger.clear();
+    logAdapter.notifyDataSetChanged();
+  }
 
-        if (logs.isEmpty()) {
-            binding.ideLogsViewFlipper.setDisplayedChild(1);
-            binding.clearIdeLogsFab.setVisibility(View.GONE);
-        } else {
-            binding.ideLogsViewFlipper.setDisplayedChild(0);
-            binding.clearIdeLogsFab.setVisibility(View.VISIBLE);
-            logAdapter.submitList(logs);
-            scrollToLastItem();
-        }
-    }
-
-    private void scrollToLastItem() {
-        int position = logAdapter.getItemCount();
-        if (position > 0) {
-            binding.ideLogRecyclerview.scrollToPosition(position - 1);
-        }
-    }
-
-    private void clearLogs() {
-        logger.clear();
-        logAdapter.notifyDataSetChanged();
-    }
-
-    public static IdeLogsFragment newInstance() {
-        return new IdeLogsFragment();
-    }
+  public static IdeLogsFragment newInstance() {
+    return new IdeLogsFragment();
+  }
 }

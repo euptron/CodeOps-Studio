@@ -4,7 +4,7 @@
 # This file is part of CodeOps Studio.
 # CodeOps Studio - Code anywhere anytime
 # https://github.com/euptron/CodeOps-Studio
-# Copyright (C) 2024-2025 Etido Peter
+# Copyright (C) 2024-2026 Etido Peter
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ LICENSE_HEADER_NON_XML="/*
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
  * https://github.com/euptron/CodeOps-Studio
- * Copyright (C) 2024-2025 Etido Peter
+ * Copyright (C) 2024-2026 Etido Peter
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ LICENSE_HEADER_XML="
   ~ This file is part of CodeOps Studio.
   ~ CodeOps Studio - Code anywhere anytime
   ~ https://github.com/euptron/CodeOps-Studio
-  ~ Copyright (C) 2024-2025 Etido Peter
+  ~ Copyright (C) 2024-2026 Etido Peter
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by

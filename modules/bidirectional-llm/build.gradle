@@ -1,0 +1,89 @@
+plugins {
+    alias(libs.plugins.android.library)
+    id 'maven-publish'
+}
+
+android {
+    namespace 'com.eup.codeops.bidirectionalllm'
+    compileSdk project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdk project.ext.minSdkVersion
+        targetSdk project.ext.targetSdkVersion
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility project.ext.javaSourceVersion
+        targetCompatibility project.ext.javaTargetVersion
+    }
+    
+    publishing {
+        singleVariant("release")
+    }
+}
+
+dependencies {
+    api "androidx.recyclerview:recyclerview:1.4.0"
+    implementation(libs.androidx.annotation)
+}
+
+group = "com.github.euptron"
+version = "0.1.0"
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                
+                groupId = group
+                artifactId = 'bidirectional-llm'
+                version = version
+                
+                pom {
+                    name = 'Bidirectional LLM'
+                    description = 'Bidirectional RecyclerView LinearLayoutManager implementation supporting both vertical and horizontal scrolling.'
+                    url = 'https://github.com/euptron/CodeOps-Studio'
+                    
+                    licenses {
+                        license {
+                            name = 'Apache License v2.0'
+                            url = 'https://github.com/euptron/CodeOps-Studio/blob/main/modules/bidirectional-llm/LICENSE'
+                            distribution = 'repo'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'euptron'
+                            name = 'Etido Peter'
+                            email = 'euptron@gmail.com'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:github.com/euptron/CodeOps-Studio.git'
+                        developerConnection = 'scm:git:ssh://github.com/euptron/CodeOps-Studio.git'
+                        url = 'https://github.com/euptron/CodeOps-Studio'
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/euptron/CodeOps-Studio"
+                credentials(PasswordCredentials)
+            }
+        }
+    }
+}

@@ -10,7 +10,7 @@ replacement text.
 Supported file types include:
 
 * `.java`, `.py`, `.cpp`, `.gradle`, `.kt`, `.kts`, `.sh`
-* `.xml`
+* `.xml`, `.md`
 
 > \[!NOTE]
 > The script processes only supported file types and can be customized to include others.
@@ -29,7 +29,7 @@ Supported file types include:
 **Ensure the script has execute permissions:**
 
 ```bash
-chmod +x ./docs/batch_text_replace.sh
+chmod +x ./docs/batch_rename.sh
 ```
 
 ### Automatic Replacement
@@ -37,7 +37,7 @@ chmod +x ./docs/batch_text_replace.sh
 To replace text in all supported files in the chosen directory:
 
 ```bash
-$ bash ./docs/batch_text_replace.sh
+$ bash ./docs/batch_rename.sh
 ```
 
 You will be prompted for:
@@ -51,7 +51,7 @@ You will be prompted for:
 ### Example
 
 ```bash
-$ bash ./docs/batch_text_replace.sh
+$ bash ./docs/batch_rename.sh
 Enter the base directory (press Enter to use current directory): /home/user/project
 Enter the text to be replaced: oldValue
 Enter the replacement text: newValue
@@ -81,11 +81,11 @@ Text replacement process completed.
 
 | Issue                | Solution                                          |
 |----------------------|---------------------------------------------------|
-| `Permission denied`  | Run `chmod +x batch_text_replace.sh`              |
+| `Permission denied`  | Run `chmod +x batch_rename.sh`              |
 | No matches found     | Ensure the text matches exactly (case-sensitive). |
 | Incorrect path error | Provide a valid base directory path.              |
 
 ## Contact
 
-For further assistance or questions regarding `batch_text_replace.sh`, please contact me
+For further assistance or questions regarding `batch_rename.sh`, please contact me
 at [euptron@gmail.com](mailto:euptron@gmail.com).

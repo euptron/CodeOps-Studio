@@ -29,6 +29,7 @@ read -rp "Enter the text to be replaced: " search_text
 read -rp "Enter the replacement text: " replace_text
 
 # Find and process files with specific extensions
-find "$SEARCH_DIR" -type f \( -name "*.java" -o -name "*.py" -o -name "*.cpp" -o -name "*.xml" -o -name "*.gradle" -o -name "*.kts" -o -name "*.kt" -o -name "*.sh" \) -exec bash -c 'replace_text "$0" '"$search_text"' '"$replace_text"'' {} \;
+find "$SEARCH_DIR" -type d \( -iname "build" -o -iname "compile" -o -iname ".git" -o -iname ".gradle" \) -prune -o \
+-type f \( -name "*.java" -o -name "*.py" -o -name "*.cpp" -o -name "*.xml" -o -name "*.gradle" -o -name "*.kts" -o -name "*.kt" -o -name "*.sh" -o -name "*.md" \) -exec bash -c 'replace_text "$0" '"$search_text"' '"$replace_text"'' {} \;
 
 echo "Text replacement process completed."

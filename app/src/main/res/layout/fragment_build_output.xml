@@ -3,7 +3,7 @@
   ~ This file is part of CodeOps Studio.
   ~ CodeOps Studio - Code anywhere anytime
   ~ https://github.com/euptron/CodeOps-Studio
-  ~ Copyright (C) 2024-2025 Etido Peter
+  ~ Copyright (C) 2024-2026 Etido Peter
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -31,23 +31,19 @@
         android:id="@+id/out_view_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <HorizontalScrollView
-            android:id="@+id/output_logs_horizontal_scroll"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/build_output_recyclerview"
-                style="@style/LogListStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:keyboardNavigationCluster="true"
-                android:nestedScrollingEnabled="false" />
-
-        </HorizontalScrollView>
         
+         <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/build_output_recyclerview"
+            style="@style/LogListStyle"
+            android:scrollbars="none"
+            android:keyboardNavigationCluster="true"
+            android:nestedScrollingEnabled="false"
+            app:fastScrollEnabled="true"
+            app:fastScrollHorizontalThumbDrawable="@drawable/fastscroll_thumb"
+            app:fastScrollHorizontalTrackDrawable="@drawable/fastscroll_track"
+            app:fastScrollVerticalThumbDrawable="@drawable/fastscroll_thumb"
+            app:fastScrollVerticalTrackDrawable="@drawable/fastscroll_track" />
+            
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -67,7 +63,7 @@
         android:scrollIndicators="none"
         android:text="@string/clear_log"
         app:icon="@drawable/ic_notification_clear_all"
-        app:layout_anchor="@id/output_logs_horizontal_scroll"
+        app:layout_anchor="@id/build_output_recyclerview"
         app:layout_anchorGravity="bottom|right|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

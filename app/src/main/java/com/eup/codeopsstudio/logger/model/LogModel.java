@@ -2,7 +2,7 @@
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
  * https://github.com/euptron/CodeOps-Studio
- * Copyright (C) 2024-2025 Etido Peter
+ * Copyright (C) 2024-2026 Etido Peter
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Log {
+public class LogModel {
 
     private static final List<UUID> generatedIds = new ArrayList<>();
     private final int mIcon;
@@ -43,7 +43,7 @@ public class Log {
      *
      * @param message log message
      */
-    public Log(CharSequence message) {
+    public LogModel(CharSequence message) {
         this(null, 0, null, null, message);
     }
 
@@ -53,7 +53,7 @@ public class Log {
      * @param icon    diagnostics icon resource
      * @param message diagnostics message
      */
-    public Log(int icon, CharSequence message) {
+    public LogModel(int icon, CharSequence message) {
         this(null, icon, null, null, message);
     }
 
@@ -64,7 +64,7 @@ public class Log {
      * @param level   the log level
      * @param message log message
      */
-    public Log(CharSequence tag, CharSequence level, CharSequence message) {
+    public LogModel(CharSequence tag, CharSequence level, CharSequence message) {
         this(null, 0, tag, level, message);
     }
 
@@ -76,7 +76,7 @@ public class Log {
      * @param level   the log level
      * @param message log message
      */
-    public Log(CharSequence date, CharSequence tag, CharSequence level, CharSequence message) {
+    public LogModel(CharSequence date, CharSequence tag, CharSequence level, CharSequence message) {
         this(date, 0, tag, level, message);
     }
 
@@ -89,7 +89,7 @@ public class Log {
      * @param level   the log level
      * @param message log message
      */
-    public Log(CharSequence date, int icon, CharSequence tag, CharSequence level,
+    public LogModel(CharSequence date, int icon, CharSequence tag, CharSequence level,
         CharSequence message) {
         mDateFormat = date;
         mIcon       = icon;
@@ -108,7 +108,7 @@ public class Log {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Log log = (Log) o;
+        LogModel log = (LogModel) o;
         return Objects.equals(mMessage, log.getMessage()) && Objects.equals(mTag, log.getTag())
             && Objects.equals(mDateFormat, log.getDateFormat())
             && Objects.equals(mLogLevel, log.getLevel());

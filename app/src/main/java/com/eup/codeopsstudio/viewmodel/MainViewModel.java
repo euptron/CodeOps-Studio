@@ -2,7 +2,7 @@
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
  * https://github.com/euptron/CodeOps-Studio
- * Copyright (C) 2024-2025 Etido Peter
+ * Copyright (C) 2024-2026 Etido Peter
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import com.eup.codeopsstudio.IdeApplication;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.models.Event;
 import com.eup.codeopsstudio.domain.events.PermissionEvent;
-import com.eup.codeopsstudio.logger.model.Log;
+import com.eup.codeopsstudio.logger.model.LogModel;
 import com.eup.codeopsstudio.models.ProgressModel;
 import com.eup.codeopsstudio.util.Wizard;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -67,8 +67,8 @@ public class MainViewModel extends ViewModel {
   private final MutableLiveData<Boolean> addPane = new MutableLiveData<>(false);
   private final MutableLiveData<Event<Boolean>> exitRequest = new MutableLiveData<>();
   private final MutableLiveData<Event<Boolean>> mDrawerState = new MutableLiveData<>();
-  private MutableLiveData<ArrayList<Log>> mIDELogs;
-  private MutableLiveData<ArrayList<Log>> mBUILDLogs;
+  private MutableLiveData<ArrayList<LogModel>> mIDELogs;
+  private MutableLiveData<ArrayList<LogModel>> mBUILDLogs;
   private MutableLiveData<ProgressModel> main_progress_model = new MutableLiveData<>();
   private final MutableLiveData<Event<Bundle>> intentBundle = new MutableLiveData<>();
   private final MutableLiveData<PermissionEvent> permissionEvent = new MutableLiveData<>();
@@ -102,7 +102,7 @@ public class MainViewModel extends ViewModel {
     return this.addPane;
   }
 
-  public MutableLiveData<ArrayList<Log>> getBUILDLogs() {
+  public MutableLiveData<ArrayList<LogModel>> getBUILDLogs() {
     if (mBUILDLogs == null) {
       mBUILDLogs = new MutableLiveData<>();
     }
@@ -154,7 +154,7 @@ public class MainViewModel extends ViewModel {
     return exitRequest;
   }
 
-  public MutableLiveData<ArrayList<Log>> getIDELogs() {
+  public MutableLiveData<ArrayList<LogModel>> getIDELogs() {
     if (mIDELogs == null) {
       mIDELogs = new MutableLiveData<>();
     }
