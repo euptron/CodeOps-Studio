@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.library)
-    id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
 }
     
@@ -26,9 +25,9 @@ android {
         targetCompatibility project.ext.javaTargetVersion
     }
     
-    // publishing {
-        // singleVariant("release")
-    // }
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {

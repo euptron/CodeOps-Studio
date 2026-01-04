@@ -23,7 +23,7 @@ junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 commonsIO = "2.18.0"
-ossLicensesPlugin = "0.10.6"
+ossLicensesPlugin = "0.10.10"
 zip4j = "2.11.1"
 volley = "1.2.1"
 jsoup = "1.15.3"
@@ -42,7 +42,7 @@ glide = "5.0.4"
 androidGradlePlugin = "8.7.0"
 googleServicesPlugin = "4.4.3"
 firebaseCrashlyticsPlugin = "3.0.5"
-kotlin = "2.1.21"
+#kotlin = "2.1.21"
 
 [libraries]
 # AndroidX
@@ -94,7 +94,7 @@ androidx-documentfile = { group = "androidx.documentfile", name = "documentfile"
 
 
 [plugins]
-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+#kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }
