@@ -161,8 +161,10 @@ dependencies {
     implementation project(path: ":modules:bidirectional-llm")
 }
 
-ossLicenses {
-    ignoredGroups.add("com.github.euptron")
+afterEvaluate {
+    ossLicenses {
+        ignoredGroups.add("com.github.euptron")
+    }
 }
 
 tasks.register('printVersion') {
