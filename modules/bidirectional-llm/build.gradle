@@ -14,9 +14,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            // Hidden-Op
-        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -85,7 +82,10 @@ afterEvaluate {
             maven {
                 name = "GitHubPackages"
                 url = "https://maven.pkg.github.com/euptron/CodeOps-Studio"
-                credentials(PasswordCredentials)
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
             }
         }
     }
