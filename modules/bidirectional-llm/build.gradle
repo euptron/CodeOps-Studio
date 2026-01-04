@@ -26,9 +26,9 @@ android {
         targetCompatibility project.ext.javaTargetVersion
     }
     
-    publishing {
-        singleVariant("release")
-    }
+    // publishing {
+        // singleVariant("release")
+    // }
 }
 
 dependencies {
