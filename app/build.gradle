@@ -158,7 +158,9 @@ dependencies {
     implementation project(path: ":shared-res")
     implementation project(path: ":code-editor")
     implementation project(path: ":share-layout")
-    implementation project(path: ":modules:bidirectional-llm")
+    implementation(project(":modules:bidirectional-llm")) {
+        targetConfiguration = "release"
+    }
 }
 
 
