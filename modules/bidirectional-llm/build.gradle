@@ -34,12 +34,9 @@ android {
 }
 
 dependencies {
-    api "androidx.recyclerview:recyclerview:1.4.0"
+    implementation "androidx.recyclerview:recyclerview:1.4.0"
     implementation(libs.androidx.annotation)
 }
-
-group = "com.github.euptron"
-version = "0.1.0"
 
 afterEvaluate {
     publishing {
@@ -47,9 +44,9 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 
-                groupId = group
+                groupId = 'com.github.euptron'
                 artifactId = 'bidirectional-llm'
-                version = version
+                version = '0.1.0'
                 
                 pom {
                     name = 'Bidirectional LLM'
