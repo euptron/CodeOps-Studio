@@ -129,7 +129,7 @@ jobs:
       - name: Publish Libraries to GitHub Packages
         if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHPKGS_LIB_PUB_TOKEN: ${{ secrets.GHPKGS_LIB_PUB_TOKEN }}
         run: |
           echo "Publishing libraries to GitHub Packages..."
           ./gradlew publishReleasePublicationToGitHubPackagesRepository
