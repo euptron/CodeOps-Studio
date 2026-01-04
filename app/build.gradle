@@ -158,11 +158,12 @@ dependencies {
     implementation project(path: ":shared-res")
     implementation project(path: ":code-editor")
     implementation project(path: ":share-layout")
-    implementation(project(":modules:bidirectional-llm")) {
-        targetConfiguration = "release"
-    }
+    implementation project(path: ":modules:bidirectional-llm")
 }
 
+ossLicenses {
+    ignoredGroups.add("com.github.euptron")
+}
 
 tasks.register('printVersion') {
     doLast {
