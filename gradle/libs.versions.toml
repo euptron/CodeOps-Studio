@@ -42,6 +42,7 @@ glide = "5.0.4"
 androidGradlePlugin = "8.7.0"
 googleServicesPlugin = "4.4.3"
 firebaseCrashlyticsPlugin = "3.0.5"
+kotlin = "2.1.21"
 
 [libraries]
 # AndroidX
@@ -93,6 +94,7 @@ androidx-documentfile = { group = "androidx.documentfile", name = "documentfile"
 
 
 [plugins]
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }
