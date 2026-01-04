@@ -1,8 +1,9 @@
 plugins {
     alias(libs.plugins.android.library)
+    id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
 }
-
+    
 android {
     namespace 'com.eup.codeops.bidirectionalllm'
     compileSdk project.ext.compileSdkVersion
@@ -12,7 +13,7 @@ android {
         minSdk project.ext.minSdkVersion
         targetSdk project.ext.targetSdkVersion
     }
-
+                
     buildTypes {
         release {
             minifyEnabled false
@@ -83,8 +84,8 @@ afterEvaluate {
                 name = "GitHubPackages"
                 url = "https://maven.pkg.github.com/euptron/CodeOps-Studio"
                 credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+                    username = "euptron"
+                    password = System.getenv("GHPKGS_LIB_PUB_TOKEN")
                 }
             }
         }

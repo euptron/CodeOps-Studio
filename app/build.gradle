@@ -161,12 +161,6 @@ dependencies {
     implementation project(path: ":modules:bidirectional-llm")
 }
 
-afterEvaluate {
-    ossLicenses {
-        ignoredGroups.add("com.github.euptron")
-    }
-}
-
 tasks.register('printVersion') {
     doLast {
         println "VERSION_NAME=${project.ext.appVersionName}"

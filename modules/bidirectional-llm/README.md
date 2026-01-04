@@ -14,7 +14,15 @@ This scenario is typical in:
 
 Standard Android layout tools do not handle this case correctly or efficiently. This module provides a stable, RecyclerView-native solution.
 
----
+
+## Installation
+
+Add the library to your Gradle dependencies:
+```groovy
+dependencies {
+    implementation 'com.github.euptron:bidirectional-llm:0.1.0'
+}
+```
 
 ## Problem Statement
 
@@ -26,8 +34,6 @@ Standard Android layout tools do not handle this case correctly or efficiently. 
 
 These workarounds violate RecyclerView’s design assumptions and often fail under heavy datasets (e.g. thousands of log lines).
 
----
-
 ## Solution
 
 `BidirectionalLayoutManager` extends `LinearLayoutManager` (vertical) and introduces **controlled, global horizontal scrolling** while preserving:
@@ -38,8 +44,6 @@ These workarounds violate RecyclerView’s design assumptions and often fail und
 * Adapter update safety
 
 Each item is allowed to measure to its natural width, while the `RecyclerView` itself remains a fixed-width viewport.
-
----
 
 ## Design Principles
 
@@ -54,8 +58,6 @@ This ensures stability during:
 * Smooth scrolling
 * Adapter mutations (add/remove/move/update)
 * Relayouts and configuration changes
-
----
 
 ## Included Components
 
@@ -88,8 +90,6 @@ Supported alignment modes:
 * `SNAP_TO_CENTER`
 
 This avoids jitter and unintended horizontal jumps when smooth scrolling through very wide items.
-
----
 
 ## XML Configuration (Critical)
 
@@ -127,8 +127,6 @@ Rules:
 * Root width must be `wrap_content`
 * `match_parent` will break horizontal scrolling
 
----
-
 ### Typical Text Content
 
 ```xml
@@ -137,8 +135,6 @@ Rules:
     android:layout_height="wrap_content"
     android:singleLine="true" />
 ```
-
----
 
 ## Java Usage
 
@@ -168,8 +164,6 @@ recyclerView.smoothScrollToPosition(adapter.getItemCount() - 1);
 
 Smooth scrolling remains vertically animated while horizontal offset is preserved.
 
----
-
 ## Nested Scrolling (Strong Recommendation)
 
 **Disable nested scrolling** when using this layout manager.
@@ -190,8 +184,6 @@ This is especially important in:
 * BottomSheetBehavior
 * Nested scrolling containers
 
----
-
 ## ItemAnimator Considerations
 
 Default `RecyclerView.ItemAnimator` implementations may introduce visual instability when frequent horizontal offsets are applied.
@@ -204,8 +196,6 @@ recyclerView.setItemAnimator(null);
 
 This is optional but recommended for maximum stability.
 
----
-
 ## Performance Notes
 
 * Designed to handle thousands of items (e.g. 5k–10k log lines)
@@ -213,8 +203,6 @@ This is optional but recommended for maximum stability.
 * Horizontal scrolling is O(1) per frame
 
 For bursty datasets, consider periodically resetting your backing list to release memory.
-
----
 
 ## When This LayoutManager Is Appropriate
 
@@ -229,15 +217,11 @@ Do not use this when:
 * Items require independent horizontal scroll states
 * You need grid or staggered layouts
 
----
-
 ## Limitations
 
 * Designed for vertical orientation only
 * Not intended as a general-purpose 2D layout manager
 * Horizontal scrolling is global, not per-row
-
----
 
 ## Contributing
 
@@ -258,8 +242,6 @@ Please include:
 * RecyclerView version
 * Dataset size
 * Reproduction steps or sample project
-
----
 
 ## License
 
