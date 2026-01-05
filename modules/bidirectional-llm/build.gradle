@@ -99,12 +99,12 @@ afterEvaluate {
             }
         }
     }
-}
-
-signing {
-    useInMemoryPgpKeys(
-        System.getenv("SONATYPE_GPG_SIGNING_KEY"),
-        System.getenv("SONATYPE_GPG_SIGNING_PASSWORD")
-    )
-    sign publishing.publications.release
+    
+    signing {
+        useInMemoryPgpKeys(
+            System.getenv("SONATYPE_GPG_SIGNING_KEY"),
+            System.getenv("SONATYPE_GPG_SIGNING_PASSWORD")
+        )
+        sign publishing.publications.release
+    }
 }
