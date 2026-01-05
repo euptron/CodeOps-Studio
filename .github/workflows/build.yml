@@ -124,13 +124,3 @@ jobs:
         with:
           name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - App bundle(s) AAB release - ${{ env.VERSION_NAME }}
           path: ${{ env.main_project_module }}/build/outputs/bundle/release/
-
-      # Publish Modules
-      - name: Publish Libraries to GitHub Packages
-        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
-        env:
-          GHPKGS_LIB_PUB_TOKEN: ${{ secrets.GHPKGS_LIB_PUB_TOKEN }}
-        run: |
-          echo "Publishing libraries to GitHub Packages..."
-          ./gradlew publishReleasePublicationToGitHubPackagesRepository
-          echo "Libraries published!"

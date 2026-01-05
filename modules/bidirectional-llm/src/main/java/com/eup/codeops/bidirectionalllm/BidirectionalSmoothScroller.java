@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
  * BidirectionalLayoutManager}.
  *
  * <p>This smooth scroller performs animated scrolling along the vertical axis while explicitly
- * preventing horizontal scroll adjustments. It ensures that smooth scrolling remains stable when
- * child views extend beyond the horizontal viewport.
+ * preventing horizontal scroll adjustments/jitter. It ensures that smooth scrolling remains stable when
+ * child views extend beyond the horizontal viewport. 
  *
  * <p>Multiple alignment modes are supported to accommodate common vertical scrolling patterns such
  * as log viewers, search results, and list navigation.

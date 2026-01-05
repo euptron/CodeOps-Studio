@@ -23,8 +23,8 @@
   -->
 
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-  <!-- Low 8% Emphasis on track for translucent look -->
+  <!-- Low 5% Emphasis on track for translucent look -->
   <item
-    android:alpha="0.08"
+    android:alpha="0.05"
     android:color="?attr/colorOnSurface" />
 </selector>

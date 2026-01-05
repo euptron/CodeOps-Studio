@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     id 'maven-publish'
+    id 'signing'
 }
     
 android {
@@ -44,7 +45,7 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 
-                groupId = 'com.github.euptron'
+                groupId = 'io.github.euptron'
                 artifactId = 'bidirectional-llm'
                 version = '0.1.0'
                 
@@ -87,6 +88,23 @@ afterEvaluate {
                     password = System.getenv("GHPKGS_LIB_PUB_TOKEN")
                 }
             }
+            
+            maven {
+                name = "SonatypeCentral"
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = System.getenv("SONATYPE_USERNAME")
+                    password = System.getenv("SONATYPE_PASSWORD")
+                }
+            }
         }
     }
+}
+
+signing {
+    useInMemoryPgpKeys(
+        System.getenv("SONATYPE_GPG_SIGNING_KEY"),
+        System.getenv("SONATYPE_GPG_SIGNING_PASSWORD")
+    )
+    sign publishing.publications.release
 }
