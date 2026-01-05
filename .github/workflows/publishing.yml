@@ -25,7 +25,10 @@ jobs:
           
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-
+      
+      - name: Grant Permissions for Gradle
+        run: chmod +x ./gradlew
+        
       - name: Publish Libraries
         env:
           GHPKGS_LIB_PUB_TOKEN: ${{ secrets.GHPKGS_LIB_PUB_TOKEN }}
