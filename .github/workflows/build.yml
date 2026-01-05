@@ -17,7 +17,7 @@ on:
       - '**.txt'
       - 'docs/**'
       - 'images/**'
-      - '**/publishing.yml'
+      - '.github/workflows/publishing.yml'
   pull_request:
     branches: [ "dev" ]
     
