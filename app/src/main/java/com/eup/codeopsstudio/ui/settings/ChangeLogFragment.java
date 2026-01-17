@@ -48,6 +48,7 @@ import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.databinding.FragmentChangeLogBinding;
 import com.eup.codeopsstudio.ui.settings.api.ChangelogAdapter;
 import com.eup.codeopsstudio.ui.settings.api.ChangelogItem;
+import com.eup.codeopsstudio.util.BaseUtil;
 import com.google.android.material.transition.MaterialSharedAxis;
 
 import org.json.JSONArray;
@@ -63,237 +64,241 @@ import java.util.List;
  */
 public class ChangeLogFragment extends Fragment {
 
-    public static final String TAG = ChangeLogFragment.class.getSimpleName();
-    private static final String SHARED_PREF_KEY = Constants.CHANGE_LOG_SHARED_PREF_KEY;
-    private FragmentChangeLogBinding binding;
-    private SharedPreferences sharedPreferences;
-    private updateListener listener;
+  public static final String TAG = ChangeLogFragment.class.getSimpleName();
+  private static final String SHARED_PREF_KEY = Constants.CHANGE_LOG_SHARED_PREF_KEY;
+  private FragmentChangeLogBinding binding;
+  private SharedPreferences sharedPreferences;
+  private updateListener listener;
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
-        setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
-    }
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
+    setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
+  }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup viewgroup,
-        Bundle savedInstanceState) {
-        binding = FragmentChangeLogBinding.inflate(inflater, viewgroup, false);
-        return binding.getRoot();
-    }
+  @Override
+  public View onCreateView(
+      @NonNull LayoutInflater inflater, ViewGroup viewgroup, Bundle savedInstanceState) {
+    binding = FragmentChangeLogBinding.inflate(inflater, viewgroup, false);
+    return binding.getRoot();
+  }
 
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        // initialize
-        sharedPreferences = requireContext().getSharedPreferences(SHARED_PREF_KEY,
-            Context.MODE_PRIVATE);
+  @Override
+  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    // initialize
+    sharedPreferences =
+        requireContext().getSharedPreferences(SHARED_PREF_KEY, Context.MODE_PRIVATE);
 
-        listener = new updateListener() {
-            @Override
-            public void onDataLoaded(List<ChangelogItem> changelogList) {
-                if (getView() != null) {
-                    if (changelogList != null && !changelogList.isEmpty()) {
-                        checkIfLoaded(true);
-                        Collections.reverse(changelogList);
-                        ChangelogAdapter adapter = new ChangelogAdapter(changelogList);
-                        binding.changelogList.setLayoutManager(new LinearLayoutManager(getContext()));
-                        binding.changelogList.setAdapter(adapter);
-                    }
-                }
+    listener =
+        new updateListener() {
+          @Override
+          public void onDataLoaded(List<ChangelogItem> changelogList) {
+            if (getView() != null) {
+              if (changelogList != null && !changelogList.isEmpty()) {
+                checkIfLoaded(true);
+                Collections.reverse(changelogList);
+                ChangelogAdapter adapter = new ChangelogAdapter(changelogList);
+                binding.changelogList.setLayoutManager(new LinearLayoutManager(getContext()));
+                binding.changelogList.setAdapter(adapter);
+              }
             }
+          }
 
-            @Override
-            public void onDataFailedToLoad(Exception error) {
-                if (getView() != null) {
-                    showOfflineAlert(error.getMessage());
-                }
+          @Override
+          public void onDataFailedToLoad(Exception error) {
+            if (getView() != null) {
+              showOfflineAlert(error.getMessage());
             }
+          }
         };
 
-        AsyncTask.runNonCancelable(this::loadSavedLogs, (cachedData, throwable) -> {
-            if (cachedData != null) {
-                if (cachedData.isEmpty()) {
-                    if (hasInternetConnection()) {
-                        showSyncingAlert();
-                        fetchLogs();
-                    } else {
-                        showOfflineAlert(getString(R.string.offline_summary));
-                    }
-                } else {
-                    if (hasInternetConnection()) {
-                        showSyncingAlert();
-                        fetchLogs();
-                    } else {
-                        // load saved logs
-                        listener.onDataLoaded(cachedData);
-                    }
-                }
+    AsyncTask.runNonCancelable(
+        this::loadSavedLogs,
+        (cachedData, throwable) -> {
+          if (cachedData != null) {
+            if (cachedData.isEmpty()) {
+              if (BaseUtil.isConnected()) {
+                showSyncingAlert();
+                fetchLogs();
+              } else {
+                showOfflineAlert(getString(R.string.offline_summary));
+              }
+            } else {
+              if (BaseUtil.isConnected()) {
+                showSyncingAlert();
+                fetchLogs();
+              } else {
+                // load saved logs
+                listener.onDataLoaded(cachedData);
+              }
             }
-            if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
+          }
+          if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
         });
-    }
+  }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        this.binding = null;
-    }
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    this.binding = null;
+  }
 
-    private boolean hasInternetConnection() {
-        ConnectivityManager connectivityManager =
-            (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
-    }
+  public static ChangeLogFragment newInstance() {
+    return new ChangeLogFragment();
+  }
 
-    public static ChangeLogFragment newInstance() {
-        return new ChangeLogFragment();
+  private void checkIfLoaded(boolean isLoaded) {
+    if (isLoaded) {
+      binding.changelogList.setVisibility(View.VISIBLE);
+      binding.alertHeader.setVisibility(View.GONE);
+      if (binding.alertHeader.getVisibility() == View.VISIBLE) {
+        binding.alertHeader.setVisibility(View.GONE); // Hide the offline layout
+      }
+      if (binding.alertHeader.getVisibility() == View.VISIBLE) {
+        binding.retryButton.setVisibility(View.GONE); // hide retry button on data loaded
+      }
+    } else {
+      binding.changelogList.setVisibility(View.GONE);
+      binding.alertHeader.setVisibility(View.VISIBLE);
     }
+  }
 
-    private void checkIfLoaded(boolean isLoaded) {
-        if (isLoaded) {
-            binding.changelogList.setVisibility(View.VISIBLE);
-            binding.alertHeader.setVisibility(View.GONE);
-            if (binding.alertHeader.getVisibility() == View.VISIBLE) {
-                binding.alertHeader.setVisibility(View.GONE); // Hide the offline layout
-            }
-            if (binding.alertHeader.getVisibility() == View.VISIBLE) {
-                binding.retryButton.setVisibility(View.GONE); // hide retry button on data loaded
-            }
-        } else {
-            binding.changelogList.setVisibility(View.GONE);
-            binding.alertHeader.setVisibility(View.VISIBLE);
+  /** Make a request */
+  private void fetchLogs() {
+    RequestQueue requestQueue = Volley.newRequestQueue(requireContext());
+    JsonObjectRequest request =
+        new JsonObjectRequest(
+            Request.Method.GET,
+            Constants.DEFAULT_CHANGE_LOG_URL,
+            null,
+            response ->
+                AsyncTask.runNonCancelable(
+                    () -> {
+                      var parsedLogs = parseLogs(response);
+                      saveToSharedPreferences(parsedLogs);
+                      return parsedLogs;
+                    },
+                    (parsedItems, throwable) -> {
+                      if (parsedItems != null) {
+                        listener.onDataLoaded(parsedItems);
+                      }
+                      if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
+                    }),
+            error -> requireActivity().runOnUiThread(() -> listener.onDataFailedToLoad(error)));
+    requestQueue.add(request);
+  }
+
+  /**
+   * Loads saved app change logs
+   *
+   * @return the changes as list
+   */
+  private List<ChangelogItem> loadSavedLogs() throws JSONException {
+    String jsonData = sharedPreferences.getString(SHARED_PREF_KEY, null);
+    if (jsonData != null) {
+      List<ChangelogItem> changelogList = new ArrayList<>();
+      JSONArray jsonArray = new JSONArray(jsonData);
+      for (int i = 0; i < jsonArray.length(); i++) {
+        JSONObject jsonObject = jsonArray.getJSONObject(i);
+        String versionName = jsonObject.getString("versionName");
+        String description = jsonObject.getString("description");
+        long releaseDate = jsonObject.getLong("releaseDate");
+        ChangelogItem.ReleaseType releaseType =
+            ChangelogItem.ReleaseType.get(jsonObject.getString("releaseType"));
+        boolean hasVersionName = jsonObject.getBoolean("hasVersionName");
+        boolean supportsHtml = jsonObject.getBoolean("supportsHtml");
+        ChangelogItem item =
+            new ChangelogItem(versionName, description, releaseDate, hasVersionName, releaseType);
+        item.setSupportsHtml(supportsHtml);
+        changelogList.add(item);
+      }
+      return changelogList;
+    }
+    return Collections.emptyList();
+  }
+
+  /**
+   * Parses a json object from a successful JO request
+   *
+   * @param response the json object
+   * @return a list of ChangelogItem
+   */
+  @NonNull
+  private List<ChangelogItem> parseLogs(@NonNull JSONObject response) {
+    List<ChangelogItem> changelogList = new ArrayList<>();
+    JSONArray changelogArray = response.optJSONArray("changelog");
+    if (changelogArray != null) {
+      for (int i = 0; i < changelogArray.length(); i++) {
+        JSONObject changelogObject = changelogArray.optJSONObject(i);
+        if (changelogObject != null) {
+          String versionName = changelogObject.optString("versionName", "No Title");
+          String description = changelogObject.optString("description", "No Description");
+          long releaseDate = changelogObject.optLong("releaseDate", 0);
+          ChangelogItem.ReleaseType releaseType =
+              ChangelogItem.ReleaseType.get(changelogObject.optString("releaseType", ""));
+          boolean hasVersionName = changelogObject.optBoolean("hasVersionName", false);
+          boolean supportsHtml = changelogObject.optBoolean("supportsHtml", false);
+          ChangelogItem item =
+              new ChangelogItem(versionName, description, releaseDate, hasVersionName, releaseType);
+          item.setSupportsHtml(supportsHtml);
+          changelogList.add(item);
         }
+      }
     }
+    return changelogList;
+  }
 
-    /**
-     * Make a request
-     */
-    private void fetchLogs() {
-        RequestQueue requestQueue = Volley.newRequestQueue(requireContext());
-        // request check for outdated data
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,
-            Constants.DEFAULT_CHANGE_LOG_URL, null, response -> AsyncTask.runNonCancelable(() -> {
-            var parsedLogs = parseLogs(response);
-            saveToSharedPreferences(parsedLogs);
-            return parsedLogs;
-        }, (parsedItems, throwable) -> {
-            if (parsedItems != null) {
-                listener.onDataLoaded(parsedItems);
-            }
-            if (throwable != null) listener.onDataFailedToLoad(((Exception) throwable));
-        }), error -> requireActivity().runOnUiThread(() -> listener.onDataFailedToLoad(error)));
-        requestQueue.add(request);
+  /**
+   * Saves a list of app change logs to shared-preferences
+   *
+   * @param changelogList the log list to save
+   * @throws JSONException if error JSON error occurs
+   */
+  private void saveToSharedPreferences(@NonNull List<ChangelogItem> changelogList)
+      throws JSONException {
+    JSONArray jsonArray = new JSONArray();
+    for (ChangelogItem item : changelogList) {
+      JSONObject jsonObject = new JSONObject();
+      jsonObject.put("versionName", item.getVersionName());
+      jsonObject.put("description", item.getDescription());
+      jsonObject.put("releaseDate", item.getReleaseDate());
+      jsonObject.put("releaseType", item.getReleaseType());
+      jsonObject.put("hasVersionName", item.hasVersionName());
+      jsonObject.put("supportsHtml", item.getSupportsHtml());
+      jsonArray.put(jsonObject);
     }
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putString(SHARED_PREF_KEY, jsonArray.toString());
+    editor.apply();
+  }
 
-    /**
-     * Loads saved app change logs
-     *
-     * @return the changes as list
-     */
-    private List<ChangelogItem> loadSavedLogs() throws JSONException {
-        String jsonData = sharedPreferences.getString(SHARED_PREF_KEY, null);
-        if (jsonData != null) {
-            List<ChangelogItem> changelogList = new ArrayList<>();
-            JSONArray jsonArray = new JSONArray(jsonData);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                String versionName = jsonObject.getString("versionName");
-                String description = jsonObject.getString("description");
-                long releaseDate = jsonObject.getLong("releaseDate");
-                ChangelogItem.ReleaseType releaseType =
-                    ChangelogItem.ReleaseType.get(jsonObject.getString("releaseType"));
-                boolean hasVersionName = jsonObject.getBoolean("hasVersionName");
-                boolean supportsHtml = jsonObject.getBoolean("supportsHtml");
-                ChangelogItem item = new ChangelogItem(versionName, description, releaseDate,
-                    hasVersionName, releaseType);
-                item.setSupportsHtml(supportsHtml);
-                changelogList.add(item);
-            }
-            return changelogList;
-        }
-        return Collections.emptyList();
-    }
+  private void showOfflineAlert(String errorMessage) {
+    binding
+        .getRoot()
+        .post(
+            () -> {
+              binding.alertIcon.setImageResource(R.drawable.ic_signal_off);
+              binding.alertTitle.setText(R.string.failed_sync_change_log_title);
+              binding.alertMessage.setText(getString(R.string.failed_sync_change_log_summ));
+              binding.retryButton.setVisibility(View.VISIBLE);
+              binding.retryButton.setOnClickListener(v -> fetchLogs());
+              checkIfLoaded(false);
+            });
+    ILog.error(TAG, errorMessage);
+  }
 
-    /**
-     * Parses a json object from a successful JO request
-     *
-     * @param response the json object
-     * @return a list of ChangelogItem
-     */
-    @NonNull
-    private List<ChangelogItem> parseLogs(@NonNull JSONObject response) {
-        List<ChangelogItem> changelogList = new ArrayList<>();
-        JSONArray changelogArray = response.optJSONArray("changelog");
-        if (changelogArray != null) {
-            for (int i = 0; i < changelogArray.length(); i++) {
-                JSONObject changelogObject = changelogArray.optJSONObject(i);
-                if (changelogObject != null) {
-                    String versionName = changelogObject.optString("versionName", "No Title");
-                    String description = changelogObject.optString("description", "No Description");
-                    long releaseDate = changelogObject.optLong("releaseDate", 0);
-                    ChangelogItem.ReleaseType releaseType =
-                        ChangelogItem.ReleaseType.get(changelogObject.optString("releaseType", ""));
-                    boolean hasVersionName = changelogObject.optBoolean("hasVersionName", false);
-                    boolean supportsHtml = changelogObject.optBoolean("supportsHtml", false);
-                    ChangelogItem item = new ChangelogItem(versionName, description, releaseDate,
-                        hasVersionName, releaseType);
-                    item.setSupportsHtml(supportsHtml);
-                    changelogList.add(item);
-                }
-            }
-        }
-        return changelogList;
-    }
+  private void showSyncingAlert() {
+    binding.alertIcon.setImageResource(R.drawable.ic_cached);
+    binding.alertTitle.setText(R.string.sync_change_log_title);
+    binding.alertMessage.setText(R.string.sync_change_log_summ);
+    binding.retryButton.setVisibility(View.GONE); // Hide retry button
+  }
 
-    /**
-     * Saves a list of app change logs to shared-preferences
-     *
-     * @param changelogList the log list to save
-     * @throws JSONException if error JSON error occurs
-     */
-    private void saveToSharedPreferences(
-        @NonNull List<ChangelogItem> changelogList) throws JSONException {
-        JSONArray jsonArray = new JSONArray();
-        for (ChangelogItem item : changelogList) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("versionName", item.getVersionName());
-            jsonObject.put("description", item.getDescription());
-            jsonObject.put("releaseDate", item.getReleaseDate());
-            jsonObject.put("releaseType", item.getReleaseType());
-            jsonObject.put("hasVersionName", item.hasVersionName());
-            jsonObject.put("supportsHtml", item.getSupportsHtml());
-            jsonArray.put(jsonObject);
-        }
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(SHARED_PREF_KEY, jsonArray.toString());
-        editor.apply();
-    }
+  public interface updateListener {
+    void onDataFailedToLoad(Exception error);
 
-    private void showOfflineAlert(String errorMessage) {
-        binding.getRoot().post(() -> {
-            binding.alertIcon.setImageResource(R.drawable.ic_signal_off);
-            binding.alertTitle.setText(R.string.failed_sync_change_log_title);
-            binding.alertMessage.setText(getString(R.string.failed_sync_change_log_summ));
-            binding.retryButton.setVisibility(View.VISIBLE);
-            binding.retryButton.setOnClickListener(v -> fetchLogs());
-            checkIfLoaded(false);
-        });
-        ILog.error(TAG, errorMessage);
-    }
-
-    private void showSyncingAlert() {
-        binding.alertIcon.setImageResource(R.drawable.ic_cached);
-        binding.alertTitle.setText(R.string.sync_change_log_title);
-        binding.alertMessage.setText(R.string.sync_change_log_summ);
-        binding.retryButton.setVisibility(View.GONE); // Hide retry button
-    }
-
-    public interface updateListener {
-        void onDataFailedToLoad(Exception error);
-
-        void onDataLoaded(List<ChangelogItem> changelogList);
-    }
+    void onDataLoaded(List<ChangelogItem> changelogList);
+  }
 }

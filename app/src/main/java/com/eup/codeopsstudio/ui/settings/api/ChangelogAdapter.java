@@ -122,7 +122,7 @@ public class ChangelogAdapter extends RecyclerView.Adapter<ChangelogAdapter.View
       long releaseDate = item.getReleaseDate();
 
       String title = itemView.getContext().getString(R.string.release);
-      title += Constants.SPACE + versionName + ((release != null) ? "-" + release : "");
+      title += Constants.SPACE + versionName + (!Wizard.isEmpty(release) ? "-" + release : "");
       binding.title.setText(title);
 
       if (item.getSupportsHtml()) {

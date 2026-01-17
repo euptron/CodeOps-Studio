@@ -31,7 +31,15 @@
       "releaseType": "stable",
       "hasVersionName": true,
       "supportsHtml": true
+    },
+    {
+      "versionName": "1.1.1",
+      "description": "<p>This patch release focuses on stability improvements and critical bug fixes.</p>\n<strong>Bug Fixes</strong>\n<ul>\n  <li>Fixed UI crashes occurring on tablet devices</li>\n  <li>Resolved layout measurement issues causing rendering failures on large screens</li>\n  <li>Improved fragment lifecycle handling on tablet configurations</li>\n</ul>\n<strong>Improvements</strong>\n<ul>\n  <li>Minor internal optimizations for better UI stability</li>\n</ul>\n<p>No new features were added in this release.</p>",
+      "releaseDate": 1768641543243,
+      "releaseType": "stable",
+      "hasVersionName": true,
+      "supportsHtml": true
     }
   ],
-  "latest_version": "1.1.0"
+  "latest_version": "1.1.1"
 }

@@ -17,6 +17,26 @@ uses [semantic versioning `2.0.0` spec](https://semver.org/spec/v2.0.0.html) in 
 - `Contributors`: Release contributors
 - `FSC-ID`: Firebase Crashlytics Issue ID
 
+Release 1.1.1
+----------------------
+_17-01-2026_(Saturday, January 17, 2026)
+
+### Fixed
+
+* Fix: UI crashes on tablet devices
+    - Summary: Resolved layout and configuration-specific crashes affecting tablet and large-screen
+      devices, particularly during pane initialization and fragment rendering.
+
+* Fix: Layout measurement failures on large screens
+    - Summary: Corrected invalid view measurement and constraint handling that caused runtime
+      exceptions on tablet form factors.
+
+### Improvements
+
+* Minor internal UI stability optimizations
+    - Summary: Small internal adjustments to improve rendering reliability and reduce crash
+      likelihood on tablet and large-screen devices.
+      
 Release 1.1.0
 ----------------------
 _22-12-2025_(Monday, December 22, 2025)

@@ -131,7 +131,7 @@ public class ChangelogItem {
          * The official version of the app that's intended for the general public. It has undergone
          * testing and bug fixing.
          */
-        STABLE("stable"),
+        STABLE(""),
         /**
          * A version of the app that's released before the stable version.
          *
