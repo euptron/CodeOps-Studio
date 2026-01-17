@@ -1,0 +1,92 @@
+import java.nio.file.Files
+import java.util.Base64
+
+/**
+ * REUSABLE SCRIPT FOR NEW SONATYPE CENTRAL PORTAL
+ * 
+ * 1. Zips the content of the "maven-central-staging" local repository.
+ * 2. Uploads the Zip to Central Portal via API.
+ */
+
+// 1. Task to Zip the artifacts preserving folder structure
+tasks.register('generateCentralBundle', Zip) {
+    // This assumes your publication is named "release" and repo named "LocalStaging"
+    dependsOn 'publishReleasePublicationToLocalStagingRepository'
+    
+    // We zip the specific folder structure created by maven-publish
+    from layout.buildDirectory.dir("maven-central-staging")
+    
+    archiveFileName.set("bundle.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("central-bundle"))
+}
+
+// 2. Task to Upload the Zip
+tasks.register('uploadToCentralPortal') {
+    dependsOn 'generateCentralBundle'
+    description = "Uploads the bundled artifacts to Sonatype Central Portal"
+    group = "publishing"
+    
+    doLast {
+        def bundleFile = layout.buildDirectory.dir("central-bundle").get().file("bundle.zip").asFile
+        if (!bundleFile.exists()) {
+            throw new GradleException("Bundle file not found at: ${bundleFile.absolutePath}")
+        }
+
+        // Credentials
+        def username = System.getenv("SONATYPE_USERNAME")
+        def password = System.getenv("SONATYPE_PASSWORD") // This is the User Token Password
+        
+        if (!username || !password) {
+            throw new GradleException("Environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD are required.")
+        }
+
+        // Authentication Header
+        def authString = "${username}:${password}"
+        def authHeader = "Bearer " + Base64.getEncoder().encodeToString(authString.getBytes())
+
+        // Connection Setup
+        def url = new URL("https://central.sonatype.com/api/v1/publisher/deployments/upload")
+        def boundary = "===" + System.currentTimeMillis() + "==="
+        def connection = url.openConnection() as HttpURLConnection
+        
+        connection.setRequestMethod("POST")
+        connection.setDoOutput(true)
+        connection.setDoInput(true)
+        connection.setRequestProperty("Authorization", authHeader)
+        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary)
+
+        // Write Multipart Body
+        def outputStream = connection.getOutputStream()
+        def writer = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"), true)
+
+        // Part: bundle
+        writer.append("--" + boundary).append("\r\n")
+        writer.append("Content-Disposition: form-data; name=\"bundle\"; filename=\"bundle.zip\"").append("\r\n")
+        writer.append("Content-Type: application/zip").append("\r\n")
+        writer.append("\r\n").flush()
+
+        // File Content
+        Files.copy(bundleFile.toPath(), outputStream)
+        outputStream.flush()
+        
+        // End Boundary
+        writer.append("\r\n").flush()
+        writer.append("--" + boundary + "--").append("\r\n")
+        writer.close()
+
+        // Handle Response
+        def responseCode = connection.getResponseCode()
+        if (responseCode >= 200 && responseCode < 300) {
+            def deploymentId = connection.getInputStream().getText()
+            println "\n======================================================="
+            println "SUCCESS: Uploaded to Central Portal!"
+            println "Deployment ID: ${deploymentId}"
+            println "Status: https://central.sonatype.com/publishing/deployments"
+            println "=======================================================\n"
+        } else {
+            def errorStream = connection.getErrorStream()
+            def errorMsg = errorStream ? errorStream.getText() : "No error message provided"
+            throw new GradleException("Upload Failed (HTTP $responseCode): $errorMsg")
+        }
+    }
+}

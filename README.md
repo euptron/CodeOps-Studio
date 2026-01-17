@@ -38,6 +38,9 @@ This repository contains the open-source code for **CodeOps Studio** — a mobil
   <img src="./docs/assets/edit_ops.png" style="max-width: 100%; height: auto; width: 32%;" alt="Edit Ops"/>
   <img src="./docs/assets/syntax_var.png" style="max-width: 100%; height: auto; width: 32%;" alt="Syntax"/>
 </div>
+<div align="center">
+  <img src="./docs/assets/land_600dp.png" style="max-width: 100%; height: auto; width: 32%;" alt="Tablet Mode"/>
+</div>
 
 ## Features
 
@@ -86,14 +89,14 @@ This repository contains the open-source code for **CodeOps Studio** — a mobil
 
 ## Getting Started
 
-Current Software version is  `v1.1.0`
+Current Software version is  `v1.1.1`
 
 > [!IMPORTANT]
 > - Before installing, ensure you have enabled **Install from Unknown Sources** in your device
     settings.
 > - Please always install CodeOps Studio from trusted sources only.
 
-[<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg" alt="Get on GitHub" height="60">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.1.0/CodeOps-Studio.v1.1.0.apk)
+[<img src="https://github.com/Kunzisoft/Github-badge/raw/main/get-it-on-github.svg" alt="Get on GitHub" height="60">](https://github.com/euptron/CodeOps-Studio/releases/download/v1.1.1/CodeOps-Studio.v1.1.1.apk)
 
 ### Steps to Install
 

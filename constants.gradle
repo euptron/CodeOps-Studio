@@ -170,7 +170,7 @@ project.ext {
         }
     }
     
-    def baseVersion = "1.1.0"
+    def baseVersion = "1.1.1"
     def suffix = ""
     
     if (isReleaseBuild) {

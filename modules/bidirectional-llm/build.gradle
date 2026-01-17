@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     id 'maven-publish'
-    id 'signing'
 }
     
 android {
@@ -88,23 +87,6 @@ afterEvaluate {
                     password = System.getenv("GHPKGS_LIB_PUB_TOKEN")
                 }
             }
-            
-            maven {
-                name = "SonatypeCentral"
-                url = uri("https://central.sonatype.com/api/v1/publisher/deployments/maven/repository")
-                credentials {
-                    username = System.getenv("SONATYPE_USERNAME")
-                    password = System.getenv("SONATYPE_PASSWORD")
-                }
-            }
         }
-    }
-    
-    signing {
-        useInMemoryPgpKeys(
-            System.getenv("SONATYPE_GPG_SIGNING_KEY"),
-            System.getenv("SONATYPE_GPG_SIGNING_PASSWORD")
-        )
-        sign publishing.publications.release
     }
 }

@@ -17,7 +17,6 @@ on:
       - '**.txt'
       - 'docs/**'
       - 'images/**'
-      - '**/publishing.yml'
   pull_request:
     branches: [ "dev" ]
     
