@@ -255,7 +255,7 @@
     <string name="open_file">Open file</string>
     <string name="clone_git_repo">Clone Git repository</string>
     <string name="show_welcome_pane">Display welcome pane on startup</string>
-    <string name="share_app_info">Discover %1$s – the fast, secure, and multifunctional code editor/IDE for Android that I use to develop software packages. Experience seamless coding on the go. Download it here: %2$s</string>
+    <string name="share_app_info">Discover %1$s – a fast, secure, and multifunctional code editor/IDE for Android that I use to develop software packages. Experience seamless coding on the go. Download it here: %2$s</string>
     <!-- Logs -->
     <string name="warn">Warn</string>
     <string name="unzipping">Unzipping</string>

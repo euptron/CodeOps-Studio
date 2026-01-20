@@ -37,11 +37,11 @@ import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import com.eup.codeops.ast.core.util.UniqueNameBuilder;
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.models.ProjectEvent;
-import com.eup.codeopsstudio.common.util.PathResolver;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.databinding.FragmentBaseBinding;
 import com.eup.codeopsstudio.domain.events.CurrentPaneEvent;
@@ -619,8 +619,8 @@ public class BaseFragment extends Fragment
 
   public String getUniqueName(@NonNull File currentFile) {
     int sameFileNameCount = 0;
-    PathResolver<File> builder = new PathResolver<>("", "/");
-
+    var builder = new UniqueNameBuilder<File>("","/");
+    
     for (var pane : Objects.requireNonNull(paneWindow.getPanes())) {
       if (pane instanceof CodeEditorPane editor) {
         File openFile = editor.getFile();

@@ -70,4 +70,5 @@ dependencies {
     implementation(libs.google.material)
 
     implementation project(path: ":shared-res")
+    implementation project(path: ":modules:ast-core")
 }

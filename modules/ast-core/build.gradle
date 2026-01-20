@@ -1,0 +1,91 @@
+plugins {
+    alias(libs.plugins.android.library)
+    id 'maven-publish'
+}
+    
+android {
+    namespace 'com.eup.codeops.ast.core'
+    compileSdk project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdk project.ext.minSdkVersion
+        targetSdk project.ext.targetSdkVersion
+    }
+                
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility project.ext.javaSourceVersion
+        targetCompatibility project.ext.javaTargetVersion
+    }
+    
+    publishing {
+        singleVariant("release")
+    }
+}
+
+dependencies {
+    implementation(libs.androidx.annotation)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                
+                groupId = 'io.github.euptron'
+                artifactId = 'ast-core'
+                version = '0.1.0'
+                
+                pom {
+                    name = 'AST-Core'
+                    description = 'Core AST classes for CodeOps Studio'
+                    url = 'https://github.com/euptron/CodeOps-Studio'
+                    
+                    licenses {
+                        license {
+                            name = 'Apache License v2.0'
+                            url = 'https://github.com/euptron/CodeOps-Studio/blob/main/modules/ast-core/LICENSE'
+                            distribution = 'repo'
+                        }
+                    }
+                    
+                    developers {
+                        developer {
+                            id = 'euptron'
+                            name = 'Etido Peter'
+                            email = 'euptron@gmail.com'
+                        }
+                    }
+                    
+                    scm {
+                        connection = 'scm:git:github.com/euptron/CodeOps-Studio.git'
+                        developerConnection = 'scm:git:ssh://github.com/euptron/CodeOps-Studio.git'
+                        url = 'https://github.com/euptron/CodeOps-Studio'
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/euptron/CodeOps-Studio"
+                credentials {
+                    username = "euptron"
+                    password = System.getenv("GHPKGS_LIB_PUB_TOKEN")
+                }
+            }
+        }
+    }
+}
