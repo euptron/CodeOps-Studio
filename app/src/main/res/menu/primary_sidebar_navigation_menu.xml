@@ -37,9 +37,8 @@
     <item
         android:id="@+id/action_plugin"
         android:enabled="true"
-        android:icon="@drawable/ic_view_grid_plus_outline"
-        android:title="@string/plugin"
-        android:visible="false" />
+        android:icon="@drawable/ic_plugin_outline"
+        android:title="@string/plugin" />
     <item
         android:id="@+id/action_settings"
         android:enabled="true"

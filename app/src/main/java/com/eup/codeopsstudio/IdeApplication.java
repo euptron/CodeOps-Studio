@@ -38,6 +38,7 @@ import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.SystemArchitecture;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
 import com.eup.codeopsstudio.editor.ContextualCodeEditor;
+import com.eup.codeopsstudio.plugin.PluginScanner;
 import com.eup.codeopsstudio.ui.debug.CrashActivity;
 import com.eup.codeopsstudio.util.BinaryFileChecker;
 import com.eup.codeopsstudio.util.ThrowableUtils;
@@ -55,9 +56,11 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
   public static final String TAG = IdeApplication.class.getSimpleName();
 
   private static IdeApplication instance;
+  private static PluginScanner pluginScanner;
   private static final long SLEEP_DURATION = 2000; // milliseconds
 
   private ThemeManager themeManager;
+  private FirebaseAnalytics analytics;
   private FirebaseCrashlytics crashlytics;
   private FileLogListener fileLogListener;
   private final StringBuilder errorMessage = new StringBuilder();
@@ -68,19 +71,25 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     super.onCreate();
     instance = this;
     ContextManager.initialize(getGlobalContext());
+
+    BinaryFileChecker.setAggressiveness(0.1);
+
     fileLogListener = new FileLogListener(this, "freeze_log.txt");
     ILog.addLogListener(fileLogListener);
-    BinaryFileChecker.setAggressiveness(0.1);
+
     themeManager = new ThemeManager(this);
     themeManager.applyTheme();
     themeManager.applyDynamicColors();
+
     FirebaseApp.initializeApp(this);
     crashlytics = FirebaseCrashlytics.getInstance();
+    analytics = FirebaseAnalytics.getInstance(this);
+
     crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
-    FirebaseAnalytics.getInstance(this)
-        .setAnalyticsCollectionEnabled(userHasConsentedToDataSharing());
+    analytics.setAnalyticsCollectionEnabled(userHasConsentedToDataSharing());
 
     Thread.setDefaultUncaughtExceptionHandler(this);
+    pluginScanner = PluginScanner.get(this);
     crashlytics.sendUnsentReports();
 
     validateExpirationDate();
@@ -231,6 +240,10 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
 
   public static IdeApplication getInstance() {
     return instance;
+  }
+
+  public static PluginScanner getPluginScanner() {
+    return pluginScanner;
   }
 
   public ThemeManager getThemeManager() {

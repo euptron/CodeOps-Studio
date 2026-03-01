@@ -38,23 +38,23 @@ import java.util.List;
  */
 public abstract class AbstractComparator<T> implements Comparator<T> {
 
-    @NonNull
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
+  @NonNull
+  @Override
+  public String toString() {
+    return getClass().getSimpleName();
+  }
 
-    public T[] sort(final T[] types) {
-        if (types != null) {
-            Arrays.sort(types, this);
-        }
-        return types;
+  public T[] sort(final T[] types) {
+    if (types != null) {
+      Arrays.sort(types, this);
     }
+    return types;
+  }
 
-    public List<T> sort(final List<T> types) {
-        if (types != null) {
-            types.sort(this);
-        }
-        return types;
+  public List<T> sort(final List<T> types) {
+    if (types != null) {
+      types.sort(this);
     }
+    return types;
+  }
 }

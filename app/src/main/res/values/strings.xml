@@ -61,8 +61,11 @@
     <string name="app_version_name">Version name</string>
     <string name="installed_by">Installed by</string>
     <string name="system">System</string>
+    <string name="installed">Installed</string>
+    <string name="marketplace">Marketplace</string>
     <string name="execute">Execute</string>
     <string name="undo">Undo</string>
+    <string name="search_plugin">Search Plugin</string>
     <string name="relative_close_first">First</string>
     <string name="relative_close_all">All</string>
     <string name="untitled">Untitled</string>
@@ -113,6 +116,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="done">Done</string>
     <string name="pause">Pause</string>
     <string name="resume">Resume</string>
     <string name="processed">Processed</string>
@@ -372,6 +376,14 @@
     <string name="msg_request_notification_rationale">CodeOps Studio requires notification permission to keep you updated</string>
     <string name="msg_notification_permission_granted">Notification permission granted</string>
     <string name="msg_lite_mode_description">Enabling Lite Mode improves performance when editing large texts, but may affect features like ligatures, text direction, and emoji rendering. This mode is recommended for large texts with long lines.</string>
+    <string name="msg_no_plugins_available_title">No Plugins Available</string>
+    <string name="msg_no_plugins_available_description">Install a plugin to get started</string>
+    <string name="msg_uninstall_confirm_message">Do you want to uninstall %s</string>
+    <string name="msg_uninstall_in_progress">Uninstalling %s in progress</string>
+    <string name="msg_uninstall_error">Uninstallation failed: %s</string>
+    <string name="msg_uninstall_success">Successfully uninstalled %s</string>
+    <string name="msg_error_timeout">Timeout error</string>
+    <string name="msg_error_unknown">Error Unknown</string>
     <!-- @Tabs -->
     <string name="pref_editor_tab_category_title">Tabs</string>
     <string name="pref_editor_code_editor_title_auto_save">Auto save</string>
@@ -535,6 +547,7 @@
     <string name="text_input_name_desc">Text input for name</string>
     <string name="text_input_other_desc">Text input for other information</string>
     <string name="act_sheet_extended_fab_content_desc" translatable="false">Extended FAB</string>
+    <string name="plugin_search_til_icon_content_desc">Plugin Search icon</string>
     <!-- Debugging -->
     <string name="app_memory_usage" translatable="false">Memory: <xliff:g example="1MB" id="numerator">%1$s</xliff:g> / <xliff:g example="10MB" id="denominator">%2$s</xliff:g> (<xliff:g example="10" id="percentage">%3$d</xliff:g>%%)</string>
     <!-- Ad -->
@@ -628,6 +641,9 @@
     <string name="remind_me">Remind me</string>
     <string name="downloading">Downloading…</string>
     <string name="install">Install</string>
+    <string name="install_plugin">Install Plugin</string>
+    <string name="uninstall_plugin">Uninstall Plugin</string>
+    <string name="view_details">View Details</string>
     <string name="retry_download">Retry Download</string>
     <string name="invalid_download_url">Invalid download URL</string>
     <string name="download_failed">Download failed</string>

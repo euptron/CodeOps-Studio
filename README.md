@@ -13,7 +13,7 @@
 <p align="center" style="line-height: 1;">
   <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue" alt="GPLv3 License"></a>
   <img src="https://img.shields.io/github/repo-size/euptron/CodeOps-Studio?color=%2393000A" alt="Repo Size">
-  <img src="https://img.shields.io/badge/Active%20Users-300%2B-blue" alt="Users">
+  <img src="https://img.shields.io/badge/Active%20Users-400%2B-blue" alt="Users">
   <img src="https://img.shields.io/badge/Api-Android%208%2B-brightgreen" alt="Android">
 </p>
 

@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.google.material)
     api(platform(libs.other.sora.editor.bom))
     api(libs.other.sora.editor.code)
+    api(libs.other.sora.editor.lsp)
     api(libs.other.sora.editor.textmate)
     implementation project(path: ":common")
     implementation project(path: ":shared-res")

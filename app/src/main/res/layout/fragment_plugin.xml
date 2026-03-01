@@ -22,18 +22,99 @@
   ~ questions or need additional information. Email: euptron@gmail.com
   -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="4dp"
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/search_til"
+        style="?attr/textInputFilledDenseStyle"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Plugin Manager!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/search_plugin"
+        app:startIconContentDescription="@string/plugin_search_til_icon_content_desc"
+        app:startIconDrawable="@drawable/ic_search"
+        app:boxBackgroundMode="filled"
+        app:boxStrokeWidth="0dp"
+        app:boxStrokeWidthFocused="0dp"
+        app:boxCornerRadiusTopStart="30dp"
+        app:boxCornerRadiusTopEnd="30dp"
+        app:boxCornerRadiusBottomStart="30dp"
+        app:boxCornerRadiusBottomEnd="30dp">
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textSize="12sp"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/plugin_filter_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            app:checkedChip="@+id/chip_installed">
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_installed"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/installed"
+                android:textColor="@color/plugin_search_chip_text_color"
+                app:chipStrokeWidth="0dp"
+                app:chipSurfaceColor="?attr/colorSurface"
+                app:chipBackgroundColor="@color/plugin_search_chip_background_color"/>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_marketplace"
+                style="@style/Widget.Material3.Chip.Suggestion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/marketplace"
+                android:textColor="@color/plugin_search_chip_text_color"
+                app:chipStrokeWidth="0dp"
+                app:chipSurfaceColor="?attr/colorSurface"
+                app:chipBackgroundColor="@color/plugin_search_chip_background_color"/>
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+    
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress_indicator"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:progress="0"
+        android:max="100"
+        android:indeterminate="true"
+        app:indicatorDirectionLinear="startToEnd"
+        app:trackThickness="2dp"
+        app:trackCornerRadius="5dp"
+        app:trackInnerCornerRadius="5dp"
+        app:indicatorTrackGapSize="5dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/plugin_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

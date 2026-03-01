@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:sharedUserId="${HOST_PACKAGE_NAME}">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <!-- Required on Android 13+ -->
+  <!-- No need to explictly use permission android.permission.POST_NOTIFICATIONS -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <!-- For logging -->
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+  <application
+    android:icon="@mipmap/ic_launcher"
+    android:name=".ServerApplication"
+    android:largeHeap="true"
+    android:networkSecurityConfig="@xml/network_security_config"
+    android:label="XML Language Server Plugin"
+    android:persistent="true">
+
+    <activity
+      android:name=".MainActivity"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+
+    <service
+      android:name=".XMLIntellisenseProvider"
+      android:enabled="true"
+      android:exported="true"
+      android:foregroundServiceType="dataSync">
+      <intent-filter>
+        <action android:name="com.eup.codeops.common.plugin.api.action.PLUGIN_REGISTER" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+      <meta-data
+        android:name="plugin_id"
+        android:value="${applicationId}" />
+      <meta-data
+        android:name="plugin_name"
+        android:value="XML Language Server" />
+      <meta-data
+        android:name="plugin_author"
+        android:value="CodeOps Team" />
+      <meta-data
+        android:name="plugin_description"
+        android:value="Provides XML language server functionality" />
+      <meta-data
+        android:name="min_kernel_version"
+        android:value="1" />
+      <meta-data
+        android:name="download_url"
+        android:value="" />
+      <meta-data
+        android:name="supported_extensions"
+        android:value=".xml,.xsd,.ascx,.atom,.axml,.axaml,.bpmn,.cpt,.csl,.csproj,.csproj.user,.dita,.ditamap,.dtd,.ent,.mod,.dtml,.fsproj,.fxml,.iml,.isml,.jmx,.launch,.menu,.mxml,.nuspec,.opml,.owl,.proj,.props,.pt,.publishsettings,.pubxml,.pubxml.user,.rbxlx,.rbxmx,.rdf,.rng,.rss,.shproj,.storyboard,.svg,.targets,.tld,.tmx,.vbproj,.vbproj.user,.vcxproj,.vcxproj.filters,.wsdl,.wxi,.wxl,.wxs,.xaml,.xbl,.xib,.xlf,.xliff,.xpdl,.xul,.xoml,.xsl,.xslt" />
+    </service>
+  </application>
+</manifest>

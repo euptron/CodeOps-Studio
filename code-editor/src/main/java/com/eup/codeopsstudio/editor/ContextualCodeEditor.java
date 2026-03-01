@@ -89,6 +89,7 @@ public class ContextualCodeEditor extends CodeEditor
   private String languageScope;
   private boolean autoCompleteWindowEnabled;
   private boolean isAutoCompleteSymbols;
+  private boolean supportsULPFormatting;
 
   public ContextualCodeEditor(Context context) {
     this(context, null);
@@ -693,8 +694,8 @@ public class ContextualCodeEditor extends CodeEditor
     return this.mFile;
   }
 
-  public void setFile(File mFile) {
-    this.mFile = mFile;
+  public void setFile(File file) {
+    this.mFile = file;
   }
 
   public String getLanguageExtension() {
@@ -892,6 +893,14 @@ public class ContextualCodeEditor extends CodeEditor
     } else {
       deleteLine();
     }
+  }
+
+  public void supportsULPFormatting(boolean supports) {
+    this.supportsULPFormatting = supports;
+  }
+
+  public boolean supportsULPFormatting() {
+    return this.supportsULPFormatting;
   }
 
   private class CaseHandler {

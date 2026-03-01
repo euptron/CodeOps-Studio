@@ -36,6 +36,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.transition.ChangeBounds;
@@ -93,35 +94,116 @@ public class TreeViewFragment extends Fragment
         FileWatcher.OnFileChangeListener {
 
   public static final String LOG_TAG = "TreeViewPane";
-  public static final String TAG =
-      com.eup.codeopsstudio.ui.explore.TreeViewFragment.class.getSimpleName();
+  public static final String TAG = TreeViewFragment.class.getSimpleName();
 
-  private boolean fileWatcherBindingRequested = false;
-  private FragmentTreeviewBinding binding;
-  private MainViewModel mMainViewModel;
-  private FileManager fileManager;
   private Logger logger;
   private TreeNode rootNode;
+  private FileManager fileManager;
   private AndroidTreeView treeView;
   private String fileTreeSavedState;
   private String lastOpenedFilePath;
+  private MainViewModel mMainViewModel;
+  private FragmentTreeviewBinding binding;
   private SavedStateViewModel mSavedStateViewModel;
   private FileWatcherServiceConnection fileEventRelay;
+  private boolean fileWatcherBindingRequested = false;
 
-  private final Runnable debouncedUpdate = this::performDebouncedUpdate;
-  private static final long DEBOUNCE_DELAY_MS = 300; // 300ms delay
   private boolean updatePending = false;
+  private static final long DEBOUNCE_DELAY_MS = 300; // 300ms delay
+  private final Runnable debouncedUpdate = this::performDebouncedUpdate;
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    fileManager = new FileManager(requireContext(), requireActivity());
+    logger = new Logger(Logger.LogClass.IDE);
+  }
+
+  @Nullable
+  @Override
+  public View onCreateView(
+      @NonNull LayoutInflater inflater,
+      @Nullable ViewGroup viewgroup,
+      @Nullable Bundle savedInstanceState) {
+    binding = FragmentTreeviewBinding.inflate(inflater, viewgroup, false);
+    return binding.getRoot();
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    mMainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+    mSavedStateViewModel = new ViewModelProvider(requireActivity()).get(SavedStateViewModel.class);
+    logger.attach(requireActivity());
+    mMainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(), this::populateFileTree);
+
+    mSavedStateViewModel
+        .getTreeViewFragmentTreeState()
+        .observe(requireActivity(), savedState -> fileTreeSavedState = savedState);
+
+    binding.folderOptions.setOnClickListener(
+        v -> {
+          if (rootNode != null) {
+            displayBottomSheetOnClickFolderOptions();
+          }
+        });
+    binding.treeOpenFolder.setOnClickListener(
+        v -> {
+          MainFragment mainFragment =
+              (MainFragment)
+                  requireActivity().getSupportFragmentManager().findFragmentByTag(MainFragment.TAG);
+          if (mainFragment != null) {
+            mainFragment.openFolderFromManager();
+          }
+        });
+    binding.chooseTemplate.setOnClickListener(v -> chooseTemplates());
+  }
+
+  @Override
+  public void onSaveInstanceState(@NonNull Bundle outState) {
+    super.onSaveInstanceState(outState);
+    if (treeView != null) {
+      mSavedStateViewModel.saveTreeViewFragmentTreeState(treeView.getSaveState());
+    }
+  }
+
+  @Override
+  @MainThread
+  @CallSuper
+  public void onStop() {
+    super.onStop();
+    if (rootNode != null) {
+      // save as last opened
+      var projectDir = rootNode.getValue().getAbsolutePath();
+      PreferencesUtils.getLastOpenedProjectPreferences()
+          .edit()
+          .putString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, projectDir)
+          .apply();
+    }
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding = null;
+    treeView = null;
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    AsyncTask.cancelRunLater(debouncedUpdate);
+    unbindFileWatcherService();
+  }
 
   @Override
   public void onClick(TreeNode node, Object value) {
     var mFile = (File) value;
 
     if (mFile.isFile()) {
-      MainFragment mainFragment =
-          (MainFragment)
-              requireActivity().getSupportFragmentManager().findFragmentByTag(MainFragment.TAG);
-      if (mainFragment != null) {
-        mainFragment.openFileInPane(mFile);
+      FragmentManager fm = requireActivity().getSupportFragmentManager();
+      if (fm.findFragmentByTag(MainFragment.TAG) instanceof MainFragment mf) {
+          mf.openFileInPane(mFile);
       }
     } else if (mFile.isDirectory()) {
       if (node.isExpanded()) {
@@ -209,90 +291,6 @@ public class TreeViewFragment extends Fragment
     if (node.getViewHolder() instanceof FileTreeViewHolder) {
       ((FileTreeViewHolder) node.getViewHolder()).setLoading(loading);
     }
-  }
-
-  @Override
-  public void onCreate(@Nullable Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    fileManager = new FileManager(requireContext(), requireActivity());
-    logger = new Logger(Logger.LogClass.IDE);
-  }
-
-  @Nullable
-  @Override
-  public View onCreateView(
-      @NonNull LayoutInflater inflater,
-      @Nullable ViewGroup viewgroup,
-      @Nullable Bundle savedInstanceState) {
-    binding = FragmentTreeviewBinding.inflate(inflater, viewgroup, false);
-    return binding.getRoot();
-  }
-
-  @Override
-  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-    mMainViewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
-    mSavedStateViewModel = new ViewModelProvider(requireActivity()).get(SavedStateViewModel.class);
-    logger.attach(requireActivity());
-    mMainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(), this::populateFileTree);
-
-    mSavedStateViewModel
-        .getTreeViewFragmentTreeState()
-        .observe(requireActivity(), savedState -> fileTreeSavedState = savedState);
-
-    binding.folderOptions.setOnClickListener(
-        v -> {
-          if (rootNode != null) {
-            displayBottomSheetOnClickFolderOptions();
-          }
-        });
-    binding.treeOpenFolder.setOnClickListener(
-        v -> {
-          MainFragment mainFragment =
-              (MainFragment)
-                  requireActivity().getSupportFragmentManager().findFragmentByTag(MainFragment.TAG);
-          if (mainFragment != null) {
-            mainFragment.openFolderFromManager();
-          }
-        });
-    binding.chooseTemplate.setOnClickListener(v -> chooseTemplates());
-  }
-
-  @Override
-  public void onSaveInstanceState(@NonNull Bundle outState) {
-    super.onSaveInstanceState(outState);
-    if (treeView != null) {
-      mSavedStateViewModel.saveTreeViewFragmentTreeState(treeView.getSaveState());
-    }
-  }
-
-  @Override
-  @MainThread
-  @CallSuper
-  public void onStop() {
-    super.onStop();
-    if (rootNode != null) {
-      // save as last opened
-      var projectDir = rootNode.getValue().getAbsolutePath();
-      PreferencesUtils.getLastOpenedProjectPreferences()
-          .edit()
-          .putString(Constants.SharedPreferenceKeys.KEY_LAST_OPENED_PROJECT, projectDir)
-          .apply();
-    }
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-    binding = null;
-    treeView = null;
-  }
-
-  @Override
-  public void onDestroy() {
-    super.onDestroy();
-    AsyncTask.cancelRunLater(debouncedUpdate);
-    unbindFileWatcherService();
   }
 
   private void unbindFileWatcherService() {
@@ -607,7 +605,7 @@ public class TreeViewFragment extends Fragment
               vg.setClipToPadding(false);
               vg.setClipChildren(false);
             }
-            
+
             binding.filetreeProgressIndicator.setVisibility(View.GONE);
 
             EventBus.getDefault().post(new ProjectEvent(dir));

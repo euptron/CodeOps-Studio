@@ -53,6 +53,7 @@ import com.eup.codeopsstudio.editor.langs.textmate.provider.JsonLanguageInfoProv
 import com.eup.codeopsstudio.logger.Logger;
 import com.eup.codeopsstudio.palette.CommandPaletteDialog;
 import com.eup.codeopsstudio.pane.Pane;
+import com.eup.codeopsstudio.plugin.connection.intellisense.UnifiedLanguageProvider;
 import com.eup.codeopsstudio.ui.editor.code.breadcrumb.pane.CrumbTreePane;
 import com.eup.codeopsstudio.ui.editor.code.manager.FileOperationsManager;
 import com.eup.codeopsstudio.ui.editor.code.manager.SearchManager;
@@ -155,7 +156,7 @@ public class CodeEditorPane extends Pane
   public static final String KEY_LEFT_COLUMN = "left_column";
   public static final String KEY_EDITOR_CONTENT = "editor_content";
   public static final String KEY_FILE_EXTENSION = "file_extension";
-  
+
   private static final int CURSOR_HISTORY_LIMIT = 50;
   private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
   private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
@@ -165,6 +166,7 @@ public class CodeEditorPane extends Pane
   private String fileExtension;
   private boolean isModified = false;
   private SearchManager searchManager;
+  private UnifiedLanguageProvider ulp;
   private LayoutCodeEditorBinding binding;
   private boolean isContentLoaded = false;
   private boolean navigationInProgress = false;
@@ -205,6 +207,7 @@ public class CodeEditorPane extends Pane
     updateCrumbPanelVisibility();
 
     binding.breadCrumbBar.setFile(mEditorFile);
+    binding.editor.setFile(mEditorFile);
     if (binding.breadCrumbBar.getAdapter() != null) {
       binding
           .breadCrumbBar
@@ -241,6 +244,10 @@ public class CodeEditorPane extends Pane
     if (binding != null && binding.editor != null) {
       try {
         binding.editor.release();
+        if (ulp != null) {
+          ulp.stop();
+          ulp = null;
+        }
       } catch (Exception e) {
         logger.e(TAG, "Error releasing editor: " + e.getMessage(), e);
       }
@@ -952,7 +959,6 @@ public class CodeEditorPane extends Pane
 
   public void loadEditorLanguage(
       boolean autoComplete, boolean autoCloseBrackets, boolean refresh, @NonNull File file) {
-
     if (refresh) setLoading(true);
 
     AsyncTask.runNonCancelable(
@@ -973,8 +979,27 @@ public class CodeEditorPane extends Pane
             fileExtension = result.first;
             fileScope = result.second;
             setEditorLanguage(autoComplete, autoCloseBrackets, refresh, fileExtension, fileScope);
+            initializeUnifiedLanguageProvider(file, fileExtension);
           }
         });
+  }
+
+  private void initializeUnifiedLanguageProvider(File file, String extension) {
+    try {
+      // Clean up existing provider if any
+      if (ulp != null) {
+        ulp.stop();
+        ulp = null;
+      }
+
+      ulp =
+          new UnifiedLanguageProvider(
+              logger, binding.editor, extension.startsWith(".") ? extension : "." + extension);
+      ulp.start();
+      logger.i(TAG, "UnifiedLanguageProvider started for: " + file.getName());
+    } catch (Exception e) {
+      logger.e(TAG, "Failed to initialize UnifiedLanguageProvider", e);
+    }
   }
 
   public void setEditorLanguage(

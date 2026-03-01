@@ -33,7 +33,7 @@
         android:name="com.eup.codeopsstudio.ui.explore.TreeViewFragment"
         android:label="TreeViewFragment"
         tools:layout="@layout/fragment_treeview" />
-    <!-- Implement Plugins & Version source control -->
+    <!-- Implement Version source control -->
     <fragment
         android:id="@+id/nav_vscFragment"
         android:name="com.eup.codeopsstudio.ui.explore.VersionSourceControlFragment"

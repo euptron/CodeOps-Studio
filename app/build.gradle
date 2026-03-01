@@ -59,13 +59,6 @@ android {
     signingConfigs {
         global {
             storeFile file("codeopsstudio.keystore")
-            keyAlias "CodeOps-Studio"
-            keyPassword secretsProperties['KEY_PASSWORD']
-            storePassword secretsProperties['STORE_PASSWORD']
-        }
-
-        global {
-            storeFile file("codeopsstudio.keystore")
             keyAlias System.getenv("KEY_ALIAS") ?: secretsProperties['KEY_ALIAS']
             keyPassword System.getenv("KEY_PASSWORD") ?: secretsProperties['KEY_PASSWORD']
             storePassword System.getenv("KEYSTORE_PASSWORD") ?: secretsProperties['STORE_PASSWORD']
@@ -129,16 +122,18 @@ dependencies {
 
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.preference)
+    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.data.store)
     implementation(libs.androidx.navigation.ui)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.navigation.fragment)
-
+    
+    implementation(libs.other.org.eclipse.lsp4j)
     implementation(libs.other.commonmark)
     implementation(libs.google.material)
     implementation(libs.google.play.services.oss.licenses)
-
+    
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.messaging)
@@ -148,9 +143,9 @@ dependencies {
     testImplementation libs.other.junit
     androidTestImplementation libs.other.ext.junit
     androidTestImplementation libs.other.espresso.core
-    debugImplementation(libs.other.leakcanary.android)
+    //debugImplementation(libs.other.leakcanary.android)
     coreLibraryDesugaring(libs.other.desugar)
-
+    
     implementation project(path: ":pane")
     implementation project(path: ":common")
     implementation project(path: ":server")
@@ -160,6 +155,8 @@ dependencies {
     implementation project(path: ":share-layout")
     implementation project(path: ":modules:ast-core")
     implementation project(path: ":modules:bidirectional-llm")
+    implementation project(path: ":modules:plugin-api:common")
+    implementation project(path: ":modules:plugin-api:intellisense")
 }
 
 tasks.register('printVersion') {

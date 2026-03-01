@@ -32,9 +32,9 @@ import java.io.File;
 import java.util.Objects;
 
 /**
- * Represents a recent project in the CodeOps Studio application.
- * This class encapsulates information about a project, including its file location,
- * bookmark status, and associated history.
+ * Represents a recent project in the CodeOps Studio application. This class encapsulates
+ * information about a project, including its file location, bookmark status, and associated
+ * history.
  *
  * <p>A {@code Project} is identified by its file path. Two {@code Project} objects are considered
  * equal if their file paths are the same.
@@ -47,94 +47,101 @@ import java.util.Objects;
  */
 public class Project {
 
-    private static final String TAG = "Project";
-    private final File file;
-    private final ProjectHistory history;
-    private boolean isBookmarked;
+  private static final String TAG = "Project";
+  private final File file;
+  private final ProjectHistory history;
+  private boolean isBookmarked;
 
-    public Project(@NonNull File file, @NonNull ProjectHistory history) {
-        this(file, false, history);
+  public Project(@NonNull File file, @NonNull ProjectHistory history) {
+    this(file, false, history);
+  }
+
+  public Project(@NonNull File file, boolean isBookmarked, @NonNull ProjectHistory history) {
+    Objects.requireNonNull(file, "File cannot be null for a Project");
+    Objects.requireNonNull(history, "ProjectHistory cannot be null for a Project");
+    this.file = file;
+    this.isBookmarked = isBookmarked;
+    this.history = history;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getPath());
+  }
+
+  @NonNull
+  public String getPath() {
+    if (file == null) {
+      ILog.error(TAG, "Project file reference is null, returning empty path");
+      return "";
     }
+    return this.file.getAbsolutePath();
+  }
 
-    public Project(@NonNull File file, boolean isBookmarked, @NonNull ProjectHistory history) {
-        Objects.requireNonNull(file, "File cannot be null for a Project");
-        Objects.requireNonNull(history, "ProjectHistory cannot be null for a Project");
-        this.file         = file;
-        this.isBookmarked = isBookmarked;
-        this.history      = history;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    var project = (Project) o;
+
+    return Objects.equals(this.getPath(), project.getPath());
+  }
+
+  @NonNull
+  @Override
+  public String toString() {
+    return "Project{"
+        + "file="
+        + (file != null ? getPath() : "null_file_ref")
+        + ", "
+        + "isBookmarked="
+        + isBookmarked
+        + ", history="
+        + history
+        + '}';
+  }
+
+  public boolean exists() {
+    try {
+      return this.file.exists();
+    } catch (SecurityException se) {
+      ILog.error(
+          TAG, "SecurityException while checking if file exists: " + this.file.getPath(), se);
+      return false;
     }
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getPath());
-    }
+  @NonNull
+  public File getFile() {
+    return this.file;
+  }
 
-    @NonNull
-    public String getPath() {
-        if (file == null) {
-            ILog.error(TAG, "Project file reference is null, returning empty path");
-            return "";
-        }
-        return this.file.getAbsolutePath();
-    }
+  @Nullable
+  public ProjectHistory getHistory() {
+    return this.history;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        var project = (Project) o;
+  public long getLastModified() {
+    return file.lastModified();
+  }
 
-        return Objects.equals(this.getPath(), project.getPath());
-    }
+  public String getName() {
+    return this.file.getName();
+  }
 
-    @NonNull
-    @Override
-    public String toString() {
-        return "Project{" + "file=" + (file != null ? getPath() : "null_file_ref") + ", "
-            + "isBookmarked=" + isBookmarked + ", history=" + history + '}';
-    }
+  public boolean isBookMarked() {
+    return this.isBookmarked;
+  }
 
-    public boolean exists() {
-        try {
-            return this.file.exists();
-        } catch (SecurityException se) {
-            ILog.error(TAG,
-                "SecurityException while checking if file exists: " + this.file.getPath(), se);
-            return false;
-        }
-    }
+  public void setBookMarked(boolean enabled) {
+    isBookmarked = enabled;
+  }
 
-    @NonNull
-    public File getFile() {
-        return this.file;
-    }
+  public boolean isDirectory() {
+    return this.file.isDirectory();
+  }
 
-    @Nullable
-    public ProjectHistory getHistory() {
-        return this.history;
-    }
-
-    public long getLastModified() {
-        return file.lastModified();
-    }
-
-    public String getName() {
-        return this.file.getName();
-    }
-
-    public boolean isBookMarked() {
-        return this.isBookmarked;
-    }
-
-    public void setBookMarked(boolean enabled) {
-        isBookmarked = enabled;
-    }
-
-    public boolean isDirectory() {
-        return this.file.isDirectory();
-    }
-
-    public boolean isFile() {
-        return this.file.isFile();
-    }
+  public boolean isFile() {
+    return this.file.isFile();
+  }
 }

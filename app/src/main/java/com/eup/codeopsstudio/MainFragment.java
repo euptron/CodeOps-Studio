@@ -175,12 +175,11 @@ public class MainFragment extends Fragment
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
               if (result != null) {
-                FragmentActivity activity = requireActivity();
-                if (!Wizard.isStoragePermissionGranted(activity)) {
+                if (!Wizard.isStoragePermissionGranted(requireActivity())) {
                   showStoragePermissionDeniedDialog(
                       this::requestStoragePermission,
                       () -> {
-                        activity.finishAffinity();
+                        requireActivity().finishAffinity();
                         System.exit(0);
                       });
                 }
@@ -227,10 +226,13 @@ public class MainFragment extends Fragment
       @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
     binding = FragmentMainBinding.inflate(inflater, container, false);
-    getLifecycle().addObserver(lifeCycleObserver);
     rootView = binding.getRoot();
-    ((AppCompatActivity) requireActivity())
-        .setSupportActionBar(binding.fragmentMainContent.toolbar);
+    getLifecycle().addObserver(lifeCycleObserver);
+
+    if (requireActivity() instanceof AppCompatActivity aca) {
+      aca.setSupportActionBar(binding.fragmentMainContent.toolbar);
+    }
+
     binding.fragmentMainContent.toolbar.setNavigationIcon(R.drawable.ic_menu);
     return rootView;
   }
@@ -239,36 +241,19 @@ public class MainFragment extends Fragment
   @MainThread
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    AppCompatActivity activity = (AppCompatActivity) requireActivity();
+    FragmentActivity activity = requireActivity();
     logger.attach(activity);
+    
     logListener =
         logs -> {
           activity.runOnUiThread(() -> logger.postLog(logs));
         };
-
+        
     activity.addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
-
-    if (Wizard.isStoragePermissionGranted(requireContext())) {
-      checkPlugins();
-    } else {
-      requestStoragePermission();
-    }
-
-    ensureNotificationPermissionGranted();
-
-    mainViewModel
-        .getToolbarTitle()
-        .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setTitle);
-    mainViewModel
-        .getToolbarSubTitle()
-        .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setSubtitle);
-    mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(), file -> invalidateMenu());
-    mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
-
     setUpDrawer();
 
     onBackPressedCallback =
-        new OnBackPressedCallback(/* enabled= */ false) {
+        new OnBackPressedCallback(false) {
           @Override
           public void handleOnBackPressed() {
             var webViewPane = selected(WebViewPane.class);
@@ -291,11 +276,23 @@ public class MainFragment extends Fragment
         .getOnBackPressedDispatcher()
         .addCallback(getViewLifecycleOwner(), onBackPressedCallback);
 
-    BaseUtil.registerSoftInputChangedListener(activity, __ -> invalidateMenu());
+    if (Wizard.isStoragePermissionGranted(requireContext())) {
+      checkPlugins();
+    } else {
+      requestStoragePermission();
+    }
 
-    if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
-
+    ensureNotificationPermissionGranted();
     restoreLastProject();
+
+    mainViewModel
+        .getToolbarTitle()
+        .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setTitle);
+    mainViewModel
+        .getToolbarSubTitle()
+        .observe(getViewLifecycleOwner(), binding.fragmentMainContent.toolbar::setSubtitle);
+    mainViewModel.observeSetTreeViewFragmentFile(getViewLifecycleOwner(), file -> invalidateMenu());
+    mainViewModel.observeEditorFileOpening(getViewLifecycleOwner(), file -> invalidateMenu());
 
     mainViewModel
         .getShouldUpdateMenu()
@@ -362,6 +359,10 @@ public class MainFragment extends Fragment
           mainViewModel.setTreeViewFragmentTreeDir(file);
         });
 
+    BaseUtil.registerSoftInputChangedListener(activity, __ -> invalidateMenu());
+
+    if (PreferencesUtils.canShareAnonymousStatistics()) User.registerSession();
+
     checkForStoredAppUpdates();
   }
 
@@ -375,9 +376,8 @@ public class MainFragment extends Fragment
 
   @Override
   public void onSaveInstanceState(@NonNull Bundle outState) {
-    if (rootView instanceof PrimaryDrawerLayout) {
-      outState.putBoolean(
-          "start_drawer_state", ((PrimaryDrawerLayout) rootView).isDrawerOpen(GravityCompat.START));
+    if (rootView instanceof PrimaryDrawerLayout drawer) {
+      outState.putBoolean("start_drawer_state", drawer.isDrawerOpen(GravityCompat.START));
     }
     super.onSaveInstanceState(outState);
   }
@@ -502,8 +502,8 @@ public class MainFragment extends Fragment
           new PrimaryDrawerLayout.SimpleDrawerListener() {
             @Override
             public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-              // float translationX = drawerView.getWidth() * slideOffset * 0.3f;
-              float translation = drawerView.getWidth() * slideOffset;
+              float factor = 1f; // 0-1
+              float translation = drawerView.getWidth() * slideOffset * factor;
               binding.fragmentMainContent.mainContentLayout.setTranslationX(translation);
             }
 
@@ -840,10 +840,6 @@ public class MainFragment extends Fragment
     if (currentPanePair == null) return null;
     Pane current = currentPanePair.second;
     return type.isInstance(current) ? type.cast(current) : null;
-  }
-
-  public void closeApp() {
-    onBackPressedCallback.setEnabled(true);
   }
 
   public void createFileFromManager() {

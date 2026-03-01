@@ -314,6 +314,15 @@ public class Wizard {
     }
   }
 
+  public static boolean isPackageInstalled(Context context, String packageName) {
+    try {
+      context.getPackageManager().getPackageInfo(packageName, 0);
+      return true;
+    } catch (PackageManager.NameNotFoundException e) {
+      return false;
+    }
+  }
+
   public static void installApplication(Context context, File file) {
     installApplication(context, file, null);
   }

@@ -96,7 +96,7 @@ public class PrimarySideBarFragment extends Fragment {
     super.onDestroyView();
     this.binding = null;
   }
-  
+
   private void applySystemInsets(@NonNull View view) {
     int systemBars = WindowInsetsCompat.Type.systemBars();
     BaseUtil.applyWindowInsetToPadding(view, false, true, false, true, systemBars);
@@ -114,6 +114,8 @@ public class PrimarySideBarFragment extends Fragment {
 
     if (itemId == R.id.action_file_explorer) {
       return navigateToFragment(com.eup.codeopsstudio.R.id.nav_treeviewFragment);
+    } else if (itemId == R.id.action_plugin) {
+      return navigateToFragment(com.eup.codeopsstudio.R.id.nav_pluginFragment);
     } else if (itemId == R.id.action_settings) {
       mMainViewModel.addSettingsPane(true);
       return false;

@@ -1,0 +1,93 @@
+plugins {
+    id 'com.android.application'
+}
+
+def secretsPropertiesFile = rootProject.file("secrets.properties")
+def secretsProperties = new Properties()
+def signingEnabled = false
+
+android {
+    namespace 'com.eup.codeops.plugin.xml.lsp'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+        manifestPlaceholders.HOST_PACKAGE_NAME = "com.eup.codeopsstudio"
+    }
+    
+    if (secretsPropertiesFile.exists() && secretsPropertiesFile.text.trim()) {
+        signingEnabled = true
+        secretsProperties.load(new FileInputStream(secretsPropertiesFile))
+    } else if (System.getenv("KEYSTORE_PASSWORD") != null) {
+        signingEnabled = true
+    }
+
+    signingConfigs {
+        global {
+            storeFile rootProject.file("app/codeopsstudio.keystore")
+            keyAlias System.getenv("KEY_ALIAS") ?: secretsProperties['KEY_ALIAS']
+            keyPassword System.getenv("KEY_PASSWORD") ?: secretsProperties['KEY_PASSWORD']
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: secretsProperties['STORE_PASSWORD']
+        }
+    }
+    
+    // Plugin APK must be signed using same signature as the main application
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingEnabled) {
+                signingConfig signingConfigs.global
+            }
+        }
+        
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingEnabled) {
+                signingConfig signingConfigs.global
+            }
+        }
+    }
+    
+    packagingOptions {
+        // Exclude duplicate version.properties files
+        exclude 'version.properties'
+        
+        // Also exclude any other problematic duplicates
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/INDEX.LIST'
+        
+        // Merge strategy for other duplicate files
+        pickFirst 'META-INF/LICENSE.md'
+        pickFirst 'META-INF/NOTICE.md'
+    }
+    
+    configurations.all {
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
+    
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation project(path: ":modules:plugin-api:common")
+    implementation project(path: ":modules:plugin-api:intellisense")
+    
+    implementation 'androidx.annotation:annotation:1.9.1'
+    implementation 'org.eclipse.lemminx:org.eclipse.lemminx:0.30.0'
+    implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1'
+    coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.1.5')
+}

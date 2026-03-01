@@ -6,7 +6,7 @@ androidxConstraintLayout = "2.2.1"
 androidxNavigationFragment = "2.9.4"
 androidxNavigationUi = "2.9.4"
 androidxPreference = "1.2.1"
-androidxSwipeReFreshLayout = "1.2.0-beta01"
+androidxSwipeReFreshLayout = "1.2.0"
 androidxSplashScreen = "1.0.1"
 androidxWorkRuntime = "2.10.4"
 androidxDataStore = "1.1.7"
@@ -37,6 +37,7 @@ leakcanaryAndroid = "2.14"
 soraEditorBom = "0.22.2"
 desugarJDK = "2.1.5"
 glide = "5.0.4"
+lsp4j = "0.21.1"
 # Plugin
 #noinspection AndroidGradlePluginVersion
 androidGradlePlugin = "8.7.0"
@@ -79,6 +80,7 @@ other-jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 other-albfernandez-juniversalchardet = { group = "com.github.albfernandez", name = "juniversalchardet", version.ref = "juniversalchardet" }
 other-eclipse-jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 other-eclipse-jgit-ssh-jsch = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.ssh.jsch", version.ref = "jgit" }
+other-org-eclipse-lsp4j = { group = "org.eclipse.lsp4j", name = "org.eclipse.lsp4j", version.ref = "lsp4j" }
 other-greenrobot-eventbus = { group = "org.greenrobot", name = "eventbus", version.ref = "greenRobotEventBus" }
 other-commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }
 other-apisense-rhino-android = { group = "io.apisense", name = "rhino-android", version.ref = "rhinoAndroid" }
@@ -87,6 +89,7 @@ other-nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "
 other-leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanaryAndroid" }
 other-sora-editor-bom = { group = "io.github.Rosemoe.sora-editor", name = "bom", version.ref = "soraEditorBom" }
 other-sora-editor-code = { group = "io.github.Rosemoe.sora-editor", name = "editor" }
+other-sora-editor-lsp = { group = "io.github.Rosemoe.sora-editor", name = "editor-lsp" }
 other-sora-editor-textmate = { group = "io.github.Rosemoe.sora-editor", name = "language-textmate" }
 other-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 other-glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }

@@ -36,36 +36,36 @@ import java.util.Objects;
  */
 public class ProjectHistory {
 
-    public final long creationDate;
-    /**
-     * The action performed on the file, represented by the {@link FileAction} enum.
-     * This indicates whether the file was created, opened, or modified.
-     */
-    public final FileAction fileAction;
+  public final long creationDate;
 
-    public ProjectHistory(long date, @NonNull FileAction act) {
-        Objects.requireNonNull(act, "FileAction cannot be null for ProjectHistory");
-        this.creationDate = date;
-        this.fileAction   = act;
-    }
+  /**
+   * The action performed on the file, represented by the {@link FileAction} enum. This indicates
+   * whether the file was created, opened, or modified.
+   */
+  public final FileAction fileAction;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(creationDate, fileAction);
-    }
+  public ProjectHistory(long date, @NonNull FileAction act) {
+    Objects.requireNonNull(act, "FileAction cannot be null for ProjectHistory");
+    this.creationDate = date;
+    this.fileAction = act;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ProjectHistory that = (ProjectHistory) o;
-        return creationDate == that.creationDate && fileAction == that.fileAction;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(creationDate, fileAction);
+  }
 
-    @NonNull
-    @Override
-    public String toString() {
-        return "ProjectHistory{" + "creationDate=" + creationDate + ", fileAction=" + fileAction
-            + '}';
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ProjectHistory that = (ProjectHistory) o;
+    return creationDate == that.creationDate && fileAction == that.fileAction;
+  }
+
+  @NonNull
+  @Override
+  public String toString() {
+    return "ProjectHistory{" + "creationDate=" + creationDate + ", fileAction=" + fileAction + '}';
+  }
 }
