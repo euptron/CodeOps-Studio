@@ -119,7 +119,7 @@ The major ones include:
 
 ## Support CodeOps Studio
 
-Help keep CodeOps Studio growing:
+Help keep CodeOps Studio growth:
 
 **[See how to support →](./docs/SUPPORT.md)**
 
