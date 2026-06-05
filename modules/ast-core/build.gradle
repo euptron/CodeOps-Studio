@@ -7,7 +7,11 @@ plugins {
     
 android {
     namespace 'com.eup.codeops.ast.core'
-    compileSdk project.ext.compileSdkVersion
+    compileSdk {
+        version = release(project.ext.compileSdkVersion){
+            minorApiLevel = 1
+        }
+    }
     buildToolsVersion project.ext.buildToolsVersion
 
     defaultConfig {
