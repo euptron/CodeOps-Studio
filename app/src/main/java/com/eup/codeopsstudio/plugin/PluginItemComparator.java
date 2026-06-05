@@ -57,7 +57,7 @@ public class PluginItemComparator extends AbstractComparator<PluginItem> {
 
   @Override
   public int compare(final PluginItem o1, final PluginItem o2) {
-    return ioCase.checkCompareTo(o1.getName(), o2.getName());
+    return ioCase.checkCompareTo(o1.name, o2.name);
   }
 
   @NonNull

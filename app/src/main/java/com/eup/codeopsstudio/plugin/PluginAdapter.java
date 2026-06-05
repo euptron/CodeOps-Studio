@@ -155,10 +155,10 @@ public class PluginAdapter extends ListAdapter<PluginItem, RecyclerView.ViewHold
     }
 
     private void bind(@NonNull PluginItem item) {
-      name.setText(item.getName());
-      author.setText(item.getAuthor());
-      thumbnail.setImageDrawable(item.getIcon());
-      description.setText(item.getDescription());
+      name.setText(item.name);
+      author.setText(item.author);
+      thumbnail.setImageDrawable(item.icon);
+      description.setText(item.description);
       buttonMore.setOnClickListener(
           v -> {
             showPluginPopupMenu(v, item);
@@ -168,7 +168,7 @@ public class PluginAdapter extends ListAdapter<PluginItem, RecyclerView.ViewHold
     private void showPluginPopupMenu(View anchorView, PluginItem pluginItem) {
       Context ctx = anchorView.getContext();
       var popupMenu = new PopupMenu(ctx, anchorView);
-      boolean pluginInstalled = Wizard.isPackageInstalled(ctx, pluginItem.getId());
+      boolean pluginInstalled = Wizard.isPackageInstalled(ctx, pluginItem.id);
       
       popupMenu.getMenu().add(0, 1, 0, ctx.getString(R.string.install_plugin));
       popupMenu.getMenu().add(0, 2, 0, ctx.getString(R.string.uninstall_plugin));
@@ -196,13 +196,13 @@ public class PluginAdapter extends ListAdapter<PluginItem, RecyclerView.ViewHold
     }
 
     private void installPlugin(@NonNull PluginItem item) {
-      String downloadUrl = item.getDownloadUrl();
+      String downloadUrl = item.downloadUrl;
       if (Wizard.isEmpty(downloadUrl)) return;
       // TODO: download & install plugin
     }
 
     private void uninstallPlugin(@NonNull PluginItem item) {
-      var dialog = UninstallDialogFragment.newInstance(item.getId(), item.getName());
+      var dialog = UninstallDialogFragment.newInstance(item.id, item.name);
       dialog.show(fragment.getParentFragmentManager(), UninstallDialogFragment.TAG);
     }
   }

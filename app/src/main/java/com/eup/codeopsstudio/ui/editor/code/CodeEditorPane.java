@@ -23,26 +23,26 @@
 
 package com.eup.codeopsstudio.ui.editor.code;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Environment;
-import android.text.Editable;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.util.Pair;
-import com.eup.codeopsstudio.IdeApplication;
+
 import com.eup.codeopsstudio.R;
 import com.eup.codeopsstudio.common.AsyncTask;
 import com.eup.codeopsstudio.common.Constants;
 import com.eup.codeopsstudio.common.ILog;
 import com.eup.codeopsstudio.common.util.FileUtil;
 import com.eup.codeopsstudio.common.util.PreferencesUtils;
-import com.eup.codeopsstudio.common.util.TextWatcherAdapter;
 import com.eup.codeopsstudio.databinding.LayoutCodeEditorBinding;
 import com.eup.codeopsstudio.databinding.LayoutDialogTextInputBinding;
 import com.eup.codeopsstudio.domain.events.EditorModificationEvent;
@@ -62,24 +62,25 @@ import com.eup.codeopsstudio.util.BaseUtil;
 import com.eup.codeopsstudio.util.EncodingDetector;
 import com.eup.codeopsstudio.util.Wizard;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import io.github.rosemoe.sora.event.ContentChangeEvent;
 import io.github.rosemoe.sora.event.EventReceiver;
 import io.github.rosemoe.sora.event.PublishSearchResultEvent;
 import io.github.rosemoe.sora.event.SelectionChangeEvent;
 import io.github.rosemoe.sora.text.CharPosition;
 import io.github.rosemoe.sora.text.Content;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+
 import org.apache.commons.io.FileUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jetbrains.annotations.Contract;
@@ -143,1170 +144,1089 @@ import org.jetbrains.annotations.Contract;
  * @see SearchManager
  * @since 1.0.0
  */
-public class CodeEditorPane extends Pane
-    implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class CodeEditorPane extends Pane implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-  public static final String TAG = "CodeEditorPane";
-  public static final String KEY_LEFT_LINE = "left_line";
-  public static final String KEY_FILE_PATH = "file_path";
-  public static final String KEY_FILE_SIZE = "file_size";
-  public static final String KEY_WAS_DIRTY = "was_dirty";
-  public static final String KEY_FILE_MTIME = "file_mtime";
-  public static final String KEY_FILE_SCOPE = "file_scope";
-  public static final String KEY_LEFT_COLUMN = "left_column";
-  public static final String KEY_EDITOR_CONTENT = "editor_content";
-  public static final String KEY_FILE_EXTENSION = "file_extension";
+    public static final String TAG = "CodeEditorPane";
+    public static final String KEY_LEFT_LINE = "left_line";
+    public static final String KEY_FILE_PATH = "file_path";
+    public static final String KEY_FILE_SIZE = "file_size";
+    public static final String KEY_WAS_DIRTY = "was_dirty";
+    public static final String KEY_FILE_TIME = "file_time";
+    public static final String KEY_FILE_SCOPE = "file_scope";
+    public static final String KEY_LEFT_COLUMN = "left_column";
+    public static final String KEY_EDITOR_CONTENT = "editor_content";
+    public static final String KEY_FILE_EXTENSION = "file_extension";
 
-  private static final int CURSOR_HISTORY_LIMIT = 50;
-  private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
-  private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
+    private static final int CURSOR_HISTORY_LIMIT = 50;
+    private static final int CONTENT_CHANGE_CHECK_DELAY_MS = 50;
+    private static final String LANG_SCOPE_PATH = Constants.TEXTMATE_ASSET_SCOPE_PATH;
 
-  private String fileScope;
-  private File mEditorFile;
-  private String fileExtension;
-  private boolean isModified = false;
-  private SearchManager searchManager;
-  private UnifiedLanguageProvider ulp;
-  private LayoutCodeEditorBinding binding;
-  private boolean isContentLoaded = false;
-  private boolean navigationInProgress = false;
-  private boolean isHardwareAccelerated = false;
-  private FileOperationsManager fileOperationsManager;
-  private Charset currentCharset = StandardCharsets.UTF_8;
-  private JsonLanguageInfoProvider cachedLanguageProvider;
-  private final Logger logger = new Logger(Logger.LogClass.IDE);
-  private final LinkedList<CharPosition> nextCursorPositions = new LinkedList<>();
-  private final Map<String, Pair<String, String>> languageCache = new HashMap<>();
-  private final LinkedList<CharPosition> previousCursorPositions = new LinkedList<>();
+    private String fileScope;
+    private File mEditorFile;
+    private String fileExtension;
+    private boolean isModified = false;
+    private SearchManager searchManager;
+    private UnifiedLanguageProvider ulp;
+    private LayoutCodeEditorBinding binding;
+    private boolean isContentLoaded = false;
+    private boolean navigationInProgress = false;
+    private FileOperationsManager fileOperationsManager;
+    private Charset currentCharset = StandardCharsets.UTF_8;
+    private JsonLanguageInfoProvider cachedLanguageProvider;
+    private final Logger logger = new Logger(Logger.LogClass.IDE);
+    private final LinkedList<CharPosition> nextCursorPositions = new LinkedList<>();
+    private final Map<String, Pair<String, String>> languageCache = new HashMap<>();
+    private final LinkedList<CharPosition> previousCursorPositions = new LinkedList<>();
 
-  public CodeEditorPane(Context context, String title) {
-    this(context, title, true);
-  }
-
-  public CodeEditorPane(Context context, String title, boolean generateUUID) {
-    super(context, title, generateUUID);
-  }
-
-  @Override
-  public View onCreateView() {
-    binding = LayoutCodeEditorBinding.inflate(LayoutInflater.from(getContext()));
-    return binding.getRoot();
-  }
-
-  @Override
-  public void onViewCreated(@NonNull View view) {
-    super.onViewCreated(view);
-    logger.attach(requireActivity());
-    PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
-    applyEditorTheme();
-
-    searchManager = new SearchManager(requireContext(), binding);
-    searchManager.applyPanelClickListeners();
-    fileOperationsManager = new FileOperationsManager(requireContext(), logger, binding.editor);
-    updateAlertVisibility(false);
-    updateCrumbPanelVisibility();
-
-    binding.breadCrumbBar.setFile(mEditorFile);
-    binding.editor.setFile(mEditorFile);
-    if (binding.breadCrumbBar.getAdapter() != null) {
-      binding
-          .breadCrumbBar
-          .getAdapter()
-          .setOnItemClickListener(
-              (anchorView, crumb, position) ->
-                  new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
+    public CodeEditorPane(Context context, String title) {
+        this(context, title, true);
     }
 
-    if (mEditorFile == null) {
-      restoreFileFromArguments();
-    }
-  }
-
-  @Override
-  protected void onViewLaidOut(@NonNull View view) {
-    super.onViewLaidOut(view);
-    enableEditorFeatures();
-  }
-
-  @Override
-  public void onDestroyView() {
-    super.onDestroyView();
-    ILog.debug(TAG, "onDestroyView started for " + getTitle());
-    try {
-      if (EventBus.getDefault().isRegistered(this)) {
-        EventBus.getDefault().unregister(this);
-      }
-    } catch (Exception e) {
-      // Ignore if not registered
+    public CodeEditorPane(Context context, String title, boolean generateUUID) {
+        super(context, title, generateUUID);
     }
 
-    PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
-    if (binding != null && binding.editor != null) {
-      try {
-        binding.editor.release();
-        if (ulp != null) {
-          ulp.stop();
-          ulp = null;
-        }
-      } catch (Exception e) {
-        logger.e(TAG, "Error releasing editor: " + e.getMessage(), e);
-      }
-    }
-    previousCursorPositions.clear();
-    nextCursorPositions.clear();
-    binding = null;
-  }
-
-  @Override
-  public void onSelected() {
-    super.onSelected();
-    if (binding != null) {
-      binding.editor.requestFocus();
-
-      if (!isContentLoaded) {
-        ILog.debug(TAG, "Loading content on selection: " + getTitle());
-        binding.editor.post(this::loadEditorContentOnSelection);
-      }
-    }
-  }
-
-  @Override
-  public void persist() {
-    super.persist();
-    var cursor = binding.editor.getCursor();
-    addArguments(KEY_LEFT_COLUMN, cursor.getLeftColumn());
-    addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
-    addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
-    addArguments(KEY_FILE_EXTENSION, fileExtension);
-    addArguments(KEY_FILE_SCOPE, fileScope);
-
-    // Save file metadata for change detection
-    if (mEditorFile.exists()) {
-      addArguments(KEY_FILE_MTIME, mEditorFile.lastModified());
-      addArguments(KEY_FILE_SIZE, mEditorFile.length());
+    @Override
+    public View onCreateView() {
+        binding = LayoutCodeEditorBinding.inflate(LayoutInflater.from(getContext()));
+        return binding.getRoot();
     }
 
-    if (isModified()) {
-      addArguments(KEY_EDITOR_CONTENT, binding.editor.getText().toString());
-      addArguments(KEY_WAS_DIRTY, true);
-    } else {
-      addArguments(KEY_EDITOR_CONTENT, "");
-      addArguments(KEY_WAS_DIRTY, false);
-    }
-  }
+    @Override
+    public void onViewCreated(@NonNull View view) {
+        super.onViewCreated(view);
+        logger.attach(requireActivity());
+        PreferencesUtils.getDefaultPreferences().registerOnSharedPreferenceChangeListener(this);
+        applyEditorTheme();
 
-  @Override
-  public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
-    Objects.requireNonNull(key);
-    switch (key) {
-      case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL:
+        searchManager = new SearchManager(requireContext(), binding);
+        searchManager.applyPanelClickListeners();
+        fileOperationsManager = new FileOperationsManager(requireContext(), logger, binding.editor);
+        updateAlertVisibility(false);
         updateCrumbPanelVisibility();
-        break;
-      case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET:
-        refreshEditorLanguageSyntax();
-        break;
-      case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_HARDWARE_ACCELERATION:
-        isHardwareAccelerated = PreferencesUtils.enableHardWareAcceleration();
-        break;
-      default: // Nothing
-    }
-  }
 
-  private void loadEditorContentOnSelection() {
-    boolean hasPersistedChanges = hasPersistedEditorChanges();
+        binding.breadCrumbBar.setFile(mEditorFile);
+        binding.editor.setFile(mEditorFile);
+        if (binding.breadCrumbBar.getAdapter() != null) {
+            binding.breadCrumbBar.getAdapter()
+                                 .setOnItemClickListener((anchorView, crumb, position) -> new CrumbTreePane(getContext(), anchorView).setPath(crumb.getFilePath()));
+        }
 
-    if (hasPersistedChanges) {
-      // We have unsaved changes - check file state
-      boolean fileChangedExternally = hasFileChangedExternally();
-
-      if (fileChangedExternally) {
-        showFileModifiedDialog();
-      } else {
-        restoreFromPersistence();
-        completeLazyLoading();
-      }
-    } else {
-      // No persisted changes - load fresh file content
-      readFileContent();
-      completeLazyLoading();
-    }
-  }
-
-  private void completeLazyLoading() {
-    isContentLoaded = true;
-    ILog.debug(TAG, "Completed lazy loading for: " + getTitle());
-  }
-
-  private boolean hasFileChangedExternally() {
-    final Map<String, Object> args = getArguments();
-    if (args == null || mEditorFile == null || !mEditorFile.exists()) return false;
-
-    long persistedMTime = PaneFactoryImpl.requireLong(KEY_FILE_MTIME, args);
-    long persistedSize = PaneFactoryImpl.requireLong(KEY_FILE_SIZE, args);
-
-    long currentMTime = mEditorFile.lastModified();
-    long currentSize = mEditorFile.length();
-
-    return persistedMTime != currentMTime || persistedSize != currentSize;
-  }
-
-  private void showFileModifiedDialog() {
-    String fileName = mEditorFile.getName();
-    String message = getString(R.string.file_modified_externally, fileName);
-
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(fileName)
-        .setMessage(message)
-        .setPositiveButton(
-            R.string.reload_file,
-            (dialog, which) -> {
-              showReloadConfirmationDialog();
-            })
-        .setNegativeButton(
-            R.string.keep_changes,
-            (dialog, which) -> {
-              restoreFromPersistence();
-              completeLazyLoading();
-            })
-        .setCancelable(false)
-        .show();
-  }
-
-  private void showReloadConfirmationDialog() {
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(R.string.warning)
-        .setMessage(R.string.reload_will_lose_changes)
-        .setPositiveButton(
-            R.string.yes_reload,
-            (dialog, which) -> {
-              readFileContent();
-              completeLazyLoading();
-            })
-        .setNegativeButton(
-            R.string.cancel,
-            (dialog, which) -> {
-              restoreFromPersistence();
-              completeLazyLoading();
-            })
-        .setCancelable(false)
-        .show();
-  }
-
-  private void showReloadWithCharsetConfirmationDialog(Charset charset) {
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(R.string.warning)
-        .setMessage(getString(R.string.reload_with_charset_warning, charset.displayName()))
-        .setPositiveButton(
-            R.string.yes_reload,
-            (dialog, which) -> {
-              performReloadWithCharset(charset);
-            })
-        .setNegativeButton(R.string.cancel, null)
-        .setCancelable(false)
-        .show();
-  }
-
-  private void performReload() {
-    setLoading(true);
-    readFileContent();
-    setLoading(false);
-    showSnackBar(getString(R.string.file_reloaded));
-  }
-
-  private void performReloadWithCharset(Charset charset) {
-    setLoading(true);
-    readFileContentWithCharset(charset);
-    setLoading(false);
-    showSnackBar(getString(R.string.file_reloaded_with_charset, charset.displayName()));
-  }
-
-  private void showSaveAsDialog() {
-    final var inflate = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
-
-    if (inflate.tilName == null || inflate.tilName.getEditText() == null) {
-      ILog.error(TAG, "Error: TIL name or its edittext = null");
-      return;
+        if (mEditorFile == null) {
+            restoreFileFromArguments();
+        }
     }
 
-    final var tilName = inflate.tilName;
-    final var tilNameEditText = inflate.tilName.getEditText();
+    @Override
+    protected void onViewLaidOut(@NonNull View view) {
+        super.onViewLaidOut(view);
+        enableEditorFeatures();
+    }
 
-    tilName.setHint(R.string.enter_filename);
-    String defaultName = mEditorFile != null ? mEditorFile.getName() : "new_file.txt";
-    tilNameEditText.setText(defaultName);
-    tilNameEditText.setSelection(defaultName.length());
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ILog.debug(TAG, "onDestroyView started for " + getTitle());
+        try {
+            if (EventBus.getDefault().isRegistered(this)) {
+                EventBus.getDefault().unregister(this);
+            }
+        } catch (Exception e) {
+            // Ignore if not registered
+        }
 
-    var builder = new MaterialAlertDialogBuilder(requireContext());
-    builder.setView(inflate.getRoot());
-    builder.setTitle(R.string.save_as);
-    builder.setNegativeButton(R.string.cancel, null);
-    builder.setPositiveButton(R.string.ok, null);
-    builder.setCancelable(false);
+        PreferencesUtils.getDefaultPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        if (binding != null) {
+            try {
+                binding.editor.release();
+                if (ulp != null) {
+                    ulp.stop();
+                    ulp = null;
+                }
+            } catch (Exception e) {
+                logger.e(TAG, "Error releasing editor: " + e.getMessage(), e);
+            }
+        }
+        previousCursorPositions.clear();
+        nextCursorPositions.clear();
+        binding = null;
+    }
 
-    AlertDialog dialog = builder.create();
+    @Override
+    public void onSelected() {
+        super.onSelected();
+        if (binding != null) {
+            binding.editor.requestFocus();
 
-    dialog.setOnShowListener(
-        d -> {
-          Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-          positiveButton.setEnabled(true);
+            if (!isContentLoaded) {
+                ILog.debug(TAG, "Loading content on selection: " + getTitle());
+                binding.editor.post(this::loadEditorContentOnSelection);
+            }
+        }
+    }
 
-          positiveButton.setOnClickListener(
-              v -> {
+    @Override
+    public void persist() {
+        super.persist();
+        var cursor = binding.editor.getCursor();
+        addArguments(KEY_LEFT_COLUMN, cursor.getLeftColumn());
+        addArguments(KEY_LEFT_LINE, cursor.getLeftLine());
+        addArguments(KEY_FILE_PATH, mEditorFile.getAbsolutePath());
+        addArguments(KEY_FILE_EXTENSION, fileExtension);
+        addArguments(KEY_FILE_SCOPE, fileScope);
+
+        // Save file metadata for change detection
+        if (mEditorFile.exists()) {
+            addArguments(KEY_FILE_TIME, mEditorFile.lastModified());
+            addArguments(KEY_FILE_SIZE, mEditorFile.length());
+        }
+
+        if (isModified()) {
+            addArguments(KEY_EDITOR_CONTENT, binding.editor.getText().toString());
+            addArguments(KEY_WAS_DIRTY, true);
+        } else {
+            addArguments(KEY_EDITOR_CONTENT, "");
+            addArguments(KEY_WAS_DIRTY, false);
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences pref, String key) {
+        Objects.requireNonNull(key);
+        switch (key) {
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_NAV_PANEL:
+                updateCrumbPanelVisibility();
+                break;
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_AUTO_CLOSE_BRACKET:
+                refreshEditorLanguageSyntax();
+                break;
+            case Constants.SharedPreferenceKeys.KEY_CODE_EDITOR_HARDWARE_ACCELERATION:
+                break;
+            default: // Nothing
+        }
+    }
+
+    private void loadEditorContentOnSelection() {
+        boolean hasPersistedChanges = hasPersistedEditorChanges();
+
+        if (hasPersistedChanges) {
+            // We have unsaved changes - check file state
+            boolean fileChangedExternally = hasFileChangedExternally();
+
+            if (fileChangedExternally) {
+                showFileModifiedDialog();
+            } else {
+                restoreFromPersistence();
+                completeLazyLoading();
+            }
+        } else {
+            // No persisted changes - load fresh file content
+            readFileContent();
+            completeLazyLoading();
+        }
+    }
+
+    private void completeLazyLoading() {
+        isContentLoaded = true;
+        ILog.debug(TAG, "Completed lazy loading for: " + getTitle());
+    }
+
+    private boolean hasFileChangedExternally() {
+        final Map<String, Object> args = getArguments();
+        if (args == null || mEditorFile == null || !mEditorFile.exists()) return false;
+
+        long persistedMTime = PaneFactoryImpl.requireLong(KEY_FILE_TIME, args);
+        long persistedSize = PaneFactoryImpl.requireLong(KEY_FILE_SIZE, args);
+
+        long currentMTime = mEditorFile.lastModified();
+        long currentSize = mEditorFile.length();
+
+        return persistedMTime != currentMTime || persistedSize != currentSize;
+    }
+
+    private void showFileModifiedDialog() {
+        String fileName = mEditorFile.getName();
+        String message = getString(R.string.file_modified_externally, fileName);
+
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(fileName).setMessage(message)
+                                                        .setPositiveButton(R.string.reload_file,
+                                                            (dialog, which) -> showReloadConfirmationDialog())
+                                                        .setNegativeButton(R.string.keep_changes,
+                                                            (dialog, which) -> {
+                                                            restoreFromPersistence();
+                                                            completeLazyLoading();
+                                                        }).setCancelable(false).show();
+    }
+
+    private void showReloadConfirmationDialog() {
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.warning)
+                                                        .setMessage(R.string.reload_will_lose_changes)
+                                                        .setPositiveButton(R.string.yes_reload,
+                                                            (dialog, which) -> {
+                                                            readFileContent();
+                                                            completeLazyLoading();
+                                                        })
+                                                        .setNegativeButton(R.string.cancel,
+                                                            (dialog, which) -> {
+                                                            restoreFromPersistence();
+                                                            completeLazyLoading();
+                                                        }).setCancelable(false).show();
+    }
+
+    private void showReloadWithCharsetConfirmationDialog(Charset charset) {
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.warning)
+                                                        .setMessage(getString(R.string.reload_with_charset_warning, charset.displayName()))
+                                                        .setPositiveButton(R.string.yes_reload,
+                                                            (dialog, which) -> performReloadWithCharset(charset))
+                                                        .setNegativeButton(R.string.cancel, null)
+                                                        .setCancelable(false).show();
+    }
+
+    private void performReload() {
+        setLoading(true);
+        readFileContent();
+        setLoading(false);
+        showSnackBar(getString(R.string.file_reloaded));
+    }
+
+    private void performReloadWithCharset(Charset charset) {
+        setLoading(true);
+        readFileContentWithCharset(charset);
+        setLoading(false);
+        showSnackBar(getString(R.string.file_reloaded_with_charset, charset.displayName()));
+    }
+
+    private void showSaveAsDialog() {
+        final var inflate = LayoutDialogTextInputBinding.inflate(LayoutInflater.from(getContext()));
+
+        if (inflate.tilName.getEditText() == null) {
+            ILog.error(TAG, "Error: TIL name or its edittext = null");
+            return;
+        }
+
+        final var tilName = inflate.tilName;
+        final var tilNameEditText = inflate.tilName.getEditText();
+
+        tilName.setHint(R.string.enter_filename);
+        String defaultName = mEditorFile != null ? mEditorFile.getName() : "new_file.txt";
+        tilNameEditText.setText(defaultName);
+        tilNameEditText.setSelection(defaultName.length());
+
+        var builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setView(inflate.getRoot());
+        builder.setTitle(R.string.save_as);
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.setPositiveButton(R.string.ok, null);
+        builder.setCancelable(false);
+
+        AlertDialog dialog = builder.create();
+
+        dialog.setOnShowListener(d -> {
+            Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            positiveButton.setEnabled(true);
+
+            positiveButton.setOnClickListener(v -> {
                 var fileName = tilNameEditText.getText().toString();
 
                 if (Wizard.isEmpty(fileName)) {
-                  tilName.setError(getString(R.string.filename_cannot_be_empty));
-                  return;
+                    tilName.setError(getString(R.string.filename_cannot_be_empty));
+                    return;
                 }
 
                 performSaveAs(fileName);
                 dialog.dismiss();
-              });
+            });
         });
 
-    dialog.show();
-  }
-
-  private void performSaveAs(String fileName) {
-    if (Wizard.isEmpty(fileName)) {
-      showSnackBar(getString(R.string.filename_cannot_be_empty));
-      return;
+        dialog.show();
     }
 
-    fileName = cleanFileName(fileName);
+    private void performSaveAs(String fileName) {
+        if (Wizard.isEmpty(fileName)) {
+            showSnackBar(getString(R.string.filename_cannot_be_empty));
+            return;
+        }
 
-    File parentDir =
-        mEditorFile != null
-            ? mEditorFile.getParentFile()
+        fileName = cleanFileName(fileName);
+
+        File parentDir = mEditorFile != null ? mEditorFile.getParentFile()
             : Environment.getExternalStorageDirectory();
 
-    if (parentDir == null || !FileUtil.createOrExistsDir(parentDir)) {
-      showSnackBar(getString(R.string.invalid_directory));
-      return;
-    }
-
-    String finalFileName = handleFileExtension(fileName, mEditorFile);
-
-    File targetFile = new File(parentDir, finalFileName);
-
-    if (targetFile.equals(mEditorFile)) {
-      showSnackBar(getString(R.string.same_file_error));
-      return;
-    }
-
-    if (targetFile.exists()) {
-      showOverwriteConfirmationDialog(targetFile, finalFileName);
-    } else {
-      saveToFile(targetFile);
-    }
-  }
-
-  private String cleanFileName(String fileName) {
-    if (FileUtil.isSpace(fileName)) return "unnamed_file";
-
-    String cleaned = fileName.replaceAll("[<>:\"/\\\\|?*]", "_");
-    cleaned = cleaned.trim().replaceAll("^\\.+|\\.+$", "");
-
-    if (FileUtil.isSpace(cleaned)) {
-      cleaned = "unnamed_file";
-    }
-
-    return cleaned;
-  }
-
-  private String handleFileExtension(String fileName, File originalFile) {
-    // If fileName already has a valid extension, use it as is
-    if (hasValidExtension(fileName)) {
-      return fileName;
-    }
-
-    // Only add extension if original file has a valid extension
-    String originalExt = FileUtil.getFileExtension(originalFile);
-    if (!FileUtil.isSpace(originalExt)) {
-      return fileName + "." + originalExt;
-    }
-
-    // No valid extension in original file, return as is
-    return fileName;
-  }
-
-  private boolean hasValidExtension(String fileName) {
-    if (FileUtil.isSpace(fileName)) return false;
-
-    String extension = FileUtil.getFileExtension(fileName);
-    return !FileUtil.isSpace(extension);
-  }
-
-  private void showOverwriteConfirmationDialog(File targetFile, String fileName) {
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(R.string.file_exists)
-        .setMessage(getString(R.string.overwrite_file_confirmation, fileName))
-        .setPositiveButton(
-            R.string.overwrite,
-            (dialog, which) -> {
-              saveToFile(targetFile);
-            })
-        .setNegativeButton(R.string.cancel, null)
-        .show();
-  }
-
-  private void saveToFile(File targetFile) {
-    setLoading(true);
-
-    AsyncTask.runNonCancelable(
-        () -> {
-          String content = binding.editor.getText().toString();
-          FileUtils.writeStringToFile(targetFile, content, currentCharset);
-          return targetFile;
-        },
-        (result, throwable) -> {
-          setLoading(false);
-          if (throwable == null) {
-            setFile(result);
-            setModified(false);
-            showSnackBar(getString(R.string.file_saved_as, result.getName()));
-            logger.i(TAG, "File saved as: " + result.getAbsolutePath());
-          } else {
-            String errorMsg =
-                getString(R.string.msg_save_as_failed) + ": " + throwable.getMessage();
-            showSnackBar(errorMsg);
-            logger.e(TAG, errorMsg, throwable);
-          }
-        });
-  }
-
-  private FileStats calculateFileStatistics() {
-    FileStats stats = new FileStats();
-
-    if (mEditorFile != null && mEditorFile.exists()) {
-      stats.fileSize = mEditorFile.length();
-      stats.encoding = currentCharset.displayName();
-    }
-
-    String content = binding.editor.getText().toString();
-    stats.totalLines = binding.editor.getLineCount();
-    stats.totalChars = content.length();
-    stats.totalCharsNoSpaces = content.replaceAll("\\s", "").length();
-    stats.totalWords = content.trim().isEmpty() ? 0 : content.trim().split("\\s+").length;
-    stats.lineSeparator = System.getProperty("line.separator");
-
-    return stats;
-  }
-
-  private String formatFileSize(long size) {
-    if (size <= 0) return "0 B";
-
-    if (size < 1024) {
-      return size + " B";
-    } else if (size < 1024 * 1024) {
-      return String.format("%.1f KB", size / 1024.0);
-    } else if (size < 1024 * 1024 * 1024) {
-      return String.format("%.1f MB", size / (1024.0 * 1024.0));
-    } else {
-      return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
-    }
-  }
-
-  private void restoreFromPersistence() {
-    setLoading(true);
-
-    AsyncTask.runNonCancelable(
-        () -> {
-          final Map<String, Object> args = getArguments();
-          if (args == null) return null;
-
-          PersistenceData data = new PersistenceData();
-          data.content = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
-          data.extension = PaneFactoryImpl.requireString(KEY_FILE_EXTENSION, args);
-          data.scope = PaneFactoryImpl.requireString(KEY_FILE_SCOPE, args);
-          data.leftLine = PaneFactoryImpl.requireInt(KEY_LEFT_LINE, args);
-          data.leftColumn = PaneFactoryImpl.requireInt(KEY_LEFT_COLUMN, args);
-          return data;
-        },
-        (data, throwable) -> {
-          setLoading(false);
-          if (binding == null || binding.editor == null || data == null) return;
-
-          if (data.content != null) {
-            binding.editor.setText(data.content);
-            // memory is of the essence
-            data.content = null;
-
-            Content text = binding.editor.getText();
-            int totalLines = text.getLineCount();
-
-            // Validate cursor
-            int line = (data.leftLine >= 0 && data.leftLine < totalLines) ? data.leftLine : 0;
-            int maxCol = text.getColumnCount(line);
-            int col = (data.leftColumn >= 0 && data.leftColumn <= maxCol) ? data.leftColumn : 0;
-
-            binding.editor.getCursor().set(line, col);
-            setModified(true);
-            if (mEditorFile != null) {
-              loadEditorLanguage(mEditorFile);
-              boolean autoComplete = PreferencesUtils.enableAutoComplete();
-              boolean autoCloseBrackets = PreferencesUtils.enableBracketAutoClosing();
-
-              setEditorLanguage(autoComplete, autoCloseBrackets, false, data.extension, data.scope);
-            }
-            logger.i(TAG, "Restored editor content from persistence");
-          }
-        });
-  }
-
-  private void readFileContent() {
-    setLoading(true);
-    fileOperationsManager.readFile(
-        mEditorFile,
-        () -> {
-          updateAlertVisibility(true);
-          searchManager.openSearchPanel(false);
-        },
-        result -> {
-          binding.editor.setText(result, null);
-          if (mEditorFile != null) {
-            loadEditorLanguage(mEditorFile);
-          }
-          setModified(false);
-
-          if (!isContentLoaded) {
-            completeLazyLoading();
-          }
-
-          setLoading(false);
-          logger.i(TAG, "File content loaded: " + getTitle());
-        });
-  }
-
-  private void readFileContentWithCharset(Charset charset) {
-    setLoading(true);
-    fileOperationsManager.readFileWithCharset(
-        mEditorFile,
-        charset,
-        () -> {
-          updateAlertVisibility(true);
-          searchManager.openSearchPanel(false);
-        },
-        result -> {
-          binding.editor.setText(result, null);
-          if (mEditorFile != null) {
-            loadEditorLanguage(mEditorFile);
-          }
-          setModified(false);
-          currentCharset = charset;
-
-          if (!isContentLoaded) {
-            completeLazyLoading();
-          }
-
-          setLoading(false);
-          logger.i(TAG, "File content loaded with charset " + charset + ": " + getTitle());
-        });
-  }
-
-  @Nullable
-  private Pair<String, String> getEditorLanguageInfo(@NonNull File file) throws IOException {
-    if (isInvalidContext()) return null;
-
-    String extension = FileUtil.getFileExtension(file);
-
-    // Check cache first
-    if (languageCache.containsKey(extension)) {
-      return languageCache.get(extension);
-    }
-
-    if (cachedLanguageProvider == null) {
-      InputStream is = getAssets().open(LANG_SCOPE_PATH);
-      cachedLanguageProvider = new JsonLanguageInfoProvider(is);
-    }
-
-    String scope = cachedLanguageProvider.getScope(extension);
-    Pair<String, String> result = new Pair<>(extension, scope);
-
-    // Cache the result
-    languageCache.put(extension, result);
-    return result;
-  }
-
-  private boolean isInvalidContext() {
-    if (getContext() == null) {
-      logger.w(TAG, "INVALID EDITOR STATE! RESTART IS REQUIRED");
-      ILog.debug(TAG, "Context is null");
-      return true;
-    }
-    return false;
-  }
-
-  private void applyEditorTheme() {
-    try {
-      boolean isDarkMode = binding.editor.isUIDarkMode();
-      String lightTheme = ContextualCodeEditor.THEME_QUIET_LIGHT;
-      String darkTheme = ContextualCodeEditor.THEME_DARCULA;
-
-      binding.editor.applyTheme(isDarkMode ? darkTheme : lightTheme);
-    } catch (Exception e) {
-      logger.e(TAG, e.getMessage(), e);
-    }
-  }
-
-  private void updateCrumbPanelVisibility() {
-    if (binding != null) {
-      binding.breadCrumbBar.setVisible(PreferencesUtils.displayNavigationPanel());
-    }
-  }
-
-  private void restoreFileFromArguments() {
-    final Map<String, Object> args = getArguments();
-    if (args != null) {
-      String filePath = PaneFactoryImpl.requireString(KEY_FILE_PATH, args);
-      if (filePath != null && !filePath.isEmpty()) {
-        mEditorFile = new File(filePath);
-        ILog.debug(TAG, "Restored mEditorFile from arguments: " + filePath);
-      }
-    }
-  }
-
-  private void setLoading(boolean loading) {
-    if (binding == null) return;
-    binding.progressbar.setVisibility(loading ? View.VISIBLE : View.GONE);
-  }
-
-  private void updateAlertVisibility(boolean show) {
-    if (show) {
-      searchManager.openSearchPanel(false);
-      binding.editor.setVisibility(View.GONE);
-      binding.editorAlertLayout.rootContainer.setVisibility(View.VISIBLE);
-      binding.breadCrumbBar.setVisibility(View.GONE);
-      binding.editorAlertLayout.actionButton.setText(getString(R.string.open_anyway));
-      binding.editorAlertLayout.alertMessage.setText(
-          getString(R.string.alrt_unsupported_txt_encoding));
-      binding.editorAlertLayout.actionButton.setOnClickListener(v -> updateAlertVisibility(false));
-    } else {
-      binding.editor.setVisibility(View.VISIBLE);
-      binding.editorAlertLayout.rootContainer.setVisibility(View.GONE);
-      binding.breadCrumbBar.setVisibility(View.VISIBLE);
-    }
-  }
-
-  public boolean canRedo() {
-    return binding != null && binding.editor.canRedo();
-  }
-
-  public boolean canUndo() {
-    return binding != null && binding.editor.canUndo();
-  }
-
-  // --- PUBLIC
-  public boolean hasPersistedEditorChanges() {
-    final Map<String, Object> args = getArguments();
-    if (args == null) return false;
-
-    final boolean wasDirty = PaneFactoryImpl.requireBoolean(KEY_WAS_DIRTY, args);
-    final String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
-
-    return wasDirty && persistedContent != null && !persistedContent.isEmpty();
-  }
-
-  public void reloadFile() {
-    if (mEditorFile == null || !mEditorFile.exists()) {
-      showSnackBar(getString(R.string.file_not_found));
-      return;
-    }
-
-    if (isModified()) {
-      showReloadConfirmationDialog();
-    } else {
-      performReload();
-    }
-  }
-
-  public void reloadFileWithCharset(@NonNull Charset charset) {
-    if (mEditorFile == null || !mEditorFile.exists()) {
-      showSnackBar(getString(R.string.file_not_found));
-      return;
-    }
-
-    this.currentCharset = charset;
-    if (isModified()) {
-      showReloadWithCharsetConfirmationDialog(charset);
-    } else {
-      performReloadWithCharset(charset);
-    }
-  }
-
-  public void showCharsetSelectionDialog() {
-    List<String> charsets = EncodingDetector.getSupportedEncodings();
-    int defaultCharsetIndex = charsets.indexOf(Constants.FALLBACK_FILE_ENCODING);
-    if (defaultCharsetIndex < 0) {
-      defaultCharsetIndex = charsets.indexOf(StandardCharsets.UTF_8.name());
-    }
-
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(R.string.select_charset)
-        .setSingleChoiceItems(
-            charsets.toArray(new String[0]),
-            defaultCharsetIndex,
-            (dialog, which) -> {
-              Charset selectedCharset = EncodingDetector.findEncoding(charsets.get(which));
-              reloadFileWithCharset(selectedCharset);
-              dialog.dismiss();
-            })
-        .setNegativeButton(R.string.cancel, null)
-        .show();
-  }
-
-  public void saveAs() {
-    if (binding == null || mEditorFile == null) return;
-
-    String currentContent = binding.editor.getText().toString();
-    if (currentContent.isEmpty()) {
-      showSnackBar(getString(R.string.no_content_to_save));
-      return;
-    }
-
-    showSaveAsDialog();
-  }
-
-  public void showStatistics() {
-    if (binding == null) return;
-
-    binding.editor.setIndexing(true);
-
-    AsyncTask.runNonCancelable(
-        () -> {
-          return calculateFileStatistics();
-        },
-        (stats, throwable) -> {
-          binding.editor.setIndexing(false);
-          if (throwable == null && stats != null) {
-            var message = new StringBuilder();
-            message
-                .append("File Name: ")
-                .append(mEditorFile != null ? mEditorFile.getName() : "Untitled")
-                .append("\n");
-            message.append("File Size: ").append(formatFileSize(stats.fileSize)).append("\n");
-            message.append("Total Lines: ").append(stats.totalLines).append("\n");
-            message.append("Total Words: ").append(stats.totalWords).append("\n");
-            message.append("Total Characters: ").append(stats.totalChars).append("\n");
-            message
-                .append("Total Characters (no spaces): ")
-                .append(stats.totalCharsNoSpaces)
-                .append("\n");
-            message.append("Encoding: ").append(stats.encoding).append("\n");
-            message.append("Line Separator: ").append(stats.lineSeparator);
-
-            new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.file_statistics)
-                .setMessage(message.toString())
-                .setPositiveButton(R.string.close, null)
-                .show();
-          } else {
-            String errorMsg =
-                getString(R.string.failed_to_calculate_statistics)
-                    + ": "
-                    + (throwable != null ? throwable.getMessage() : "Unknown error");
-            showSnackBar(errorMsg);
-            logger.e(TAG, errorMsg, throwable);
-          }
-        });
-  }
-
-  public void showSnackBar(@NonNull String message) {
-    if (binding == null || binding.editor == null) return;
-
-    if (!binding.editor.isAttachedToWindow()) {
-      return;
-    }
-
-    var snackBarBuilder = showSnackBarInternal(message);
-
-    if (snackBarBuilder != null) {
-      snackBarBuilder.create();
-    } else {
-      ILog.debug(TAG, "BaseUtil.SnackBarBuilder is null");
-    }
-  }
-
-  public BaseUtil.SnackBarBuilder showSnackBarInternal(@NonNull String message) {
-    if (binding == null || binding.editor == null) return null;
-
-    if (!binding.editor.isAttachedToWindow()) {
-      return null;
-    }
-
-    return BaseUtil.newSnackBarBuilder()
-        .setMessage(message)
-        .setView(binding.editor)
-        .setMessageMaxLines(6)
-        .setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
-  }
-
-  public void refreshEditorLanguageSyntax() {
-    loadEditorLanguage(
-        PreferencesUtils.enableAutoComplete(),
-        PreferencesUtils.enableBracketAutoClosing(),
-        true,
-        mEditorFile);
-  }
-
-  public void loadEditorLanguage(@NonNull File file) {
-    loadEditorLanguage(
-        PreferencesUtils.enableAutoComplete(),
-        PreferencesUtils.enableBracketAutoClosing(),
-        false,
-        file);
-  }
-
-  public void loadEditorLanguage(
-      boolean autoComplete, boolean autoCloseBrackets, boolean refresh, @NonNull File file) {
-    if (refresh) setLoading(true);
-
-    AsyncTask.runNonCancelable(
-        () -> {
-          return getEditorLanguageInfo(file);
-        },
-        (result, throwable) -> {
-          if (refresh) setLoading(false);
-
-          if (binding == null || binding.editor == null) return; // View died
-
-          if (throwable != null) {
-            logger.e(TAG, "Failed to load editor lang", throwable);
+        if (!FileUtil.createOrExistsDir(parentDir)) {
+            showSnackBar(getString(R.string.invalid_directory));
             return;
-          }
+        }
 
-          if (result != null) {
-            fileExtension = result.first;
-            fileScope = result.second;
-            setEditorLanguage(autoComplete, autoCloseBrackets, refresh, fileExtension, fileScope);
-            initializeUnifiedLanguageProvider(file, fileExtension);
-          }
-        });
-  }
+        String finalFileName = handleFileExtension(fileName, mEditorFile);
 
-  private void initializeUnifiedLanguageProvider(File file, String extension) {
-    try {
-      // Clean up existing provider if any
-      if (ulp != null) {
-        ulp.stop();
-        ulp = null;
-      }
+        File targetFile = new File(parentDir, finalFileName);
 
-      ulp =
-          new UnifiedLanguageProvider(
-              logger, binding.editor, extension.startsWith(".") ? extension : "." + extension);
-      ulp.start();
-      logger.i(TAG, "UnifiedLanguageProvider started for: " + file.getName());
-    } catch (Exception e) {
-      logger.e(TAG, "Failed to initialize UnifiedLanguageProvider", e);
+        if (targetFile.equals(mEditorFile)) {
+            showSnackBar(getString(R.string.same_file_error));
+            return;
+        }
+
+        if (targetFile.exists()) {
+            showOverwriteConfirmationDialog(targetFile, finalFileName);
+        } else {
+            saveToFile(targetFile);
+        }
     }
-  }
 
-  public void setEditorLanguage(
-      boolean autoComplete,
-      boolean autoCloseBrackets,
-      boolean refresh,
-      @NonNull String extension,
-      @NonNull String scope) {
-    try {
-      if (refresh) binding.editor.refreshTheme();
-      binding.editor.setEditorLanguage(extension, scope, autoComplete, autoCloseBrackets, refresh);
+    private String cleanFileName(String fileName) {
+        if (FileUtil.isSpace(fileName)) return "unnamed_file";
 
-      if (isSelected()) {
-        binding.editor.post(() -> EventBus.getDefault().post(new EditorReadyEvent(this)));
-      }
-    } catch (Exception e) {
-      String clause = refresh ? getString(R.string.refresh) : getString(R.string.load);
-      String msg = getString(R.string.msg_editor_load_configs_failed, clause);
-      logger.e(TAG, msg, e);
+        String cleaned = fileName.replaceAll("[<>:\"/\\\\|?*]", "_");
+        cleaned = cleaned.trim().replaceAll("^\\.+|\\.+$", "");
+
+        if (FileUtil.isSpace(cleaned)) {
+            cleaned = "unnamed_file";
+        }
+
+        return cleaned;
     }
-  }
 
-  public File getFile() {
-    return mEditorFile;
-  }
+    private String handleFileExtension(String fileName, File originalFile) {
+        // If fileName already has a valid extension, use it as is
+        if (hasValidExtension(fileName)) {
+            return fileName;
+        }
 
-  public void doJumpToLine() {
-    CommandPaletteDialog.newScopedInstance(this, ":", getString(R.string.menu_jump_to_line))
-        .show(requireActivity().getSupportFragmentManager(), "goto_line_palette");
-  }
+        // Only add extension if original file has a valid extension
+        String originalExt = FileUtil.getFileExtension(originalFile);
+        if (!FileUtil.isSpace(originalExt)) {
+            return fileName + "." + originalExt;
+        }
 
-  public void setFile(File file) {
-    this.mEditorFile = file;
-    if (binding != null) {
-      binding.breadCrumbBar.setFile(file);
+        // No valid extension in original file, return as is
+        return fileName;
     }
-  }
 
-  public String getFilePath() {
-    return mEditorFile.getAbsolutePath();
-  }
+    private boolean hasValidExtension(String fileName) {
+        if (FileUtil.isSpace(fileName)) return false;
 
-  public SearchManager getSearchManager() {
-    return searchManager;
-  }
-
-  @Nullable
-  @Contract(pure = true)
-  public EventReceiver<IndexingEvent> indexingEventReceiver() {
-    if (binding == null) return null;
-
-    return (event, data) -> {
-      ContextualCodeEditor cce = (ContextualCodeEditor) event.getEditor();
-      setLoading(cce.isIndexing());
-    };
-  }
-
-  public boolean isModified() {
-    return isModified;
-  }
-
-  public boolean isReadOnlyMode() {
-    if (binding == null) return false;
-    return !binding.editor.isEditable();
-  }
-
-  public void makeReadOnly(boolean readOnly) {
-    if (binding == null || searchManager == null) return;
-
-    if (readOnly) {
-      binding.editor.setEditable(false);
-      searchManager.openSearchPanel(false, true);
-    } else {
-      binding.editor.setEditable(true);
-      searchManager.openSearchPanel(false, false);
+        String extension = FileUtil.getFileExtension(fileName);
+        return !FileUtil.isSpace(extension);
     }
-  }
 
-  public void redo() {
-    if (binding == null) return;
-    binding.editor.redo();
-  }
+    private void showOverwriteConfirmationDialog(File targetFile, String fileName) {
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.file_exists)
+                                                        .setMessage(getString(R.string.overwrite_file_confirmation, fileName))
+                                                        .setPositiveButton(R.string.overwrite,
+                                                            (dialog, which) -> saveToFile(targetFile))
+                                                        .setNegativeButton(R.string.cancel, null)
+                                                        .show();
+    }
 
-  public void saveEditor() {
-    saveEditor(true);
-  }
+    private void saveToFile(File targetFile) {
+        setLoading(true);
 
-  /**
-   * Clear persisted content {@see BaseFragment} for how the editor contents are persisted
-   *
-   * @param recreateIfDeleted recreates the editor file in case it was deleted
-   */
-  public void saveEditor(boolean recreateIfDeleted) {
-    runOnUiThread(() -> getEditor().setIndexing(true));
-
-    AsyncTask.runNonCancelable(
-        () -> {
-          if (recreateIfDeleted && !mEditorFile.exists()) {
-            if (mEditorFile.createNewFile()) {
-              logger.i(TAG, "File recreated for " + getTitle() + " editor");
+        AsyncTask.runNonCancelable(() -> {
+            String content = binding.editor.getText().toString();
+            FileUtils.writeStringToFile(targetFile, content, currentCharset);
+            return targetFile;
+        }, (result, throwable) -> {
+            setLoading(false);
+            if (throwable == null) {
+                setFile(result);
+                setModified(false);
+                showSnackBar(getString(R.string.file_saved_as, result.getName()));
+                logger.i(TAG, "File saved as: " + result.getAbsolutePath());
             } else {
-              throw new IOException("Failed to recreate file: " + mEditorFile.getAbsolutePath());
+                String errorMsg =
+                    getString(R.string.msg_save_as_failed) + ": " + throwable.getMessage();
+                showSnackBar(errorMsg);
+                logger.e(TAG, errorMsg, throwable);
             }
-          }
-
-          fileOperationsManager.saveEditorContent(mEditorFile, binding.editor.getText().toString());
-          return null;
-        },
-        (result, throwable) -> {
-          getEditor().setIndexing(false);
-          if (throwable == null) {
-            ILog.info(
-                TAG,
-                "Successfully saved editor file, any persisted data was cleared to save memory");
-            addArguments(KEY_EDITOR_CONTENT, ""); // persisted editor content
-            setModified(false);
-          } else {
-            var msg =
-                "Error occurred while saving file: "
-                    + mEditorFile.getAbsolutePath()
-                    + ", Reason: "
-                    + throwable.getMessage();
-            logger.e(TAG, msg);
-            showSnackBar(msg);
-          }
         });
-  }
-
-  public ContextualCodeEditor getEditor() {
-    if (!hasPerformedOnViewCreated() | binding == null) {
-      ILog.warning(TAG, "Editor not available - view not created or binding null");
-      return null;
     }
-    return binding.editor;
-  }
 
-  public void setModified(boolean modified) {
-    isModified = modified;
-    EventBus.getDefault().post(new EditorModificationEvent(modified));
-  }
+    private FileStats calculateFileStatistics() {
+        FileStats stats = new FileStats();
 
-  public void undo() {
-    if (binding == null) return;
-    binding.editor.undo();
-  }
+        if (mEditorFile != null && mEditorFile.exists()) {
+            stats.fileSize = mEditorFile.length();
+            stats.encoding = currentCharset.displayName();
+        }
 
-  private void enableEditorFeatures() {
-    try {
-      searchManager.applySearchTextChangedListener();
+        String content = binding.editor.getText().toString();
+        stats.totalLines         = binding.editor.getLineCount();
+        stats.totalChars         = content.length();
+        stats.totalCharsNoSpaces = content.replaceAll("\\s", "").length();
+        stats.totalWords         =
+            content.trim().isEmpty() ? 0 : content.trim().split("\\s+").length;
+        stats.lineSeparator      = System.lineSeparator();
+        return stats;
+    }
 
-      binding.editor.subscribeEvent(
-          SelectionChangeEvent.class,
-          (event, data) -> {
-            searchManager.updatePositionText();
+    @SuppressLint("DefaultLocale")
+    private String formatFileSize(long size) {
+        if (size <= 0) return "0 B";
 
-            if (!navigationInProgress
-                && event.getCause() != SelectionChangeEvent.CAUSE_TEXT_MODIFICATION
-                && !event.isSelected()) {
-              CharPosition currentPos = event.getLeft();
-              if (previousCursorPositions.isEmpty()
-                  || !previousCursorPositions.getLast().equals(currentPos)) {
-                previousCursorPositions.add(currentPos.fromThis());
-                if (previousCursorPositions.size() > CURSOR_HISTORY_LIMIT) {
-                  previousCursorPositions.removeFirst();
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.1f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.1f MB", size / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.1f GB", size / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
+    private void restoreFromPersistence() {
+        setLoading(true);
+
+        AsyncTask.runNonCancelable(() -> {
+            final Map<String, Object> args = getArguments();
+            if (args == null) return null;
+
+            PersistenceData data = new PersistenceData();
+            data.content    = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
+            data.extension  = PaneFactoryImpl.requireString(KEY_FILE_EXTENSION, args);
+            data.scope      = PaneFactoryImpl.requireString(KEY_FILE_SCOPE, args);
+            data.leftLine   = PaneFactoryImpl.requireInt(KEY_LEFT_LINE, args);
+            data.leftColumn = PaneFactoryImpl.requireInt(KEY_LEFT_COLUMN, args);
+            return data;
+        }, (data, throwable) -> {
+            setLoading(false);
+            if (binding == null || data == null) return;
+
+            if (data.content != null) {
+                binding.editor.setText(data.content);
+                // memory is of the essence
+                data.content = null;
+
+                Content text = binding.editor.getText();
+                int totalLines = text.getLineCount();
+
+                // Validate cursor
+                int line = (data.leftLine >= 0 && data.leftLine < totalLines) ? data.leftLine : 0;
+                int maxCol = text.getColumnCount(line);
+                int col = (data.leftColumn >= 0 && data.leftColumn <= maxCol) ? data.leftColumn : 0;
+
+                binding.editor.getCursor().set(line, col);
+                setModified(true);
+                if (mEditorFile != null) {
+                    loadEditorLanguage(mEditorFile);
+                    boolean autoComplete = PreferencesUtils.enableAutoComplete();
+                    boolean autoCloseBrackets = PreferencesUtils.enableBracketAutoClosing();
+
+                    setEditorLanguage(autoComplete, autoCloseBrackets, false, data.extension,
+                        data.scope);
                 }
-                nextCursorPositions.clear();
-              }
+                logger.i(TAG, "Restored editor content from persistence");
             }
-          });
+        });
+    }
 
-      binding.editor.subscribeEvent(
-          ContentChangeEvent.class,
-          (event, data) ->
-              binding.editor.postDelayedInLifecycle(
-                  () -> {
-                    if (mEditorFile == null) {
-                      return;
+    private void readFileContent() {
+        setLoading(true);
+        fileOperationsManager.readFile(mEditorFile, () -> {
+            updateAlertVisibility(true);
+            searchManager.openSearchPanel(false);
+        }, result -> {
+            binding.editor.setText(result, null);
+            if (mEditorFile != null) {
+                loadEditorLanguage(mEditorFile);
+            }
+            setModified(false);
+
+            if (!isContentLoaded) {
+                completeLazyLoading();
+            }
+
+            setLoading(false);
+            logger.i(TAG, "File content loaded: " + getTitle());
+        });
+    }
+
+    private void readFileContentWithCharset(Charset charset) {
+        setLoading(true);
+        fileOperationsManager.readFileWithCharset(mEditorFile, charset, () -> {
+            updateAlertVisibility(true);
+            searchManager.openSearchPanel(false);
+        }, result -> {
+            binding.editor.setText(result, null);
+            if (mEditorFile != null) {
+                loadEditorLanguage(mEditorFile);
+            }
+            setModified(false);
+            currentCharset = charset;
+
+            if (!isContentLoaded) {
+                completeLazyLoading();
+            }
+
+            setLoading(false);
+            logger.i(TAG, "File content loaded with charset " + charset + ": " + getTitle());
+        });
+    }
+
+    @Nullable
+    private Pair<String, String> getEditorLanguageInfo(@NonNull File file) throws IOException {
+        if (isInvalidContext()) return null;
+
+        String extension = FileUtil.getFileExtension(file);
+
+        // Check cache first
+        if (languageCache.containsKey(extension)) {
+            return languageCache.get(extension);
+        }
+
+        if (cachedLanguageProvider == null) {
+            InputStream is = getAssets().open(LANG_SCOPE_PATH);
+            cachedLanguageProvider = new JsonLanguageInfoProvider(is);
+        }
+
+        String scope = cachedLanguageProvider.getScope(extension);
+        Pair<String, String> result = new Pair<>(extension, scope);
+
+        // Cache the result
+        languageCache.put(extension, result);
+        return result;
+    }
+
+    private boolean isInvalidContext() {
+        if (getContext() == null) {
+            logger.w(TAG, "INVALID EDITOR STATE! RESTART IS REQUIRED");
+            ILog.debug(TAG, "Context is null");
+            return true;
+        }
+        return false;
+    }
+
+    private void applyEditorTheme() {
+        try {
+            boolean isDarkMode = binding.editor.isUIDarkMode();
+            String lightTheme = ContextualCodeEditor.THEME_QUIET_LIGHT;
+            String darkTheme = ContextualCodeEditor.THEME_DARCULA;
+
+            binding.editor.applyTheme(isDarkMode ? darkTheme : lightTheme);
+        } catch (Exception e) {
+            logger.e(TAG, e.getMessage(), e);
+        }
+    }
+
+    private void updateCrumbPanelVisibility() {
+        if (binding != null) {
+            binding.breadCrumbBar.setVisible(PreferencesUtils.displayNavigationPanel());
+        }
+    }
+
+    private void restoreFileFromArguments() {
+        final Map<String, Object> args = getArguments();
+        if (args != null) {
+            String filePath = PaneFactoryImpl.requireString(KEY_FILE_PATH, args);
+            if (!Wizard.isEmpty(filePath)) {
+                mEditorFile = new File(filePath);
+                ILog.debug(TAG, "Restored mEditorFile from arguments: " + filePath);
+            }
+        }
+    }
+
+    private void setLoading(boolean loading) {
+        if (binding == null) return;
+        binding.progressbar.setVisibility(loading ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateAlertVisibility(boolean show) {
+        if (show) {
+            searchManager.openSearchPanel(false);
+            binding.editor.setVisibility(View.GONE);
+            binding.editorAlertLayout.rootContainer.setVisibility(View.VISIBLE);
+            binding.breadCrumbBar.setVisibility(View.GONE);
+            binding.editorAlertLayout.actionButton.setText(getString(R.string.open_anyway));
+            binding.editorAlertLayout.alertMessage.setText(getString(R.string.alrt_unsupported_txt_encoding));
+            binding.editorAlertLayout.actionButton.setOnClickListener(v -> updateAlertVisibility(false));
+        } else {
+            binding.editor.setVisibility(View.VISIBLE);
+            binding.editorAlertLayout.rootContainer.setVisibility(View.GONE);
+            binding.breadCrumbBar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public boolean canRedo() {
+        return binding != null && binding.editor.canRedo();
+    }
+
+    public boolean canUndo() {
+        return binding != null && binding.editor.canUndo();
+    }
+
+    // --- PUBLIC
+    public boolean hasPersistedEditorChanges() {
+        final Map<String, Object> args = getArguments();
+        if (args == null) return false;
+
+        final boolean wasDirty = PaneFactoryImpl.requireBoolean(KEY_WAS_DIRTY, args);
+        final String persistedContent = PaneFactoryImpl.requireString(KEY_EDITOR_CONTENT, args);
+
+        return wasDirty && !persistedContent.isEmpty();
+    }
+
+    public void reloadFile() {
+        if (mEditorFile == null || !mEditorFile.exists()) {
+            showSnackBar(getString(R.string.file_not_found));
+            return;
+        }
+
+        if (isModified()) {
+            showReloadConfirmationDialog();
+        } else {
+            performReload();
+        }
+    }
+
+    public void reloadFileWithCharset(@NonNull Charset charset) {
+        if (mEditorFile == null || !mEditorFile.exists()) {
+            showSnackBar(getString(R.string.file_not_found));
+            return;
+        }
+
+        this.currentCharset = charset;
+        if (isModified()) {
+            showReloadWithCharsetConfirmationDialog(charset);
+        } else {
+            performReloadWithCharset(charset);
+        }
+    }
+
+    public void showCharsetSelectionDialog() {
+        List<String> charsets = EncodingDetector.getSupportedEncodings();
+        int defaultCharsetIndex = charsets.indexOf(Constants.FALLBACK_FILE_ENCODING);
+        if (defaultCharsetIndex < 0) {
+            defaultCharsetIndex = charsets.indexOf(StandardCharsets.UTF_8.name());
+        }
+
+        new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.select_charset)
+                                                        .setSingleChoiceItems(charsets.toArray(new String[0]), defaultCharsetIndex, (dialog, which) -> {
+                                                            Charset selectedCharset =
+                                                                EncodingDetector.findEncoding(charsets.get(which));
+                                                            reloadFileWithCharset(selectedCharset);
+                                                            dialog.dismiss();
+                                                        }).setNegativeButton(R.string.cancel, null)
+                                                        .show();
+    }
+
+    public void saveAs() {
+        if (binding == null || mEditorFile == null) return;
+
+        String currentContent = binding.editor.getText().toString();
+        if (currentContent.isEmpty()) {
+            showSnackBar(getString(R.string.no_content_to_save));
+            return;
+        }
+
+        showSaveAsDialog();
+    }
+
+    public void showStatistics() {
+        if (binding == null) return;
+
+        binding.editor.setIndexing(true);
+
+        AsyncTask.runNonCancelable(this::calculateFileStatistics, (stats, throwable) -> {
+            binding.editor.setIndexing(false);
+            if (throwable == null && stats != null) {
+                //noinspection StringBufferReplaceableByString
+                var message = new StringBuilder();
+                message.append("File Name: ")
+                       .append(mEditorFile != null ? mEditorFile.getName() : "Untitled")
+                       .append("\n");
+                message.append("File Size: ").append(formatFileSize(stats.fileSize)).append("\n");
+                message.append("Total Lines: ").append(stats.totalLines).append("\n");
+                message.append("Total Words: ").append(stats.totalWords).append("\n");
+                message.append("Total Characters: ").append(stats.totalChars).append("\n");
+                message.append("Total Characters (no spaces): ").append(stats.totalCharsNoSpaces)
+                       .append("\n");
+                message.append("Encoding: ").append(stats.encoding).append("\n");
+                message.append("Line Separator: ").append(stats.lineSeparator);
+
+                new MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.file_statistics)
+                                                                .setMessage(message.toString())
+                                                                .setPositiveButton(R.string.close
+                                                                    , null)
+                                                                .show();
+            } else {
+                String errorMsg =
+                    getString(R.string.failed_to_calculate_statistics) + ": " + (throwable != null
+                        ? throwable.getMessage() : "Unknown error");
+                showSnackBar(errorMsg);
+                logger.e(TAG, errorMsg, throwable);
+            }
+        });
+    }
+
+    @Override
+    public void showSnackBar(@NonNull String message) {
+        if (binding == null) return;
+
+        if (!binding.editor.isAttachedToWindow()) {
+            return;
+        }
+
+        var snackBarBuilder = showSnackBarInternal(message);
+
+        if (snackBarBuilder != null) {
+            snackBarBuilder.create();
+        } else {
+            ILog.debug(TAG, "BaseUtil.SnackBarBuilder is null");
+        }
+    }
+
+    public BaseUtil.SnackBarBuilder showSnackBarInternal(@NonNull String message) {
+        if (binding == null) return null;
+
+        if (!binding.editor.isAttachedToWindow()) {
+            return null;
+        }
+
+        return BaseUtil.newSnackBarBuilder().setMessage(message).setView(binding.editor)
+                       .setMessageMaxLines(6).setDuration(BaseUtil.SnackBarBuilder.DURATION.LONG);
+    }
+
+    public void refreshEditorLanguageSyntax() {
+        loadEditorLanguage(PreferencesUtils.enableAutoComplete(),
+            PreferencesUtils.enableBracketAutoClosing(), true, mEditorFile);
+    }
+
+    public void loadEditorLanguage(@NonNull File file) {
+        loadEditorLanguage(PreferencesUtils.enableAutoComplete(),
+            PreferencesUtils.enableBracketAutoClosing(), false, file);
+    }
+
+    public void loadEditorLanguage(boolean autoComplete, boolean autoCloseBrackets, boolean refresh,
+        @NonNull File file) {
+        if (refresh) setLoading(true);
+
+        AsyncTask.runNonCancelable(() -> getEditorLanguageInfo(file), (result, throwable) -> {
+            if (refresh) setLoading(false);
+
+            if (binding == null) return; // View died
+
+            if (throwable != null) {
+                logger.e(TAG, "Failed to load editor lang", throwable);
+                return;
+            }
+
+            if (result != null) {
+                fileExtension = result.first;
+                fileScope     = result.second;
+                setEditorLanguage(autoComplete, autoCloseBrackets, refresh, fileExtension,
+                    fileScope);
+                initializeUnifiedLanguageProvider(file, fileExtension);
+            }
+        });
+    }
+
+    private void initializeUnifiedLanguageProvider(File file, String extension) {
+        try {
+            // Clean up existing provider if any
+            if (ulp != null) {
+                ulp.stop();
+                ulp = null;
+            }
+
+            ulp = new UnifiedLanguageProvider(logger, binding.editor,
+                extension.startsWith(".") ? extension : "." + extension);
+            ulp.start();
+            logger.i(TAG, "UnifiedLanguageProvider started for: " + file.getName());
+        } catch (Exception e) {
+            logger.e(TAG, "Failed to initialize UnifiedLanguageProvider", e);
+        }
+    }
+
+    public void setEditorLanguage(boolean autoComplete, boolean autoCloseBrackets, boolean refresh,
+        @NonNull String extension, @NonNull String scope) {
+        try {
+            if (refresh) binding.editor.refreshTheme();
+            binding.editor.setEditorLanguage(extension, scope, autoComplete, autoCloseBrackets,
+                refresh);
+
+            if (isSelected()) {
+                binding.editor.post(() -> EventBus.getDefault().post(new EditorReadyEvent(this)));
+            }
+        } catch (Exception e) {
+            String clause = refresh ? getString(R.string.refresh) : getString(R.string.load);
+            String msg = getString(R.string.msg_editor_load_configs_failed, clause);
+            logger.e(TAG, msg, e);
+        }
+    }
+
+    public File getFile() {
+        return mEditorFile;
+    }
+
+    public void doJumpToLine() {
+        CommandPaletteDialog.newScopedInstance(this, ":", getString(R.string.menu_jump_to_line))
+                            .show(requireActivity().getSupportFragmentManager(),
+                                "goto_line_palette");
+    }
+
+    public void setFile(File file) {
+        this.mEditorFile = file;
+        if (binding != null) {
+            binding.breadCrumbBar.setFile(file);
+        }
+    }
+
+    public String getFilePath() {
+        return mEditorFile.getAbsolutePath();
+    }
+
+    public SearchManager getSearchManager() {
+        return searchManager;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public EventReceiver<IndexingEvent> indexingEventReceiver() {
+        if (binding == null) return null;
+
+        return (event, data) -> {
+            ContextualCodeEditor cce = (ContextualCodeEditor) event.getEditor();
+            setLoading(cce.isIndexing());
+        };
+    }
+
+    public boolean isModified() {
+        return isModified;
+    }
+
+    public boolean isReadOnlyMode() {
+        if (binding == null) return false;
+        return !binding.editor.isEditable();
+    }
+
+    public void makeReadOnly(boolean readOnly) {
+        if (binding == null || searchManager == null) return;
+
+        if (readOnly) {
+            binding.editor.setEditable(false);
+            searchManager.openSearchPanel(false, true);
+        } else {
+            binding.editor.setEditable(true);
+            searchManager.openSearchPanel(false, false);
+        }
+    }
+
+    public void redo() {
+        if (binding == null) return;
+        binding.editor.redo();
+    }
+
+    public void saveEditor() {
+        saveEditor(true);
+    }
+
+    /**
+     * Clear persisted content {@see BaseFragment} for how the editor contents are persisted
+     *
+     * @param recreateIfDeleted recreates the editor file in case it was deleted
+     */
+    public void saveEditor(boolean recreateIfDeleted) {
+        runOnUiThread(() -> getEditor().setIndexing(true));
+
+        AsyncTask.runNonCancelable(() -> {
+            if (recreateIfDeleted && !mEditorFile.exists()) {
+                if (mEditorFile.createNewFile()) {
+                    logger.i(TAG, "File recreated for " + getTitle() + " editor");
+                } else {
+                    throw new IOException(
+                        "Failed to recreate file: " + mEditorFile.getAbsolutePath());
+                }
+            }
+
+            fileOperationsManager.saveEditorContent(mEditorFile, binding.editor.getText()
+                                                                               .toString());
+            return null;
+        }, (result, throwable) -> {
+            getEditor().setIndexing(false);
+            if (throwable == null) {
+                ILog.info(TAG, "Successfully saved editor file, any persisted data was cleared to"
+                    + " save memory");
+                addArguments(KEY_EDITOR_CONTENT, ""); // persisted editor content
+                setModified(false);
+            } else {
+                var msg = "Error occurred while saving file: " + mEditorFile.getAbsolutePath()
+                    + ", Reason: " + throwable.getMessage();
+                logger.e(TAG, msg);
+                showSnackBar(msg);
+            }
+        });
+    }
+
+    public ContextualCodeEditor getEditor() {
+        if (!hasPerformedOnViewCreated() || binding == null) {
+            ILog.warning(TAG, "Editor not available - view not created or binding null");
+            return null;
+        }
+        return binding.editor;
+    }
+
+    public void setModified(boolean modified) {
+        isModified = modified;
+        EventBus.getDefault().post(new EditorModificationEvent(modified));
+    }
+
+    public void undo() {
+        if (binding == null) return;
+        binding.editor.undo();
+    }
+
+    private void enableEditorFeatures() {
+        try {
+            searchManager.applySearchTextChangedListener();
+
+            binding.editor.subscribeEvent(SelectionChangeEvent.class, (event, data) -> {
+                searchManager.updatePositionText();
+                if (navigationInProgress) return;
+
+                if (event.getCause() != SelectionChangeEvent.CAUSE_TEXT_MODIFICATION
+                    && !event.isSelected()) {
+                    CharPosition currentPos = event.getLeft();
+                    if (previousCursorPositions.isEmpty() || !previousCursorPositions.getLast()
+                                                                                     .equals(currentPos)) {
+                        previousCursorPositions.add(currentPos.fromThis());
+                        if (previousCursorPositions.size() > CURSOR_HISTORY_LIMIT) {
+                            previousCursorPositions.removeFirst();
+                        }
+                        nextCursorPositions.clear();
                     }
+                }
+            });
 
-                    if (!mEditorFile.exists()) {
-                      ILog.debug(
-                          TAG, String.format("File: %s does not exist", mEditorFile.getPath()));
-                      return;
+            binding.editor.subscribeEvent(ContentChangeEvent.class,
+                (event, data) -> binding.editor.postDelayedInLifecycle(() -> {
+                if (mEditorFile == null) {
+                    return;
+                }
+
+                if (!mEditorFile.exists()) {
+                    ILog.debug(TAG, String.format("File: %s does not exist",
+                        mEditorFile.getPath()));
+                    return;
+                }
+
+                AsyncTask.runNonCancelable(() -> {
+                    String editorContent = binding.editor.getText().toString();
+                    int bufferSize = PreferencesUtils.getCurrentBufferSize();
+                    var cs = EncodingDetector.detectFileEncoding(bufferSize, mEditorFile);
+                    var originalFileContent = FileUtils.readFileToString(mEditorFile, cs);
+                    return !originalFileContent.contentEquals(editorContent);
+                }, (isEditorModified, th) -> {
+                    if (th == null) {
+                        setModified(isEditorModified);
+                    } else {
+                        logger.e(TAG,
+                            "Failed to read editor modification status: " + th.getMessage());
                     }
+                });
+            }, CONTENT_CHANGE_CHECK_DELAY_MS));
 
-                    AsyncTask.runNonCancelable(
-                        () -> {
-                          String editorContent = binding.editor.getText().toString();
-                          int bufferSize = PreferencesUtils.getCurrentBufferSize();
-                          var cs = EncodingDetector.detectFileEncoding(bufferSize, mEditorFile);
-                          var originalFileContent = FileUtils.readFileToString(mEditorFile, cs);
-                          return !originalFileContent.contentEquals(editorContent);
-                        },
-                        (isEditorModified, th) -> {
-                          if (th == null) {
-                            setModified(isEditorModified);
-                          } else {
-                            logger.e(
-                                TAG,
-                                "Failed to read editor modification status: " + th.getMessage());
-                          }
-                        });
-                  },
-                  CONTENT_CHANGE_CHECK_DELAY_MS));
-
-      binding.editor.subscribeEvent(
-          PublishSearchResultEvent.class, (event, data) -> searchManager.updatePositionText());
-      binding.editor.subscribeEvent(IndexingEvent.class, indexingEventReceiver());
-      searchManager.updatePositionText();
-    } catch (Exception e) {
-      String reason = (e.getMessage() == null) ? "" : e.getMessage();
-      String msg = getString(R.string.failed_to_init_editor) + ", Reason: " + reason;
-      logger.e(TAG, msg, e);
-      showSnackBar(msg);
+            binding.editor.subscribeEvent(PublishSearchResultEvent.class,
+                (event, data) -> searchManager.updatePositionText());
+            binding.editor.subscribeEvent(IndexingEvent.class, indexingEventReceiver());
+            searchManager.updatePositionText();
+        } catch (Exception e) {
+            String reason = (e.getMessage() == null) ? "" : e.getMessage();
+            String msg = getString(R.string.failed_to_init_editor) + ", Reason: " + reason;
+            logger.e(TAG, msg, e);
+            showSnackBar(msg);
+        }
     }
-  }
 
-  public void navigateToPreviousCursorPosition() {
-    if (!previousCursorPositions.isEmpty()) {
-      navigationInProgress = true;
-      CharPosition currentPos = getEditor().getCursor().left().fromThis();
-      nextCursorPositions.add(currentPos);
+    public void navigateToPreviousCursorPosition() {
+        if (!previousCursorPositions.isEmpty()) {
+            navigationInProgress = true;
+            CharPosition currentPos = getEditor().getCursor().left().fromThis();
+            nextCursorPositions.add(currentPos);
 
-      CharPosition lastPos = previousCursorPositions.removeLast();
-      getEditor().setSelection(lastPos.line, lastPos.column);
-      navigationInProgress = false;
+            CharPosition lastPos = previousCursorPositions.removeLast();
+            getEditor().setSelection(lastPos.line, lastPos.column);
+            navigationInProgress = false;
+        }
     }
-  }
 
-  public void navigateToNextCursorPosition() {
-    if (!nextCursorPositions.isEmpty()) {
-      navigationInProgress = true;
-      CharPosition currentPos = getEditor().getCursor().left().fromThis();
-      previousCursorPositions.add(currentPos);
+    public void navigateToNextCursorPosition() {
+        if (!nextCursorPositions.isEmpty()) {
+            navigationInProgress = true;
+            CharPosition currentPos = getEditor().getCursor().left().fromThis();
+            previousCursorPositions.add(currentPos);
 
-      CharPosition nextPos = nextCursorPositions.removeLast();
-      getEditor().setSelection(nextPos.line, nextPos.column);
-      navigationInProgress = false;
+            CharPosition nextPos = nextCursorPositions.removeLast();
+            getEditor().setSelection(nextPos.line, nextPos.column);
+            navigationInProgress = false;
+        }
     }
-  }
 
-  public boolean canNavigateToPrevious() {
-    return !previousCursorPositions.isEmpty();
-  }
-
-  public boolean canNavigateToNext() {
-    return !nextCursorPositions.isEmpty();
-  }
-
-  public void increaseIndent() {
-    if (getEditor() != null) {
-      getEditor().indentLines(false);
+    public boolean canNavigateToPrevious() {
+        return !previousCursorPositions.isEmpty();
     }
-  }
 
-  public void decreaseIndent() {
-    if (getEditor() != null) {
-      getEditor().unindentSelection();
+    public boolean canNavigateToNext() {
+        return !nextCursorPositions.isEmpty();
     }
-  }
 
-  public void setSoftWrapEnabled(boolean enabled) {
-    if (getEditor() != null) {
-      getEditor().setWordwrap(enabled);
+    public void increaseIndent() {
+        if (getEditor() != null) {
+            getEditor().indentLines(false);
+        }
     }
-  }
 
-  public boolean isSoftWrapEnabled() {
-    if (getEditor() == null) return false;
-    return getEditor().isWordwrap();
-  }
-
-  public void setSmoothModeEnabled(boolean enabled) {
-    if (getEditor() != null) {
-      if (!isSmoothModeEnabled()) {
-        BaseUtil.displayDialog(requireContext(), R.string.msg_lite_mode_description);
-      }
-      getEditor().setBasicDisplayMode(enabled);
+    public void decreaseIndent() {
+        if (getEditor() != null) {
+            getEditor().unindentSelection();
+        }
     }
-  }
 
-  public boolean isSmoothModeEnabled() {
-    if (getEditor() == null) return false;
-    return getEditor().isBasicDisplayMode();
-  }
+    public void setSoftWrapEnabled(boolean enabled) {
+        if (getEditor() != null) {
+            getEditor().setWordwrap(enabled);
+        }
+    }
 
-  public void showLanguagePicker() {
-    CommandPaletteDialog.newScopedInstance(
-            this, "@syntax -", getString(R.string.select_language_mode))
-        .show(requireActivity().getSupportFragmentManager(), "language_picker_palette");
-  }
+    public boolean isSoftWrapEnabled() {
+        if (getEditor() == null) return false;
+        return getEditor().isWordwrap();
+    }
 
-  private static class FileStats {
-    long fileSize;
-    int totalLines;
-    int totalWords;
-    int totalChars;
-    int totalCharsNoSpaces;
-    String encoding;
-    String lineSeparator;
-  }
+    public void setSmoothModeEnabled(boolean enabled) {
+        if (getEditor() != null) {
+            if (!isSmoothModeEnabled()) {
+                BaseUtil.displayDialog(requireContext(), R.string.msg_lite_mode_description);
+            }
+            getEditor().setBasicDisplayMode(enabled);
+        }
+    }
 
-  private static class PersistenceData {
-    String content;
-    String extension;
-    String scope;
-    int leftLine;
-    int leftColumn;
-  }
+    public boolean isSmoothModeEnabled() {
+        if (getEditor() == null) return false;
+        return getEditor().isBasicDisplayMode();
+    }
+
+    public void showLanguagePicker() {
+        CommandPaletteDialog
+            .newScopedInstance(this, "@syntax -", getString(R.string.select_language_mode))
+            .show(requireActivity().getSupportFragmentManager(), "language_picker_palette");
+    }
+
+    private static class FileStats {
+        long fileSize;
+        int totalLines;
+        int totalWords;
+        int totalChars;
+        int totalCharsNoSpaces;
+        String encoding;
+        String lineSeparator;
+    }
+
+    private static class PersistenceData {
+        String content;
+        String extension;
+        String scope;
+        int leftLine;
+        int leftColumn;
+    }
 }

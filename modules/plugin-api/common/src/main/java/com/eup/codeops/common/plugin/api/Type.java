@@ -13,7 +13,7 @@ public enum Type {
     this.ext = ext;
   }
 
-  public String getExtension() {
-    return this.ext;
-  }
+    public String getExtension() {
+        return this.ext;
+    }
 }

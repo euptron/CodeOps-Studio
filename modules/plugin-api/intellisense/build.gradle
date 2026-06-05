@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     id 'maven-publish'
@@ -5,7 +7,11 @@ plugins {
     
 android {
     namespace 'com.eup.codeops.intellisense.plugin.api'
-    compileSdk project.ext.compileSdkVersion
+    compileSdk {
+        version =  release(project.ext.compileSdkVersion) {
+            minorApiLevel = 1
+        }
+    }
     buildToolsVersion project.ext.buildToolsVersion
 
     defaultConfig {
@@ -23,22 +29,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    
     packagingOptions {
-        // Exclude duplicate version.properties files
-        exclude 'version.properties'
-        
-        // Also exclude any other problematic duplicates
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/INDEX.LIST'
-        
-        // Merge strategy for other duplicate files
-        pickFirst 'META-INF/LICENSE.md'
-        pickFirst 'META-INF/NOTICE.md'
+        resources {
+            excludes += ['version.properties', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/NOTICE', 'META-INF/INDEX.LIST']
+            pickFirsts += ['META-INF/LICENSE.md', 'META-INF/NOTICE.md']
+        }
     }
-    
+
+
     compileOptions {
         coreLibraryDesugaringEnabled true
         sourceCompatibility project.ext.javaSourceVersion
@@ -53,9 +51,16 @@ android {
 dependencies {
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.appcompat)
+    implementation libs.androidx.core.ktx
     implementation(libs.other.org.eclipse.lsp4j)
     implementation project(path: ":modules:plugin-api:common")
     coreLibraryDesugaring(libs.other.desugar)
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }
 
 afterEvaluate {

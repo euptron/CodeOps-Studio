@@ -23,11 +23,14 @@
 
 package com.eup.codeopsstudio.palette.registry;
 
+import android.app.Activity;
 import android.content.Context;
 import android.widget.EditText;
+
 import com.eup.codeopsstudio.palette.PaletteItem;
 import com.eup.codeopsstudio.ui.editor.code.CodeEditorPane;
 import com.eup.codeopsstudio.palette.providers.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,49 +48,48 @@ import java.util.List;
  */
 public class PaletteRegistry {
 
-  private final RecentProvider recentProvider;
-  private final List<CommandProvider> providers = new ArrayList<>();
+    private final RecentProvider recentProvider;
+    private final List<CommandProvider> providers = new ArrayList<>();
 
-  public PaletteRegistry(Context context, EditText searchInput, CodeEditorPane cep) {
-    this.recentProvider = new RecentProvider(context);
+    public PaletteRegistry(Context context, EditText searchInput, CodeEditorPane cep) {
+        this.recentProvider = new RecentProvider(context);
 
-    providers.add(new SyntaxProvider(context, cep));
-    providers.add(new SymbolProvider(context, searchInput));
-    providers.add(new ActionProvider(context));
-    providers.add(new LineProvider(context, cep));
-    providers.add(new HelpProvider(context, searchInput));
+        providers.add(new SyntaxProvider(context, cep));
+        providers.add(new SymbolProvider(context, searchInput));
+        providers.add(new ActionProvider(context));
+        providers.add(new LineProvider(context, cep));
+        providers.add(new HelpProvider(context, searchInput));
+        providers.add(new WindowProvider((Activity) context, searchInput));
 
-    // Order Matters: Longest triggers should be registered first for specific matching
-    providers.sort((p1, p2) -> Integer.compare(p2.getTrigger().length(), p1.getTrigger().length()));
-    // Fallback (Empty trigger)
-    providers.add(new FileProvider(context));
-  }
-
-  public List<PaletteItem> search(String query) {
-    if (query == null || query.isEmpty()) {
-      return recentProvider.getItems("", "");
+        // Order Matters: Longest triggers should be registered first for specific matching
+        providers.sort((p1, p2) -> Integer.compare(p2.getTrigger().length(), p1.getTrigger()
+                                                                               .length()));
+        // Fallback (Empty trigger)
+        providers.add(new FileProvider(context));
     }
 
-    int maxLen = -1;
-    String cleanQuery = query;
-    CommandProvider bestMatch = null;
-
-    // use provider with longest matching trigger
-    for (CommandProvider provider : providers) {
-      String trigger = provider.getTrigger();
-      if (cleanQuery.startsWith(trigger)) {
-        if (trigger.length() > maxLen) {
-          maxLen = trigger.length();
-          bestMatch = provider;
+    public List<PaletteItem> search(String query) {
+        if (query == null || query.isEmpty()) {
+            return recentProvider.getItems("", "");
         }
-      }
-    }
 
-    if (bestMatch != null) {
-      String content = cleanQuery.substring(bestMatch.getTrigger().length());
-      return bestMatch.getItems(cleanQuery, content);
-    }
+        int maxLen = -1;
+        CommandProvider bestMatch = null;
 
-    return new ArrayList<>();
-  }
+        // use provider with the longest matching trigger
+        for (CommandProvider provider : providers) {
+            String trigger = provider.getTrigger();
+            if (query.startsWith(trigger) && trigger.length() > maxLen) {
+                maxLen    = trigger.length();
+                bestMatch = provider;
+            }
+        }
+
+        if (bestMatch != null) {
+            String content = query.substring(bestMatch.getTrigger().length());
+            return bestMatch.getItems(query, content);
+        }
+
+        return new ArrayList<>();
+    }
 }

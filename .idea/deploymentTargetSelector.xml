@@ -4,10 +4,21 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-09-05T04:52:54.629221500Z">
+        <DropdownSelection timestamp="2026-06-04T22:16:41.583151300Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=EE421L087800" />
+              <DeviceId pluginId="Default" identifier="serial=172.31.86.38:5555;connection=d702abff" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="plugins.xml-lsp">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-05-25T09:18:12.998943100Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=144131558V004137" />
             </handle>
           </Target>
         </DropdownSelection>

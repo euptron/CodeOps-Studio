@@ -168,7 +168,7 @@ public class PluginFragment extends Fragment {
     List<PluginItem> results = new ArrayList<>();
 
     for (PluginItem item : items) {
-      if (item.getName().toLowerCase().contains(cleanQuery)) {
+      if (item.name.toLowerCase().contains(cleanQuery)) {
         results.add(item);
       }
     }

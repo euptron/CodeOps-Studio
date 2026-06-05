@@ -1,5 +1,6 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
+    <option name="AUTODETECT_INDENTS" value="false" />
     <JavaCodeStyleSettings>
       <option name="REPLACE_INSTANCEOF_AND_CAST" value="true" />
       <option name="IMPORT_LAYOUT_TABLE">
@@ -43,16 +44,25 @@
     <XML>
       <option name="XML_KEEP_LINE_BREAKS" value="true" />
     </XML>
+    <codeStyleSettings language="HTML">
+      <indentOptions>
+        <option name="INDENT_SIZE" value="2" />
+        <option name="CONTINUATION_INDENT_SIZE" value="4" />
+        <option name="TAB_SIZE" value="2" />
+      </indentOptions>
+    </codeStyleSettings>
     <codeStyleSettings language="JAVA">
       <option name="RIGHT_MARGIN" value="100" />
       <option name="KEEP_LINE_BREAKS" value="false" />
       <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
+      <option name="KEEP_CONTROL_STATEMENT_IN_ONE_LINE" value="false" />
       <option name="KEEP_BLANK_LINES_IN_DECLARATIONS" value="1" />
       <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
       <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="0" />
       <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
       <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
       <option name="ALIGN_MULTILINE_RESOURCES" value="false" />
+      <option name="ALIGN_MULTILINE_METHOD_BRACKETS" value="true" />
       <option name="ALIGN_CONSECUTIVE_ASSIGNMENTS" value="true" />
       <option name="SPACE_WITHIN_BRACES" value="true" />
       <option name="SPACE_WITHIN_EMPTY_ARRAY_INITIALIZER_BRACES" value="true" />
@@ -64,7 +74,6 @@
       <option name="BINARY_OPERATION_SIGN_ON_NEXT_LINE" value="true" />
       <option name="TERNARY_OPERATION_WRAP" value="1" />
       <option name="TERNARY_OPERATION_SIGNS_ON_NEXT_LINE" value="true" />
-      <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
       <option name="KEEP_SIMPLE_LAMBDAS_IN_ONE_LINE" value="true" />
       <option name="KEEP_SIMPLE_CLASSES_IN_ONE_LINE" value="true" />
       <option name="FOR_STATEMENT_WRAP" value="1" />
@@ -579,6 +588,7 @@
     </codeStyleSettings>
     <codeStyleSettings language="kotlin">
       <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
+      <option name="WRAP_ON_TYPING" value="0" />
     </codeStyleSettings>
   </code_scheme>
 </component>

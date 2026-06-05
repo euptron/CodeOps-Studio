@@ -1,0 +1,66 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+}
+
+dependencies {
+    implementation(libs.other.mozilla.rhino)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.java
+
+                groupId = 'io.github.codeops'
+                artifactId = 'plugin-sdk'
+                version = '0.0.1'
+
+                pom {
+                    name = 'plugin-sdk'
+                    description = 'The plugin SDK — the foundation to build plugins that run on Android.'
+                    url = 'https://github.com/codeops-studio/plugin-sdk'
+
+                    licenses {
+                        license {
+                            name = 'Apache License v2.0'
+                            url = 'https://github.com/CodeOps-Studio/plugin-sdk/blob/main/LICENSE'
+                            distribution = 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'euptron'
+                            name = 'Etido Peter'
+                            email = 'euptron@gmail.com'
+                        }
+                    }
+
+                    scm {
+                        connection = 'scm:git:github.com/CodeOps-Studio/plugin-sdk.git'
+                        developerConnection = 'scm:git:ssh://github.com/CodeOps-Studio/plugin-sdk.git'
+                        url = 'https://github.com/CodeOps-Studio/plugin-sdk'
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/CodeOps-Studio/plugin-sdk"
+                credentials {
+                    username = "euptron"
+                    password = System.getenv("GHPKGS_LIB_PUB_TOKEN")
+                }
+            }
+        }
+    }
+}

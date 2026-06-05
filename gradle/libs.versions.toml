@@ -23,7 +23,7 @@ junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 commonsIO = "2.18.0"
-ossLicensesPlugin = "0.10.6"
+ossLicensesPlugin = "0.12.0"
 zip4j = "2.11.1"
 volley = "1.2.1"
 jsoup = "1.15.3"
@@ -31,7 +31,7 @@ juniversalchardet = "2.4.0"
 jgit = "5.13.4.202507202350-r"
 greenRobotEventBus = "3.3.1"
 commonmark = "0.20.0"
-rhinoAndroid = "1.3.0"
+mozilla = "1.3.0"
 nanohttpd = "2.3.1"
 leakcanaryAndroid = "2.14"
 soraEditorBom = "0.22.2"
@@ -40,10 +40,11 @@ glide = "5.0.4"
 lsp4j = "0.21.1"
 # Plugin
 #noinspection AndroidGradlePluginVersion
-androidGradlePlugin = "8.7.0"
-googleServicesPlugin = "4.4.3"
-firebaseCrashlyticsPlugin = "3.0.5"
-#kotlin = "2.1.21"
+androidGradlePlugin = "9.2.1"
+googleServicesPlugin = "4.4.4"
+firebaseCrashlyticsPlugin = "3.0.7"
+
+coreKtx = "1.18.0"
 
 [libraries]
 # AndroidX
@@ -83,7 +84,7 @@ other-eclipse-jgit-ssh-jsch = { group = "org.eclipse.jgit", name = "org.eclipse.
 other-org-eclipse-lsp4j = { group = "org.eclipse.lsp4j", name = "org.eclipse.lsp4j", version.ref = "lsp4j" }
 other-greenrobot-eventbus = { group = "org.greenrobot", name = "eventbus", version.ref = "greenRobotEventBus" }
 other-commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }
-other-apisense-rhino-android = { group = "io.apisense", name = "rhino-android", version.ref = "rhinoAndroid" }
+other-mozilla-rhino = { group = "io.apisense", name = "rhino-android", version.ref = "mozilla" }
 other-desugar = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJDK" }
 other-nanohttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanohttpd" }
 other-leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanaryAndroid" }
@@ -94,10 +95,10 @@ other-sora-editor-textmate = { group = "io.github.Rosemoe.sora-editor", name = "
 other-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 other-glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 
 
 [plugins]
-#kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }

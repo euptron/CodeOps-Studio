@@ -53,11 +53,12 @@ android {
 }
 
 dependencies {
+    implementation libs.androidx.core.ktx
     implementation(libs.google.material)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.preference)
     implementation(libs.androidx.navigation.ui)
     implementation(libs.androidx.navigation.fragment)
 
-    implementation project(path: ":share-layout")
+    implementation project(path: ":modules:share-layout")
 }

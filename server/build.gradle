@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 /*
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
@@ -27,7 +29,11 @@ plugins {
 
 android {
     namespace 'com.eup.codeopsstudio.server'
-    compileSdk project.ext.compileSdkVersion
+    compileSdk {
+        version = release(project.ext.compileSdkVersion){
+            minorApiLevel = 1
+        }
+    }
     buildToolsVersion project.ext.buildToolsVersion
 
     defaultConfig {
@@ -55,4 +61,11 @@ android {
 dependencies {
     api(libs.other.nanohttpd)
     implementation project(path: ":common")
+    implementation libs.androidx.core.ktx
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }

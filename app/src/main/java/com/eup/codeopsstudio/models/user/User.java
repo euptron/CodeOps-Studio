@@ -103,6 +103,8 @@ public class User {
 
     public static void registerSession() {
         var analytics = IdeApplication.getAnalytics();
+        if (analytics == null) return;
+
         var context = IdeApplication.getGlobalContext();
         var deviceInfo = new DeviceInfo(context);
         var uniqueID = Wizard.getUserID(context);

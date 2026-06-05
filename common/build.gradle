@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 /*
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
@@ -49,7 +51,6 @@ android {
     buildFeatures {
         viewBinding true
     }
-
 }
 
 dependencies {
@@ -66,9 +67,16 @@ dependencies {
     api(libs.other.lingala.zip4j)
 
     implementation(libs.androidx.appcompat)
+    implementation libs.androidx.core.ktx
     implementation(libs.androidx.preference)
     implementation(libs.google.material)
 
     implementation project(path: ":shared-res")
     implementation project(path: ":modules:ast-core")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }

@@ -65,6 +65,17 @@ To contribute to CodeOps Studio, follow these steps:
 - Update documentation for any changes in APIs or significant features.
 - Ensure the code follows our style guidelines and passes linting checks.
 
+## Handling Firebase (google-services.json)
+
+CodeOps Studio uses Firebase for analytics and crash reporting. For security reasons, the `google-services.json` file is not included in the repository.
+
+To allow the project to build without the real configuration:
+- A custom Gradle script (`app/google-services-dummy.gradle`) is applied in the app module.
+- If the file is missing during build time, this script automatically generates a dummy `google-services.json`.
+*   **No manual action is required** to get the project to compile and run.
+- If you have your own Firebase project and wish to use it, simply place your `google-services.json` in the `app/` directory; the script will detect it and won't overwrite it.
+- The dummy `google-services.json` is ignored when you make push to stay in sync with the orginal repo
+
 ## Bug Reporting
 
 We use GitHub issues to track bugs. If you encounter a bug, please report it

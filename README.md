@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/github/repo-size/euptron/CodeOps-Studio?color=%2393000A" alt="Repo Size">
   <img src="https://img.shields.io/badge/Active%20Users-400%2B-blue" alt="Users">
   <img src="https://img.shields.io/badge/Api-Android%208%2B-brightgreen" alt="Android">
+  <a href="https://www.bestpractices.dev/projects/13104"><img src="https://www.bestpractices.dev/projects/13104/badge"></a>
 </p>
 
 ## Repository
@@ -61,7 +62,7 @@ This repository contains the open-source code for **CodeOps Studio** — a mobil
 
 **Implemented (Web & Server)**
 
-- [x] Local Server Testing (localhost/WiFi hotspot)
+- [x] Local Server Testing (localhost/Wi-Fi hotspot)
 - [x] Web Development Tools
 
 **In Progress**
@@ -116,17 +117,15 @@ The major ones include:
 - [CodeOps Studio X/Twitter](https://x.com/codeopsstudio)
 - [CodeOps Studio Telegram Channel](https://t.me/codeopsstudio)
 
-<!--
-## Sponsorship
+## Support CodeOps Studio
 
-Support CodeOps Studio's growth by becoming a sponsor! Your contributions help us:  
-- Improve hardware resources for faster development  
-- Expand features and support more languages  
-- Maintain and grow the community  
+Help keep CodeOps Studio growing. Your support goes directly toward:
 
-[![Donate via OpenCollective](https://img.shields.io/badge/Donate-OpenCollective-blue)](https://opencollective.com/codeopsstudio)  
+- Development tools and resources
+- Expanding features and language support
+- Maintaining the community
 
--->
+**[See how to support →](./docs/SUPPORT.md)**
 
 ## Contribution Guidelines
 
@@ -143,7 +142,7 @@ to open an issue or contact the maintainers.
 
 ## License
 
-Copyright (c) Etido Peter. All rights reserved.
+Copyright © Etido Peter. All rights reserved.
 
 Licensed under [GNU GPLv3](./LICENSE).
 

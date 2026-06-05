@@ -1,0 +1,82 @@
+/*
+ * This file is part of CodeOps Studio.
+ * CodeOps Studio - Code anywhere anytime
+ * https://github.com/euptron/CodeOps-Studio
+ * Copyright (C) 2024-2026 Etido Peter
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see https://www.gnu.org/licenses/
+ *
+ * If you have more questions, feel free to message Etido Peter if you have any
+ * questions or need additional information. Email: etido.up@gmail.com
+ */
+
+/**
+ * This script ensures that a `google-services.json` file exists in the app module.
+ * If the file is missing, it creates a dummy version to satisfy the Google Services Plugin
+ * and prevent build failures.
+ */
+
+def googleServicesFile = file("google-services.json")
+
+if (!googleServicesFile.exists()) {
+    logger.lifecycle("google-services.json not found in :app. Creating a dummy file for build compatibility.")
+    
+    // Use the applicationId from project.ext if available, otherwise fallback to a default
+    def pkgName = project.hasProperty('ext') && project.ext.has('applicationId') ? 
+                  project.ext.applicationId : "com.eup.codeopsstudio"
+
+    // Try to get values from secrets.properties or environment variables
+    def secretsFile = rootProject.file("secrets.properties")
+    def secrets = new Properties()
+    if (secretsFile.exists()) {
+        try {
+            secretsFile.withInputStream { secrets.load(it) }
+        } catch (Exception ignored) {}
+    }
+
+    def apiKey = secrets.getProperty("FIREBASE_API_KEY") ?: System.getenv("FIREBASE_API_KEY") ?: "AIzaSyB3-dummy-key-for-build-compatibility"
+    def appId = secrets.getProperty("FIREBASE_APP_ID") ?: System.getenv("FIREBASE_APP_ID") ?: "1:1234567890:android:abcdef1234567890"
+    def projectId = secrets.getProperty("FIREBASE_PROJECT_ID") ?: System.getenv("FIREBASE_PROJECT_ID") ?: "dummy-project-id"
+    def projectNumber = secrets.getProperty("FIREBASE_PROJECT_NUMBER") ?: System.getenv("FIREBASE_PROJECT_NUMBER") ?: "1234567890"
+
+    googleServicesFile.text = """{
+  "project_info": {
+    "project_number": "${projectNumber}",
+    "project_id": "${projectId}",
+    "storage_bucket": "${projectId}.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "${appId}",
+        "android_client_info": {
+          "package_name": "${pkgName}"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "${apiKey}"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+"""
+}

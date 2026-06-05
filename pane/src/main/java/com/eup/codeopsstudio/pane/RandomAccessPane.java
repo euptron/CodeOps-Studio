@@ -31,7 +31,7 @@ import androidx.annotation.NonNull;
 /**
  * The {@code RandomAccessPane} class represents a {@link Pane} fundamentals.
  *
- * <p>Alias: Random Access Pane This class shouldn't be sub-classed. If you needs additional fields,
+ * <p>Alias: Random Access Pane This class shouldn't be sub-classed. If you need additional fields,
  * either they should be generic enough to be added here, or you should pass the information as a
  * string argument preferably a JSON string as it's more flexible.
  *
@@ -62,8 +62,7 @@ public final class RandomAccessPane implements Parcelable {
     /**
      * Creates a new instance of the Parcelable class, instantiating it from the given Parcel.
      */
-    public static final Parcelable.Creator<RandomAccessPane> CREATOR =
-        new Parcelable.Creator<RandomAccessPane>() {
+    public static final Parcelable.Creator<RandomAccessPane> CREATOR = new Parcelable.Creator<>() {
         @Override
         public RandomAccessPane createFromParcel(Parcel in) {
             return new RandomAccessPane(in);

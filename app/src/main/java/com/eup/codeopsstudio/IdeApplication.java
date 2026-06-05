@@ -50,6 +50,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.FirebaseApp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import androidx.annotation.Nullable;
 
 public class IdeApplication extends Application implements Thread.UncaughtExceptionHandler {
 
@@ -81,16 +82,22 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
     themeManager.applyTheme();
     themeManager.applyDynamicColors();
 
-    FirebaseApp.initializeApp(this);
-    crashlytics = FirebaseCrashlytics.getInstance();
-    analytics = FirebaseAnalytics.getInstance(this);
+    try {
+      if (FirebaseApp.getApps(this).isEmpty()) {
+        FirebaseApp.initializeApp(this);
+      }
+      crashlytics = FirebaseCrashlytics.getInstance();
+      analytics = FirebaseAnalytics.getInstance(this);
 
-    crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
-    analytics.setAnalyticsCollectionEnabled(userHasConsentedToDataSharing());
+      crashlytics.setCrashlyticsCollectionEnabled(userHasConsentedToDataSharing());
+      analytics.setAnalyticsCollectionEnabled(userHasConsentedToDataSharing());
+      crashlytics.sendUnsentReports();
+    } catch (Exception e) {
+      ILog.error(TAG, "Firebase initialization failed. Firebase features will be disabled.", e);
+    }
 
     Thread.setDefaultUncaughtExceptionHandler(this);
     pluginScanner = PluginScanner.get(this);
-    crashlytics.sendUnsentReports();
 
     validateExpirationDate();
     loadEditorConfigurations();
@@ -158,25 +165,27 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
       errorMessage.append(ThrowableUtils.getFullStackTrace(throwable));
       errorMessage.append(crashDate).append(Constants.NEXT_LINE.repeat(2));
 
-      crashlytics.setUserId(Wizard.getUserID(getGlobalContext()));
-      CustomKeysAndValues keysAndValues =
-          new CustomKeysAndValues.Builder()
-              .putString("Device " + "Model", Wizard.getDeviceBuildModel())
-              .putString("Device Sdk Version", Wizard.getDeviceSDKVersion())
-              .putString("Device Manufacturer", Wizard.getDeviceManufacturer())
-              .putString("Device Release Version", Wizard.getDeviceReleaseVersion())
-              .putString("Device CPU Architecture", getArchitecture())
-              .putString("Device Country", Wizard.getDeviceCountry(getGlobalContext()))
-              .putString("App Package Name", Wizard.getAppPackageName(getGlobalContext()))
-              .putString("App Version " + "Name", Wizard.getAppVersionName(getGlobalContext()))
-              .putString("App " + "Version Code", Wizard.getAppVersionCode(getGlobalContext()))
-              .putString("Error", errorMessage.toString())
-              .putString("Crash Date", crashDate)
-              .build();
-      crashlytics.setCustomKeys(keysAndValues);
+      if (crashlytics != null) {
+        crashlytics.setUserId(Wizard.getUserID(getGlobalContext()));
+        CustomKeysAndValues keysAndValues =
+            new CustomKeysAndValues.Builder()
+                .putString("Device " + "Model", Wizard.getDeviceBuildModel())
+                .putString("Device Sdk Version", Wizard.getDeviceSDKVersion())
+                .putString("Device Manufacturer", Wizard.getDeviceManufacturer())
+                .putString("Device Release Version", Wizard.getDeviceReleaseVersion())
+                .putString("Device CPU Architecture", getArchitecture())
+                .putString("Device Country", Wizard.getDeviceCountry(getGlobalContext()))
+                .putString("App Package Name", Wizard.getAppPackageName(getGlobalContext()))
+                .putString("App Version " + "Name", Wizard.getAppVersionName(getGlobalContext()))
+                .putString("App " + "Version Code", Wizard.getAppVersionCode(getGlobalContext()))
+                .putString("Error", errorMessage.toString())
+                .putString("Crash Date", crashDate)
+                .build();
+        crashlytics.setCustomKeys(keysAndValues);
 
-      crashlytics.log("Uncaught exception in thread: " + thread.getName());
-      crashlytics.recordException(throwable);
+        crashlytics.log("Uncaught exception in thread: " + thread.getName());
+        crashlytics.recordException(throwable);
+      }
 
       var restartIntent = new Intent(this, CrashActivity.class);
       restartIntent.putExtra("error", errorMessage.toString());
@@ -217,9 +226,9 @@ public class IdeApplication extends Application implements Thread.UncaughtExcept
         .start();
   }
 
-  @NonNull
+  @Nullable
   public static FirebaseAnalytics getAnalytics() {
-    return FirebaseAnalytics.getInstance(getGlobalContext());
+    return instance.analytics;
   }
 
   public static ConnectivityManager getConnectivityManager() {

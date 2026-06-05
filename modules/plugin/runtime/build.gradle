@@ -1,0 +1,42 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.codeops.plugin.runtime'
+    compileSdk {
+        version = release(project.ext.compileSdkVersion) {
+            minorApiLevel = 1
+        }
+    }
+
+    defaultConfig {
+        minSdk 26
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.core.ktx
+    implementation libs.google.material
+    testImplementation libs.other.junit
+    androidTestImplementation libs.other.espresso.core
+    androidTestImplementation libs.other.ext.junit
+
+    implementation project(path: ":modules:plugin:sdk")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}

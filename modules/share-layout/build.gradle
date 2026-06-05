@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 /*
  * This file is part of CodeOps Studio.
  * CodeOps Studio - Code anywhere anytime
@@ -26,7 +28,11 @@ plugins {
 }
 android {
     namespace 'com.eup.libraries.sharelayout'
-    compileSdk project.ext.compileSdkVersion
+    compileSdk {
+        version = release(project.ext.compileSdkVersion) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         minSdk project.ext.minSdkVersion
@@ -49,9 +55,15 @@ android {
     buildFeatures {
         viewBinding true
     }
-
 }
 dependencies {
+    implementation libs.androidx.core.ktx
     implementation(libs.google.material)
     implementation(libs.androidx.appcompat)
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }

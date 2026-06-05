@@ -670,4 +670,6 @@
     <string name="btn_get_started">Get Started</string>
     <string name="btn_next">Next</string>
     <string name="coming_soon">Coming soon</string>
+    <string name="new_window">New Window</string>
+    <string name="close_window">Close Window</string>
 </resources>

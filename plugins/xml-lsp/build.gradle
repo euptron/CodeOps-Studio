@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id 'com.android.application'
 }
@@ -8,11 +10,15 @@ def signingEnabled = false
 
 android {
     namespace 'com.eup.codeops.plugin.xml.lsp'
-    compileSdk 35
+    compileSdk {
+        version = release(project.ext.compileSdkVersion){
+            minorApiLevel 1
+        }
+    }
 
     defaultConfig {
         minSdk 26
-        targetSdk 35
+        targetSdk 37
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -26,6 +32,7 @@ android {
         signingEnabled = true
     }
 
+    // Plugin APK may be signed using same signature as the host application
     signingConfigs {
         global {
             storeFile rootProject.file("app/codeopsstudio.keystore")
@@ -34,11 +41,11 @@ android {
             storePassword System.getenv("KEYSTORE_PASSWORD") ?: secretsProperties['STORE_PASSWORD']
         }
     }
-    
-    // Plugin APK must be signed using same signature as the main application
+
     buildTypes {
         release {
             minifyEnabled false
+            //noinspection NotShrinkingResources
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (signingEnabled) {
@@ -48,6 +55,7 @@ android {
         
         debug {
             minifyEnabled false
+            //noinspection NotShrinkingResources
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             if (signingEnabled) {
@@ -55,23 +63,15 @@ android {
             }
         }
     }
-    
     packagingOptions {
-        // Exclude duplicate version.properties files
-        exclude 'version.properties'
-        
-        // Also exclude any other problematic duplicates
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/INDEX.LIST'
-        
-        // Merge strategy for other duplicate files
-        pickFirst 'META-INF/LICENSE.md'
-        pickFirst 'META-INF/NOTICE.md'
+        resources {
+            excludes += ['version.properties', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/NOTICE', 'META-INF/INDEX.LIST']
+            pickFirsts += ['META-INF/LICENSE.md', 'META-INF/NOTICE.md']
+        }
     }
-    
-    configurations.all {
+
+
+    configurations.configureEach {
         exclude group: 'com.google.guava', module: 'listenablefuture'
     }
     
@@ -85,9 +85,17 @@ android {
 dependencies {
     implementation project(path: ":modules:plugin-api:common")
     implementation project(path: ":modules:plugin-api:intellisense")
-    
-    implementation 'androidx.annotation:annotation:1.9.1'
+
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.annotation
+    implementation libs.other.org.eclipse.lsp4j
+    coreLibraryDesugaring(libs.other.desugar)
+    //noinspection UseTomlInstead --XML LSP
     implementation 'org.eclipse.lemminx:org.eclipse.lemminx:0.30.0'
-    implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1'
-    coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.1.5')
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }

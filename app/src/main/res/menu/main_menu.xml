@@ -253,4 +253,14 @@
         android:id="@+id/menu_ad_privacy_settings"
         android:title="@string/ad_privacy_settings"
         android:visible="false" />
+
+    <item
+        android:id="@+id/menu_new_window"
+        android:title="@string/new_window"
+        android:visible="true" />
+
+    <item
+        android:id="@+id/menu_close_window"
+        android:title="@string/close_window"
+        android:visible="true" />
 </menu>

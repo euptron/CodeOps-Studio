@@ -23,12 +23,20 @@
 
 pluginManagement {
     repositories {
-        gradlePluginPortal()
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
+        gradlePluginPortal()
     }
 }
-
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -47,15 +55,17 @@ dependencyResolutionManagement {
 rootProject.name = "CodeOps Studio"
 
 include(":app")
-include(":pane")
 include(":server")
-include(":treeview")
+include(":pane")
 include(":common")
 include(":shared-res")
 include(":code-editor")
-include(":share-layout")
 include(":plugins:xml-lsp")
+include(":modules:treeview")
 include(":modules:ast-core")
+include(":modules:share-layout")
 include(":modules:bidirectional-llm")
 include(":modules:plugin-api:common")
 include(":modules:plugin-api:intellisense")
+include ':modules:plugin:sdk'
+include ':modules:plugin:runtime'

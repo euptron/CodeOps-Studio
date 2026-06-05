@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
     id 'maven-publish'
@@ -34,8 +36,16 @@ android {
 }
 
 dependencies {
+    //noinspection UseTomlInstead --library module ignore
     implementation "androidx.recyclerview:recyclerview:1.4.0"
     implementation(libs.androidx.annotation)
+    implementation libs.androidx.core.ktx
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
 }
 
 afterEvaluate {
